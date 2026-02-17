@@ -29,11 +29,9 @@
       "Bash(rm -rf*)",
       "Edit(.claude/**)",
       "Edit(.github/**)",
-      "Edit(AGENTS.md)",
       "Edit(CLAUDE.md)",
       "Write(.claude/**)",
       "Write(.github/**)",
-      "Write(AGENTS.md)",
       "Write(CLAUDE.md)"
     ]
   },

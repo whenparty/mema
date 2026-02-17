@@ -104,9 +104,9 @@ mema/
 Milestone: M0 · Spikes & Foundation
 Target: 2026-03-07
 In progress: —
-Completed: TASK-0.1 (Bun runtime compatibility)
+Completed: TASK-0.1 (Bun runtime compatibility), TASK-0.2 (Drizzle + pgvector)
 Blocked: —
-Decisions pending: 10 spikes (see docs/decisions/README.md)
+Decisions pending: 9 spikes (see docs/decisions/README.md)
 
 ---
 
@@ -117,7 +117,7 @@ Full write-ups: `docs/decisions/NNN-*.md` | Index: `docs/decisions/README.md`
 | Spike | Decision | Status |
 |-------|----------|--------|
 | TASK-0.1 | ✅ Bun 1.3 works with grammy, pg-boss, Drizzle+pgvector — no blockers | accepted |
-| TASK-0.2 | Drizzle + pgvector | pending |
+| TASK-0.2 | ✅ Native vector() + cosineDistance() in Drizzle — no custom types, brute-force <5ms at 1K facts | accepted |
 | TASK-0.3 | Combined LLM extraction call | pending |
 | TASK-0.4 | Multi-model generation | pending |
 | TASK-0.5 | Semantic search (Russian) | pending |
