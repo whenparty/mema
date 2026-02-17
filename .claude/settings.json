@@ -27,7 +27,6 @@
     "deny": [
       "Bash(git push*)",
       "Bash(rm -rf*)",
-      "Bash(docker*)",
       "Edit(.claude/**)",
       "Edit(.github/**)",
       "Edit(AGENTS.md)",
