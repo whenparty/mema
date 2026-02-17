@@ -27,7 +27,6 @@
     "deny": [
       "Bash(git push*)",
       "Bash(rm -rf*)",
-      "Edit(.claude/**)",
       "Edit(.github/**)",
       "Edit(CLAUDE.md)",
       "Write(.claude/**)",

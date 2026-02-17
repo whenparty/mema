@@ -12,7 +12,7 @@ Each decision is a separate markdown file: `NNN-short-name.md`
 |---|----------|--------|------|-------|
 | 001 | Bun runtime compatibility | accepted | 2026-02-17 | TASK-0.1 |
 | 002 | Drizzle + pgvector approach | accepted | 2026-02-17 | TASK-0.2 |
-| 003 | Combined vs separate LLM extraction calls | pending | — | TASK-0.3 |
+| 003 | Combined vs separate LLM extraction calls | accepted | 2026-02-17 | TASK-0.3 |
 | 004 | Multi-model generation strategy | pending | — | TASK-0.4 |
 | 005 | Russian semantic search quality | pending | — | TASK-0.5 |
 | 006 | RRULE library choice for Bun | pending | — | TASK-0.6 |
