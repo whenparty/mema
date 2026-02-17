@@ -1,0 +1,56 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Edit(src/**)",
+      "Edit(tests/**)",
+      "Edit(prompts/**)",
+      "Edit(docs/**)",
+      "Edit(scripts/**)",
+      "Edit(drizzle/**)",
+      "Write(src/**)",
+      "Write(tests/**)",
+      "Write(prompts/**)",
+      "Write(docs/**)",
+      "Write(scripts/**)",
+      "Write(drizzle/**)",
+      "Bash(bun test*)",
+      "Bash(bun run typecheck)",
+      "Bash(bun run lint*)",
+      "Bash(bun run format*)",
+      "Bash(bun run build)",
+      "Bash(git diff*)",
+      "Bash(git status*)",
+      "Bash(git log*)",
+      "Bash(python3:*)"
+    ],
+    "deny": [
+      "Bash(git push*)",
+      "Bash(rm -rf*)",
+      "Bash(docker*)",
+      "Edit(.claude/**)",
+      "Edit(.github/**)",
+      "Edit(AGENTS.md)",
+      "Edit(CLAUDE.md)",
+      "Write(.claude/**)",
+      "Write(.github/**)",
+      "Write(AGENTS.md)",
+      "Write(CLAUDE.md)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun run typecheck 2>&1 || true",
+            "timeout": 30,
+            "statusMessage": "Running typecheck"
+          }
+        ]
+      }
+    ]
+  }
+}
