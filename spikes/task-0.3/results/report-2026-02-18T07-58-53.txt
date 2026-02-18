@@ -1,0 +1,97 @@
+
+============================================================
+SUMMARY
+============================================================
+
+--- gpt-5-nano ---
+Overall score:  81.3%
+Avg latency:    5524ms
+Total tokens:   81911 in / 21597 out
+Errors:         0
+
+Success Criteria:
+  Fact extraction:       67.2%  (target ≥85%)
+  Intent classification: 95.0%  (target ≥90%)
+  Injection detection:   100.0%  (FN=0, FP=0)
+  Entity confidence:     25.0%  (false_high=2, target ≤1/4)
+
+By category:
+  extraction: 0/12 perfect
+  no_extraction: 2/3 perfect
+  intent: 4/10 perfect
+  conflict: 0/4 perfect
+  entity: 1/6 perfect
+  injection: 1/4 perfect
+  mixed: 1/1 perfect
+
+--- gpt-5-mini ---
+Overall score:  77.6%
+Avg latency:    6227ms
+Total tokens:   81911 in / 14138 out
+Errors:         0
+
+Success Criteria:
+  Fact extraction:       78.1%  (target ≥85%)
+  Intent classification: 100.0%  (target ≥90%)
+  Injection detection:   100.0%  (FN=0, FP=0)
+  Entity confidence:     100.0%  (false_high=0, target ≤1/4)
+
+By category:
+  extraction: 0/12 perfect
+  no_extraction: 2/3 perfect
+  intent: 3/10 perfect
+  conflict: 0/4 perfect
+  entity: 0/6 perfect
+  injection: 2/4 perfect
+  mixed: 0/1 perfect
+
+--- claude-haiku-4-5 (combined) ---
+Overall score:  85.6%
+Avg latency:    3403ms
+Total tokens:   125655 in / 8944 out
+Errors:         0
+
+Success Criteria:
+  Fact extraction:       84.4%  (target ≥85%)
+  Intent classification: 100.0%  (target ≥90%)
+  Injection detection:   100.0%  (FN=0, FP=0)
+  Entity confidence:     75.0%  (false_high=1, target ≤1/4)
+
+By category:
+  extraction: 1/12 perfect
+  no_extraction: 2/3 perfect
+  intent: 2/10 perfect
+  conflict: 0/4 perfect
+  entity: 1/6 perfect
+  injection: 0/4 perfect
+  mixed: 1/1 perfect
+
+--- claude-haiku-4-5 (split) ---
+Overall score:  84.3%
+Avg latency:    9197ms
+Total tokens:   154154 in / 10327 out
+Errors:         0
+
+Success Criteria:
+  Fact extraction:       84.4%  (target ≥85%)
+  Intent classification: 100.0%  (target ≥90%)
+  Injection detection:   100.0%  (FN=0, FP=0)
+  Entity confidence:     50.0%  (false_high=2, target ≤1/4)
+
+By category:
+  extraction: 2/12 perfect
+  no_extraction: 2/3 perfect
+  intent: 4/10 perfect
+  conflict: 0/4 perfect
+  entity: 0/6 perfect
+  injection: 1/4 perfect
+  mixed: 1/1 perfect
+
+=================================================================================
+COMPARISON TABLE
+=================================================================================
+Model                           Score   Latency   Facts   Intent  Inject  EntConf
+gpt-5-nano                      81.3%   5524ms    67%     95%     100%    25%
+gpt-5-mini                      77.6%   6227ms    78%     100%    100%    100%
+claude-haiku-4-5 (combined)     85.6%   3403ms    84%     100%    100%    75%
+claude-haiku-4-5 (split)        84.3%   9197ms    84%     100%    100%    50%
