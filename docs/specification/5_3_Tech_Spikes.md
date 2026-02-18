@@ -108,9 +108,8 @@ The architecture (4.4) assumes combining steps 4–8 into a single structured ou
 
 ### Success Criteria
 
-- Fact extraction accuracy ≥ 85% on a test set (30+ examples in Russian)
+- Fact extraction accuracy ≥ 85% on a test set (40 examples in English)
 - Correct intent classification ≥ 90%
-- Injection detection: 0 false negatives on 10 injection attempts, ≤ 1 false positive on 20 legitimate preferences
 - Quality comparison: combined call vs separate calls
 
 ### Research Plan
