@@ -2,12 +2,14 @@
  * TASK-0.5 Spike Runner — Semantic Search Quality in Russian
  *
  * Tests text-embedding-3-small and text-embedding-3-large on Russian-language
- * facts. Evaluates recall@K and MRR across query types and linguistic challenges.
+ * facts. Compares two search strategies:
+ *   - pure: cosine similarity on full corpus
+ *   - filtered: filter by relevant_fact_types first, then cosine similarity
  *
  * Structure:
  *   1. Config & types
  *   2. Embedding client
- *   3. Search (pure cosine similarity)
+ *   3. Search (pure cosine similarity + fact_type filtering)
  *   4. Evaluator
  *   5. Logger
  *   6. Reporting
@@ -21,6 +23,8 @@ import { queries, type TestQuery } from "./queries";
 // =============================================================================
 // 1. Config & types
 // =============================================================================
+
+type SearchMode = "pure" | "filtered";
 
 interface ModelConfig {
   label: string;
@@ -44,11 +48,13 @@ const MODEL_CONFIGS: ModelConfig[] = [
   },
 ];
 
+const SEARCH_MODES: SearchMode[] = ["pure", "filtered"];
 const TOP_K_VALUES = [5, 10, 20];
 
 interface EmbeddingResult {
   id: string;
   text: string;
+  fact_type: string;
   embedding: number[];
 }
 
@@ -68,20 +74,21 @@ interface QueryEval {
     hits: string[];
     misses: string[];
   }>;
-  mrr: number; // Mean Reciprocal Rank (based on first relevant result)
-  top_results: SearchHit[]; // top 20 results for inspection
+  mrr: number;
+  top_results: SearchHit[];
 }
 
-interface ModelEval {
+interface RunEval {
   model: string;
+  search_mode: SearchMode;
   embed_latency_ms: number;
   total_tokens: number;
   query_evals: QueryEval[];
-  summary: ModelSummary;
+  summary: RunSummary;
 }
 
-interface ModelSummary {
-  overall_recall: Record<number, number>; // k -> avg recall
+interface RunSummary {
+  overall_recall: Record<number, number>;
   overall_mrr: number;
   by_query_type: Record<string, {
     count: number;
@@ -120,7 +127,7 @@ async function embedBatch(
 }
 
 // =============================================================================
-// 3. Search — pure cosine similarity
+// 3. Search — cosine similarity + optional fact_type filtering
 // =============================================================================
 
 function cosineSimilarity(a: number[], b: number[]): number {
@@ -140,8 +147,14 @@ function searchTopK(
   queryEmbedding: number[],
   corpusEmbeddings: EmbeddingResult[],
   k: number,
+  factTypeFilter?: string[],
 ): SearchHit[] {
-  const scores = corpusEmbeddings.map((item) => ({
+  let candidates = corpusEmbeddings;
+  if (factTypeFilter && factTypeFilter.length > 0) {
+    const filterSet = new Set(factTypeFilter);
+    candidates = corpusEmbeddings.filter((item) => filterSet.has(item.fact_type));
+  }
+  const scores = candidates.map((item) => ({
     id: item.id,
     score: cosineSimilarity(queryEmbedding, item.embedding),
     rank: 0,
@@ -158,12 +171,13 @@ function evaluateQuery(
   query: TestQuery,
   queryEmbedding: number[],
   corpusEmbeddings: EmbeddingResult[],
+  mode: SearchMode,
 ): QueryEval {
   const maxK = Math.max(...TOP_K_VALUES);
-  const topResults = searchTopK(queryEmbedding, corpusEmbeddings, maxK);
+  const filter = mode === "filtered" ? query.relevant_fact_types : undefined;
+  const topResults = searchTopK(queryEmbedding, corpusEmbeddings, maxK, filter);
   const expectedSet = new Set(query.expected_fact_ids);
 
-  // Recall@K for each K value
   const results_by_k: QueryEval["results_by_k"] = {};
   for (const k of TOP_K_VALUES) {
     const topK = topResults.slice(0, k);
@@ -177,7 +191,6 @@ function evaluateQuery(
     results_by_k[k] = { recall, hits, misses };
   }
 
-  // MRR: 1 / rank of first relevant result in top-20
   const firstRelevant = topResults.find((h) => expectedSet.has(h.id));
   const mrr = firstRelevant ? 1 / firstRelevant.rank : 0;
 
@@ -222,8 +235,7 @@ const log = new Logger();
 // 6. Reporting
 // =============================================================================
 
-function computeSummary(queryEvals: QueryEval[]): ModelSummary {
-  // Overall recall@K
+function computeSummary(queryEvals: QueryEval[]): RunSummary {
   const overall_recall: Record<number, number> = {};
   for (const k of TOP_K_VALUES) {
     const avg =
@@ -232,17 +244,15 @@ function computeSummary(queryEvals: QueryEval[]): ModelSummary {
     overall_recall[k] = avg;
   }
 
-  // Overall MRR
   const overall_mrr =
     queryEvals.reduce((sum, qe) => sum + qe.mrr, 0) / queryEvals.length;
 
-  // By query type
   const byType = new Map<string, QueryEval[]>();
   for (const qe of queryEvals) {
     if (!byType.has(qe.query_type)) byType.set(qe.query_type, []);
     byType.get(qe.query_type)!.push(qe);
   }
-  const by_query_type: ModelSummary["by_query_type"] = {};
+  const by_query_type: RunSummary["by_query_type"] = {};
   for (const [type, evals] of byType) {
     const recall: Record<number, number> = {};
     for (const k of TOP_K_VALUES) {
@@ -254,9 +264,8 @@ function computeSummary(queryEvals: QueryEval[]): ModelSummary {
     by_query_type[type] = { count: evals.length, recall, mrr };
   }
 
-  // By fact tag — which linguistic types are hardest to find
-  const by_fact_tag: ModelSummary["by_fact_tag"] = {};
-  const tagMap = new Map<string, string[]>(); // tag -> fact_ids
+  const by_fact_tag: RunSummary["by_fact_tag"] = {};
+  const tagMap = new Map<string, string[]>();
   for (const fact of corpus) {
     for (const tag of fact.tags) {
       if (!tagMap.has(tag)) tagMap.set(tag, []);
@@ -297,23 +306,21 @@ function computeSummary(queryEvals: QueryEval[]): ModelSummary {
   return { overall_recall, overall_mrr, by_query_type, by_fact_tag };
 }
 
-function printModelReport(modelEval: ModelEval): void {
-  const { model, summary, embed_latency_ms, total_tokens, query_evals } = modelEval;
+function printRunReport(runEval: RunEval): void {
+  const { model, search_mode, summary, embed_latency_ms, total_tokens, query_evals } = runEval;
 
   log.report(`\n${"=".repeat(70)}`);
-  log.report(`MODEL: ${model}`);
+  log.report(`MODEL: ${model} | MODE: ${search_mode}`);
   log.report(`${"=".repeat(70)}`);
   log.report(`Embedding latency: ${embed_latency_ms}ms`);
   log.report(`Total tokens: ${total_tokens}`);
 
-  // Overall metrics
   log.report(`\n--- Overall Metrics ---`);
   for (const k of TOP_K_VALUES) {
     log.report(`  Recall@${k}:  ${(summary.overall_recall[k]! * 100).toFixed(1)}%`);
   }
   log.report(`  MRR:       ${(summary.overall_mrr * 100).toFixed(1)}%`);
 
-  // By query type
   log.report(`\n--- By Query Type ---`);
   const typeHeader =
     "Type".padEnd(14) +
@@ -334,7 +341,6 @@ function printModelReport(modelEval: ModelEval): void {
     );
   }
 
-  // By linguistic tag
   log.report(`\n--- By Linguistic Tag (fact retrieval rate) ---`);
   const tagHeader =
     "Tag".padEnd(18) +
@@ -358,7 +364,6 @@ function printModelReport(modelEval: ModelEval): void {
     );
   }
 
-  // Failure analysis — queries with recall@5 < 1.0
   const failures = query_evals.filter((qe) => qe.results_by_k[5]!.recall < 1.0);
   if (failures.length > 0) {
     log.report(`\n--- Failure Analysis (recall@5 < 100%) ---`);
@@ -368,14 +373,12 @@ function printModelReport(modelEval: ModelEval): void {
         `  ${qe.query_id} [${qe.query_type}] recall@5=${(r5.recall * 100).toFixed(0)}%` +
         ` — missed: [${r5.misses.join(", ")}]`,
       );
-      // Show what the missed facts actually are
       for (const missedId of r5.misses) {
         const fact = corpus.find((f) => f.id === missedId);
         if (fact) {
           log.report(`    ${missedId}: "${fact.content}" [${fact.tags.join(", ")}]`);
         }
       }
-      // Show where the missed facts actually ranked
       for (const missedId of r5.misses) {
         const hit = qe.top_results.find((h) => h.id === missedId);
         if (hit) {
@@ -390,68 +393,69 @@ function printModelReport(modelEval: ModelEval): void {
   }
 }
 
-function printComparisonTable(modelEvals: ModelEval[]): void {
-  log.report(`\n${"=".repeat(70)}`);
+function printComparisonTable(allRuns: RunEval[]): void {
+  log.report(`\n${"=".repeat(80)}`);
   log.report("COMPARISON TABLE");
-  log.report("=".repeat(70));
+  log.report("=".repeat(80));
 
   const header =
     "Model".padEnd(28) +
+    "Mode".padEnd(12) +
     "R@5".padEnd(9) +
     "R@10".padEnd(9) +
     "R@20".padEnd(9) +
-    "MRR".padEnd(9) +
-    "Latency".padEnd(10) +
-    "Tokens";
+    "MRR";
   log.report(header);
 
-  for (const me of modelEvals) {
+  for (const run of allRuns) {
     log.report(
-      me.model.padEnd(28) +
-      `${(me.summary.overall_recall[5]! * 100).toFixed(1)}%`.padEnd(9) +
-      `${(me.summary.overall_recall[10]! * 100).toFixed(1)}%`.padEnd(9) +
-      `${(me.summary.overall_recall[20]! * 100).toFixed(1)}%`.padEnd(9) +
-      `${(me.summary.overall_mrr * 100).toFixed(1)}%`.padEnd(9) +
-      `${me.embed_latency_ms}ms`.padEnd(10) +
-      `${me.total_tokens}`,
+      run.model.padEnd(28) +
+      run.search_mode.padEnd(12) +
+      `${(run.summary.overall_recall[5]! * 100).toFixed(1)}%`.padEnd(9) +
+      `${(run.summary.overall_recall[10]! * 100).toFixed(1)}%`.padEnd(9) +
+      `${(run.summary.overall_recall[20]! * 100).toFixed(1)}%`.padEnd(9) +
+      `${(run.summary.overall_mrr * 100).toFixed(1)}%`,
     );
   }
 
-  // Per-type comparison
-  log.report(`\nRecall@5 by query type:`);
-  const types = Object.keys(modelEvals[0]!.summary.by_query_type);
-  const typeHeader = "Type".padEnd(14) + modelEvals.map((me) => me.model.padEnd(28)).join("");
-  log.report(typeHeader);
-  for (const type of types) {
-    let line = type.padEnd(14);
-    for (const me of modelEvals) {
-      const data = me.summary.by_query_type[type];
-      line += data
-        ? `${(data.recall[5]! * 100).toFixed(1)}%`.padEnd(28)
-        : "n/a".padEnd(28);
+  // Per-type comparison: pure vs filtered for each model
+  log.report(`\nRecall@5 by query type (pure → filtered):`);
+  const types = Object.keys(allRuns[0]!.summary.by_query_type);
+  for (const config of MODEL_CONFIGS) {
+    log.report(`\n  ${config.label}:`);
+    const pureRun = allRuns.find((r) => r.model === config.label && r.search_mode === "pure");
+    const filteredRun = allRuns.find((r) => r.model === config.label && r.search_mode === "filtered");
+    if (!pureRun || !filteredRun) continue;
+
+    for (const type of types) {
+      const pureR5 = pureRun.summary.by_query_type[type]?.recall[5] ?? 0;
+      const filtR5 = filteredRun.summary.by_query_type[type]?.recall[5] ?? 0;
+      const delta = filtR5 - pureR5;
+      const deltaStr = delta > 0 ? `+${(delta * 100).toFixed(1)}` : delta < 0 ? `${(delta * 100).toFixed(1)}` : "  0.0";
+      log.report(
+        `    ${type.padEnd(14)} ${(pureR5 * 100).toFixed(1)}% → ${(filtR5 * 100).toFixed(1)}%  (${deltaStr}%)`,
+      );
     }
-    log.report(line);
   }
 
-  // Success criteria check
-  log.report(`\n${"=".repeat(70)}`);
+  // Success criteria
+  log.report(`\n${"=".repeat(80)}`);
   log.report("SUCCESS CRITERIA CHECK");
-  log.report("=".repeat(70));
-  for (const me of modelEvals) {
-    const directRecall = me.summary.by_query_type["direct"]?.recall[5] ?? 0;
-    const indirectRecall = me.summary.by_query_type["indirect"]?.recall[5] ?? 0;
-    const colloquialRecall = me.summary.by_query_type["colloquial"]?.recall[5] ?? 0;
+  log.report("=".repeat(80));
+  for (const run of allRuns) {
+    const directRecall = run.summary.by_query_type["direct"]?.recall[5] ?? 0;
+    const indirectRecall = run.summary.by_query_type["indirect"]?.recall[5] ?? 0;
+    const colloquialRecall = run.summary.by_query_type["colloquial"]?.recall[5] ?? 0;
 
     const directPass = directRecall >= 0.8 ? "PASS" : "FAIL";
     const indirectPass = indirectRecall >= 0.6 ? "PASS" : "FAIL";
 
-    // "No significant degradation" = colloquial recall is within 20% of direct recall
     const degradation = directRecall > 0
       ? ((directRecall - colloquialRecall) / directRecall) * 100
       : 0;
     const colloquialPass = degradation <= 20 ? "PASS" : "FAIL";
 
-    log.report(`\n  ${me.model}:`);
+    log.report(`\n  ${run.model} [${run.search_mode}]:`);
     log.report(
       `    Direct R@5:     ${(directRecall * 100).toFixed(1)}%  (target ≥80%) → ${directPass}`,
     );
@@ -468,38 +472,21 @@ function printComparisonTable(modelEvals: ModelEval[]): void {
 // 7. Main
 // =============================================================================
 
-async function runModel(config: ModelConfig): Promise<ModelEval> {
-  log.progress(`\n${"=".repeat(60)}`);
-  log.progress(`Embedding model: ${config.label}`);
-  log.progress("=".repeat(60));
+async function runModel(
+  config: ModelConfig,
+  mode: SearchMode,
+  cachedCorpus: EmbeddingResult[],
+  cachedQueryEmbeddings: number[][],
+  embedLatencyMs: number,
+  totalTokens: number,
+): Promise<RunEval> {
+  log.progress(`\n--- ${config.label} [${mode}] ---`);
 
-  // Embed corpus
-  log.progress(`  Embedding ${corpus.length} facts...`);
-  const corpusTexts = corpus.map((f) => f.content);
-  const corpusResult = await embedBatch(corpusTexts, config.model);
-  log.progress(`  → ${corpusResult.latencyMs}ms, ${corpusResult.tokens} tokens`);
-
-  const corpusEmbeddings: EmbeddingResult[] = corpus.map((f, i) => ({
-    id: f.id,
-    text: f.content,
-    embedding: corpusResult.embeddings[i]!,
-  }));
-
-  // Embed queries
-  log.progress(`  Embedding ${queries.length} queries...`);
-  const queryTexts = queries.map((q) => q.query);
-  const queryResult = await embedBatch(queryTexts, config.model);
-  log.progress(`  → ${queryResult.latencyMs}ms, ${queryResult.tokens} tokens`);
-
-  const totalLatency = corpusResult.latencyMs + queryResult.latencyMs;
-  const totalTokens = corpusResult.tokens + queryResult.tokens;
-
-  // Evaluate each query
   const queryEvals: QueryEval[] = [];
   for (let i = 0; i < queries.length; i++) {
     const query = queries[i]!;
-    const queryEmbedding = queryResult.embeddings[i]!;
-    const qe = evaluateQuery(query, queryEmbedding, corpusEmbeddings);
+    const queryEmbedding = cachedQueryEmbeddings[i]!;
+    const qe = evaluateQuery(query, queryEmbedding, cachedCorpus, mode);
     queryEvals.push(qe);
 
     const r5 = qe.results_by_k[5]!;
@@ -515,7 +502,8 @@ async function runModel(config: ModelConfig): Promise<ModelEval> {
 
   return {
     model: config.label,
-    embed_latency_ms: totalLatency,
+    search_mode: mode,
+    embed_latency_ms: embedLatencyMs,
     total_tokens: totalTokens,
     query_evals: queryEvals,
     summary,
@@ -523,23 +511,59 @@ async function runModel(config: ModelConfig): Promise<ModelEval> {
 }
 
 async function main() {
-  const modelEvals: ModelEval[] = [];
+  const allRuns: RunEval[] = [];
 
   for (const config of MODEL_CONFIGS) {
-    const result = await runModel(config);
-    modelEvals.push(result);
+    log.progress(`\n${"=".repeat(60)}`);
+    log.progress(`Embedding model: ${config.label}`);
+    log.progress("=".repeat(60));
+
+    // Embed once, reuse for both modes
+    log.progress(`  Embedding ${corpus.length} facts...`);
+    const corpusTexts = corpus.map((f) => f.content);
+    const corpusResult = await embedBatch(corpusTexts, config.model);
+    log.progress(`  → ${corpusResult.latencyMs}ms, ${corpusResult.tokens} tokens`);
+
+    const corpusEmbeddings: EmbeddingResult[] = corpus.map((f, i) => ({
+      id: f.id,
+      text: f.content,
+      fact_type: f.fact_type,
+      embedding: corpusResult.embeddings[i]!,
+    }));
+
+    log.progress(`  Embedding ${queries.length} queries...`);
+    const queryTexts = queries.map((q) => q.query);
+    const queryResult = await embedBatch(queryTexts, config.model);
+    log.progress(`  → ${queryResult.latencyMs}ms, ${queryResult.tokens} tokens`);
+
+    const totalLatency = corpusResult.latencyMs + queryResult.latencyMs;
+    const totalTokens = corpusResult.tokens + queryResult.tokens;
+
+    // Run both modes with cached embeddings
+    for (const mode of SEARCH_MODES) {
+      const result = await runModel(
+        config,
+        mode,
+        corpusEmbeddings,
+        queryResult.embeddings,
+        totalLatency,
+        totalTokens,
+      );
+      allRuns.push(result);
+    }
   }
 
   // Write reports
   log.report(`TASK-0.5 Spike Report — Semantic Search Quality in Russian`);
   log.report(`Generated: ${new Date().toISOString()}`);
   log.report(`Corpus: ${corpus.length} facts | Queries: ${queries.length}`);
+  log.report(`Search modes: ${SEARCH_MODES.join(", ")}`);
 
-  for (const me of modelEvals) {
-    printModelReport(me);
+  for (const run of allRuns) {
+    printRunReport(run);
   }
 
-  printComparisonTable(modelEvals);
+  printComparisonTable(allRuns);
 
   // Flush files
   const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
@@ -556,12 +580,14 @@ async function main() {
         corpus_size: corpus.length,
         query_count: queries.length,
         top_k_values: TOP_K_VALUES,
-        models: modelEvals.map((me) => ({
-          model: me.model,
-          embed_latency_ms: me.embed_latency_ms,
-          total_tokens: me.total_tokens,
-          summary: me.summary,
-          query_evals: me.query_evals,
+        search_modes: SEARCH_MODES,
+        runs: allRuns.map((run) => ({
+          model: run.model,
+          search_mode: run.search_mode,
+          embed_latency_ms: run.embed_latency_ms,
+          total_tokens: run.total_tokens,
+          summary: run.summary,
+          query_evals: run.query_evals,
         })),
       },
       null,

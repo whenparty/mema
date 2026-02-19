@@ -120,7 +120,7 @@ Full write-ups: `docs/decisions/NNN-*.md` | Index: `docs/decisions/README.md`
 | TASK-0.2 | ✅ Native vector() + cosineDistance() in Drizzle — no custom types, brute-force <5ms at 1K facts | accepted |
 | TASK-0.3 | ✅ Combined call works — Claude Haiku 4.5 best (85.6% score, 3.4s, 100% intent/injection). Split tested: no quality gain, 2.7x slower. Prompt iteration needed for 85% fact target (currently 84.4%) | accepted |
 | TASK-0.4 | Multi-model generation | deferred — spike needs real pipeline data, not synthetic; implement with validator first, evaluate later |
-| TASK-0.5 | ⚠️ text-embedding-3-small sufficient for Russian — R@5 74.4% (small) vs 81.7% (large). Colloquial/mixed/temporal 87-100%. Failures are inferential, not linguistic. Use small + K=10 for MVP, Tier 1 summary compensates | accepted |
+| TASK-0.5 | ✅ text-embedding-3-small + fact_type filtering passes all criteria (direct R@5 89.4%, indirect 62.5%). Add `relevant_fact_types` to step 8 structured output — no extra LLM call. Small+filtered outperforms large+pure at 6.5x lower cost | accepted |
 | TASK-0.6 | RRULE library for Bun | pending |
 | TASK-0.7 | Per-user serialization | pending |
 | TASK-0.8 | pg-boss scheduling precision | pending |
