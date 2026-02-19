@@ -1,0 +1,14 @@
+{
+  "name": "spike-task-0.5",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "spike": "bun run run-spike.ts"
+  },
+  "dependencies": {
+    "openai": "^4.90.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.0"
+  }
+}

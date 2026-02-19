@@ -1,0 +1,200 @@
+TASK-0.5 Spike Report — Semantic Search Quality in Russian
+Generated: 2026-02-19T21:54:33.921Z
+Corpus: 50 facts | Queries: 30
+
+======================================================================
+MODEL: text-embedding-3-small
+======================================================================
+Embedding latency: 3961ms
+Total tokens: 1162
+
+--- Overall Metrics ---
+  Recall@5:  74.4%
+  Recall@10:  82.7%
+  Recall@20:  88.1%
+  MRR:       88.7%
+
+--- By Query Type ---
+Type          Count  R@5      R@10     R@20     MRR
+direct        12     70.0%    85.8%    93.1%    88.3%
+indirect      8      55.2%    62.5%    71.9%    75.0%
+colloquial    4      87.5%    87.5%    87.5%    100.0%
+mixed         3      100.0%   100.0%   100.0%   100.0%
+temporal      3      100.0%   100.0%   100.0%   100.0%
+
+--- By Linguistic Tag (fact retrieval rate) ---
+Tag               Expected  Found@5   Found@10  Found@20  Rate@5
+standard          38        24        30        31        63.2%
+colloquial        8         5         5         7         62.5%
+diminutive        4         3         4         4         75.0%
+mixed             14        10        11        14        71.4%
+transliteration   3         1         1         1         33.3%
+
+--- Failure Analysis (recall@5 < 100%) ---
+  q02 [direct] recall@5=50% — missed: [f11]
+    f11: "Планирует переехать в Берлин весной" [standard]
+    → f11 was at rank 7 (score: 0.2115)
+  q03 [direct] recall@5=40% — missed: [f10, f20, f04]
+    f10: "Жена работает врачом в городской больнице" [standard]
+    f20: "Сестра Маша учится в университете" [standard]
+    f04: "Сын пошёл в первый класс в сентябре" [standard]
+    → f10 was at rank 9 (score: 0.2180)
+    → f20 was at rank 7 (score: 0.2334)
+    → f04 was at rank 19 (score: 0.1758)
+  q06 [direct] recall@5=50% — missed: [f17, f47]
+    f17: "Вегетарианец уже три года" [standard]
+    f47: "Пьёт латте с овсяным молоком из Старбакса" [transliteration]
+    → f17 not in top-20
+    → f47 not in top-20
+  q09 [direct] recall@5=50% — missed: [f27, f42, f45]
+    f27: "Подсел на сериальчики по вечерам" [colloquial]
+    f42: "Играет в PlayStation по выходным с друзьями" [mixed]
+    f45: "Читает Telegram-каналы про AI и стартапы" [mixed]
+    → f27 was at rank 15 (score: 0.2165)
+    → f42 was at rank 8 (score: 0.2597)
+    → f45 was at rank 13 (score: 0.2227)
+  q10 [direct] recall@5=50% — missed: [f33]
+    f33: "Котик Мурзик любит сметанку" [diminutive]
+    → f33 was at rank 8 (score: 0.2212)
+  q11 [direct] recall@5=0% — missed: [f06, f15, f28]
+    f06: "Аллергия на арахис" [standard]
+    f15: "Перенёс операцию на колене в январе" [standard]
+    f28: "Скинул пять кило за месяц" [colloquial]
+    → f06 not in top-20
+    → f15 was at rank 10 (score: 0.2114)
+    → f28 was at rank 14 (score: 0.2037)
+  q13 [indirect] recall@5=33% — missed: [f01, f17]
+    f01: "Живёт в Мюнхене" [standard]
+    f17: "Вегетарианец уже три года" [standard]
+    → f01 not in top-20
+    → f17 not in top-20
+  q14 [indirect] recall@5=50% — missed: [f29]
+    f29: "Корешу Лёхе стукнуло тридцатник" [colloquial]
+    → f29 not in top-20
+  q15 [indirect] recall@5=25% — missed: [f01, f12, f39]
+    f01: "Живёт в Мюнхене" [standard]
+    f12: "Занимается бегом по утрам" [standard]
+    f39: "Ходит в фитнес-клуб World Class три раза в неделю" [mixed]
+    → f01 not in top-20
+    → f12 was at rank 8 (score: 0.2669)
+    → f39 was at rank 18 (score: 0.2316)
+  q16 [indirect] recall@5=50% — missed: [f40]
+    f40: "Слушает подкаст Lex Fridman каждую неделю" [mixed]
+    → f40 was at rank 17 (score: 0.1666)
+  q17 [indirect] recall@5=33% — missed: [f06, f17]
+    f06: "Аллергия на арахис" [standard]
+    f17: "Вегетарианец уже три года" [standard]
+    → f06 was at rank 8 (score: 0.1742)
+    → f17 not in top-20
+  q19 [indirect] recall@5=50% — missed: [f15]
+    f15: "Перенёс операцию на колене в январе" [standard]
+    → f15 not in top-20
+  q24 [colloquial] recall@5=50% — missed: [f48]
+    f48: "Ездит на Фольксваген Гольф" [transliteration]
+    → f48 not in top-20
+
+======================================================================
+MODEL: text-embedding-3-large
+======================================================================
+Embedding latency: 3278ms
+Total tokens: 1162
+
+--- Overall Metrics ---
+  Recall@5:  81.7%
+  Recall@10:  86.6%
+  Recall@20:  93.9%
+  MRR:       89.2%
+
+--- By Query Type ---
+Type          Count  R@5      R@10     R@20     MRR
+direct        12     78.6%    90.7%    95.8%    87.5%
+indirect      8      63.5%    63.5%    83.3%    78.1%
+colloquial    4      100.0%   100.0%   100.0%   100.0%
+mixed         3      100.0%   100.0%   100.0%   100.0%
+temporal      3      100.0%   100.0%   100.0%   100.0%
+
+--- By Linguistic Tag (fact retrieval rate) ---
+Tag               Expected  Found@5   Found@10  Found@20  Rate@5
+standard          38        26        30        35        68.4%
+colloquial        8         6         6         7         75.0%
+diminutive        4         4         4         4         100.0%
+mixed             14        10        11        12        71.4%
+transliteration   3         3         3         3         100.0%
+
+--- Failure Analysis (recall@5 < 100%) ---
+  q02 [direct] recall@5=50% — missed: [f11]
+    f11: "Планирует переехать в Берлин весной" [standard]
+    → f11 was at rank 6 (score: 0.3095)
+  q03 [direct] recall@5=60% — missed: [f20, f04]
+    f20: "Сестра Маша учится в университете" [standard]
+    f04: "Сын пошёл в первый класс в сентябре" [standard]
+    → f20 was at rank 14 (score: 0.3089)
+    → f04 was at rank 8 (score: 0.3485)
+  q06 [direct] recall@5=50% — missed: [f05, f17]
+    f05: "Предпочитает итальянскую кухню" [standard]
+    f17: "Вегетарианец уже три года" [standard]
+    → f05 was at rank 10 (score: 0.2805)
+    → f17 was at rank 12 (score: 0.2679)
+  q09 [direct] recall@5=50% — missed: [f27, f40, f45]
+    f27: "Подсел на сериальчики по вечерам" [colloquial]
+    f40: "Слушает подкаст Lex Fridman каждую неделю" [mixed]
+    f45: "Читает Telegram-каналы про AI и стартапы" [mixed]
+    → f27 was at rank 15 (score: 0.2908)
+    → f40 was at rank 7 (score: 0.3367)
+    → f45 not in top-20
+  q11 [direct] recall@5=33% — missed: [f06, f15]
+    f06: "Аллергия на арахис" [standard]
+    f15: "Перенёс операцию на колене в январе" [standard]
+    → f06 not in top-20
+    → f15 was at rank 8 (score: 0.3143)
+  q13 [indirect] recall@5=67% — missed: [f01]
+    f01: "Живёт в Мюнхене" [standard]
+    → f01 not in top-20
+  q14 [indirect] recall@5=50% — missed: [f29]
+    f29: "Корешу Лёхе стукнуло тридцатник" [colloquial]
+    → f29 not in top-20
+  q15 [indirect] recall@5=25% — missed: [f01, f12, f39]
+    f01: "Живёт в Мюнхене" [standard]
+    f12: "Занимается бегом по утрам" [standard]
+    f39: "Ходит в фитнес-клуб World Class три раза в неделю" [mixed]
+    → f01 not in top-20
+    → f12 was at rank 11 (score: 0.3354)
+    → f39 not in top-20
+  q16 [indirect] recall@5=50% — missed: [f40]
+    f40: "Слушает подкаст Lex Fridman каждую неделю" [mixed]
+    → f40 was at rank 12 (score: 0.2605)
+  q19 [indirect] recall@5=50% — missed: [f15]
+    f15: "Перенёс операцию на колене в январе" [standard]
+    → f15 was at rank 11 (score: 0.2406)
+  q20 [indirect] recall@5=67% — missed: [f08]
+    f08: "Должен Мише 5000 рублей" [standard]
+    → f08 was at rank 12 (score: 0.3310)
+
+======================================================================
+COMPARISON TABLE
+======================================================================
+Model                       R@5      R@10     R@20     MRR      Latency   Tokens
+text-embedding-3-small      74.4%    82.7%    88.1%    88.7%    3961ms    1162
+text-embedding-3-large      81.7%    86.6%    93.9%    89.2%    3278ms    1162
+
+Recall@5 by query type:
+Type          text-embedding-3-small      text-embedding-3-large      
+direct        70.0%                       78.6%                       
+indirect      55.2%                       63.5%                       
+colloquial    87.5%                       100.0%                      
+mixed         100.0%                      100.0%                      
+temporal      100.0%                      100.0%                      
+
+======================================================================
+SUCCESS CRITERIA CHECK
+======================================================================
+
+  text-embedding-3-small:
+    Direct R@5:     70.0%  (target ≥80%) → FAIL
+    Indirect R@5:   55.2%  (target ≥60%) → FAIL
+    Colloquial R@5: 87.5%  (degradation: -25.0% vs direct → PASS)
+
+  text-embedding-3-large:
+    Direct R@5:     78.6%  (target ≥80%) → FAIL
+    Indirect R@5:   63.5%  (target ≥60%) → PASS
+    Colloquial R@5: 100.0%  (degradation: -27.2% vs direct → PASS)

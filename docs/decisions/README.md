@@ -14,7 +14,7 @@ Each decision is a separate markdown file: `NNN-short-name.md`
 | 002 | Drizzle + pgvector approach | accepted | 2026-02-17 | TASK-0.2 |
 | 003 | Combined vs separate LLM extraction calls | accepted | 2026-02-17 | TASK-0.3 |
 | 004 | Multi-model generation strategy | deferred | — | TASK-0.4 |
-| 005 | Russian semantic search quality | pending | — | TASK-0.5 |
+| 005 | Russian semantic search quality | accepted | 2026-02-20 | TASK-0.5 |
 | 006 | RRULE library choice for Bun | pending | — | TASK-0.6 |
 | 007 | Per-user message serialization approach | pending | — | TASK-0.7 |
 | 008 | pg-boss scheduling precision | pending | — | TASK-0.8 |
