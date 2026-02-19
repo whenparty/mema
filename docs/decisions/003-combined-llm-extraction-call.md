@@ -126,6 +126,12 @@ Both approaches enforce the schema and produce valid JSON consistently across al
 }
 ```
 
+## Limitations
+
+- Tested on 40 English-only cases. The bot supports multilingual input — revalidate on non-English test cases (especially morphologically rich languages like Russian) before finalizing the extraction prompt.
+- Missing intent coverage: `reminder.edit`, `system.pause`, `system.resume` were not tested.
+- No conversation history context in test cases — all tests are single messages without prior message pairs.
+
 ## Consequences
 
 - **Combined call confirmed** — one compact model call per message for steps 4-8, as the architecture assumed. Split was tested and provides no quality benefit.

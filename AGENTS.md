@@ -322,17 +322,19 @@ bun run format           # Format code
 
 ## Specification Reference
 
-- @docs/specification/4_4_System_Architecture.md — tech stack, components, LLM strategy, deployment
-- @docs/specification/4_3_Data_Model.md — all entities, fields, relationships
-- @docs/specification/4_1_Information_Architecture.md — intents, routing, dialog states, pipeline
-- @docs/specification/4_2_Conversation_Design.md — bot personality, example dialogs, tone
-- @docs/specification/3_1_Functional_Requirements.md — all FR with priorities
-- @docs/specification/3_2_Non-Functional_Requirements.md — performance, security, cost, portability
-- @docs/specification/3_3_User_Stories_Acceptance_Criteria.md — user stories with Given/When/Then
-- @docs/specification/3_4_User_Flow.md — user flow diagrams
-- @docs/specification/2_1_Product_Vision_Statement.md — product vision
-- @docs/specification/2_2_Goals_Success_Metrics.md — goals and success metrics
-- @docs/specification/2_3_Scope_In_Out.md — scope definition (in/out)
-- @docs/specification/5_1_Backlog.md — product backlog
-- @docs/specification/5_2_Milestones.md — delivery milestones
-- @docs/specification/5_3_Tech_Spikes.md — technical spikes
+> **Note:** Specs are NOT auto-loaded into context. Use the `/specification-navigator` skill or read files directly when needed.
+
+- `docs/specification/4_4_System_Architecture.md` — tech stack, components, LLM strategy, deployment
+- `docs/specification/4_3_Data_Model.md` — all entities, fields, relationships
+- `docs/specification/4_1_Information_Architecture.md` — intents, routing, dialog states, pipeline
+- `docs/specification/4_2_Conversation_Design.md` — bot personality, example dialogs, tone
+- `docs/specification/3_1_Functional_Requirements.md` — all FR with priorities
+- `docs/specification/3_2_Non-Functional_Requirements.md` — performance, security, cost, portability
+- `docs/specification/3_3_User_Stories_Acceptance_Criteria.md` — user stories with Given/When/Then
+- `docs/specification/3_4_User_Flow.md` — user flow diagrams
+- `docs/specification/2_1_Product_Vision_Statement.md` — product vision
+- `docs/specification/2_2_Goals_Success_Metrics.md` — goals and success metrics
+- `docs/specification/2_3_Scope_In_Out.md` — scope definition (in/out)
+- `docs/specification/5_1_Backlog.md` — product backlog
+- `docs/specification/5_2_Milestones.md` — delivery milestones
+- `docs/specification/5_3_Tech_Spikes.md` — technical spikes
