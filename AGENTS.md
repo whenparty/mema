@@ -119,7 +119,7 @@ Full write-ups: `docs/decisions/NNN-*.md` | Index: `docs/decisions/README.md`
 | TASK-0.1 | ✅ Bun 1.3 works with grammy, pg-boss, Drizzle+pgvector — no blockers | accepted |
 | TASK-0.2 | ✅ Native vector() + cosineDistance() in Drizzle — no custom types, brute-force <5ms at 1K facts | accepted |
 | TASK-0.3 | ✅ Combined call works — Claude Haiku 4.5 best (85.6% score, 3.4s, 100% intent/injection). Split tested: no quality gain, 2.7x slower. Prompt iteration needed for 85% fact target (currently 84.4%) | accepted |
-| TASK-0.4 | Multi-model generation | pending |
+| TASK-0.4 | Multi-model generation | deferred — spike needs real pipeline data, not synthetic; implement with validator first, evaluate later |
 | TASK-0.5 | Semantic search (Russian) | pending |
 | TASK-0.6 | RRULE library for Bun | pending |
 | TASK-0.7 | Per-user serialization | pending |
