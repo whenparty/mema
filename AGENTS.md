@@ -104,7 +104,7 @@ mema/
 Milestone: M0 · Spikes & Foundation
 Target: 2026-03-07
 In progress: —
-Completed: TASK-0.1, TASK-0.2, TASK-0.3, TASK-0.3-ext, TASK-0.5
+Completed: TASK-0.1, TASK-0.2, TASK-0.3, TASK-0.3-ext, TASK-0.5, TASK-0.6
 Blocked: —
 Next: TASK-1.1 (repo init) — critical path, unblocks 6 tasks
 
@@ -122,7 +122,7 @@ Full write-ups: `docs/decisions/NNN-*.md` | Index: `docs/decisions/README.md`
 | TASK-0.3-ext | ✅ Entity confidence classification works in combined call — false_high 1/10 (at threshold), false_low rare. No separate disambiguation step needed. Entity resolution correct in all high-confidence cases | accepted |
 | TASK-0.4 | Multi-model generation | deferred — spike needs real pipeline data, not synthetic; implement with validator first, evaluate later |
 | TASK-0.5 | ✅ text-embedding-3-small + fact_type filtering passes all criteria (direct R@5 89.4%, indirect 62.5%). Add `relevant_fact_types` to step 8 structured output — no extra LLM call. Small+filtered outperforms large+pure at 6.5x lower cost | accepted |
-| TASK-0.6 | RRULE library for Bun | pending — do before EPIC-8 |
+| TASK-0.6 | ✅ rrule.js v2.8.1 works with TZ=UTC — DST correct for Europe/Berlin and US/Eastern, all complex patterns pass. rrule-temporal blocked by missing Temporal API in Bun | accepted |
 | TASK-0.7 | Per-user serialization | skipped — trivial, Map<userId, Promise> for single instance, resolve during gateway implementation |
 | TASK-0.8 | pg-boss scheduling precision | skipped — verify during EPIC-8 reminder implementation |
 | TASK-0.9 | LLM-generated RRULE | pending — do after TASK-0.6, before EPIC-8 |
