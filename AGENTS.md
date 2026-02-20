@@ -104,9 +104,9 @@ mema/
 Milestone: M0 · Spikes & Foundation
 Target: 2026-03-07
 In progress: —
-Completed: TASK-0.1 (Bun runtime compatibility), TASK-0.2 (Drizzle + pgvector), TASK-0.3 (Combined LLM extraction call), TASK-0.3-ext (Entity confidence classification), TASK-0.5 (Semantic search — Russian)
+Completed: TASK-0.1, TASK-0.2, TASK-0.3, TASK-0.3-ext, TASK-0.5
 Blocked: —
-Decisions pending: 7 spikes (see docs/decisions/README.md)
+Next: TASK-1.1 (repo init) — critical path, unblocks 6 tasks
 
 ---
 
@@ -122,14 +122,16 @@ Full write-ups: `docs/decisions/NNN-*.md` | Index: `docs/decisions/README.md`
 | TASK-0.3-ext | ✅ Entity confidence classification works in combined call — false_high 1/10 (at threshold), false_low rare. No separate disambiguation step needed. Entity resolution correct in all high-confidence cases | accepted |
 | TASK-0.4 | Multi-model generation | deferred — spike needs real pipeline data, not synthetic; implement with validator first, evaluate later |
 | TASK-0.5 | ✅ text-embedding-3-small + fact_type filtering passes all criteria (direct R@5 89.4%, indirect 62.5%). Add `relevant_fact_types` to step 8 structured output — no extra LLM call. Small+filtered outperforms large+pure at 6.5x lower cost | accepted |
-| TASK-0.6 | RRULE library for Bun | pending |
-| TASK-0.7 | Per-user serialization | pending |
-| TASK-0.8 | pg-boss scheduling precision | pending |
-| TASK-0.9 | LLM-generated RRULE | pending |
-| TASK-0.10 | Sentry + Bun | pending |
-| TASK-0.11 | Webhook vs Long Polling | pending |
+| TASK-0.6 | RRULE library for Bun | pending — do before EPIC-8 |
+| TASK-0.7 | Per-user serialization | skipped — trivial, Map<userId, Promise> for single instance, resolve during gateway implementation |
+| TASK-0.8 | pg-boss scheduling precision | skipped — verify during EPIC-8 reminder implementation |
+| TASK-0.9 | LLM-generated RRULE | pending — do after TASK-0.6, before EPIC-8 |
+| TASK-0.10 | Sentry + Bun | skipped — verify during monitoring setup, fallback to @sentry/node |
+| TASK-0.11 | Webhook vs Long Polling | skipped — long polling for MVP, webhook post-MVP if needed |
 
 Update this table as spikes are completed. Keep entries short — one-line summary + status.
+
+**Spike triage (2026-02-21):** 4 spikes skipped — TASK-0.7 (trivial), TASK-0.8 (verify during impl), TASK-0.10 (verify during impl), TASK-0.11 (long polling for MVP). TASK-0.6 and TASK-0.9 remain — both block EPIC-8 (Reminders), can run in parallel with EPIC-1.
 
 ---
 
