@@ -1,0 +1,264 @@
+{
+  "run_at": "2026-02-20T23:22:15.856Z",
+  "model": "claude-haiku-4-5-20251001",
+  "today": "2026-02-21",
+  "iterations": 3,
+  "total_cases": 10,
+  "passed": 8,
+  "failed": 2,
+  "false_high_cases": 1,
+  "false_high_iterations": 3,
+  "criterion_met": true,
+  "avg_latency_ms": 3217,
+  "total_tokens_in": 56250,
+  "total_tokens_out": 8837,
+  "results": [
+    {
+      "id": 1,
+      "label": "health + child entity → high",
+      "message": "Andrew has a fever again, need to call the pediatrician.",
+      "expected_confidence": "high",
+      "borderline": false,
+      "expected_entity_id": "ent-son",
+      "majority_confidence": "high",
+      "majority_resolved_to": "ent-son",
+      "iteration_confidences": [
+        "high",
+        "high",
+        "high"
+      ],
+      "iteration_resolved_to": [
+        "ent-son",
+        "ent-son",
+        "ent-son"
+      ],
+      "pass": true,
+      "false_high": false,
+      "false_high_count": 0,
+      "notes": []
+    },
+    {
+      "id": 2,
+      "label": "financial + debt history → high",
+      "message": "Finally settled up with Andrew.",
+      "expected_confidence": "high",
+      "borderline": false,
+      "expected_entity_id": "ent-neighbor",
+      "majority_confidence": "high",
+      "majority_resolved_to": "ent-neighbor",
+      "iteration_confidences": [
+        "high",
+        "high",
+        "high"
+      ],
+      "iteration_resolved_to": [
+        "ent-neighbor",
+        "ent-neighbor",
+        "ent-neighbor"
+      ],
+      "pass": true,
+      "false_high": false,
+      "false_high_count": 0,
+      "notes": []
+    },
+    {
+      "id": 3,
+      "label": "work context + colleague → high",
+      "message": "Maria approved the design mockups today.",
+      "expected_confidence": "high",
+      "borderline": false,
+      "expected_entity_id": "ent-colleague",
+      "majority_confidence": "low",
+      "majority_resolved_to": "ent-colleague",
+      "iteration_confidences": [
+        "high",
+        "low",
+        "low"
+      ],
+      "iteration_resolved_to": [
+        "ent-colleague",
+        "ent-colleague",
+        "ent-colleague"
+      ],
+      "pass": false,
+      "false_high": false,
+      "false_high_count": 0,
+      "notes": [
+        "false low — expected \"high\", got \"low\"",
+        "inconsistent: [high, low, low]"
+      ]
+    },
+    {
+      "id": 4,
+      "label": "kindergarten context + child → high",
+      "message": "Andrew drew a picture at kindergarten, the teacher praised him.",
+      "expected_confidence": "high",
+      "borderline": false,
+      "expected_entity_id": "ent-son",
+      "majority_confidence": "high",
+      "majority_resolved_to": "ent-son",
+      "iteration_confidences": [
+        "high",
+        "high",
+        "high"
+      ],
+      "iteration_resolved_to": [
+        "ent-son",
+        "ent-son",
+        "ent-son"
+      ],
+      "pass": true,
+      "false_high": false,
+      "false_high_count": 0,
+      "notes": []
+    },
+    {
+      "id": 5,
+      "label": "neutral event, two candidates → low",
+      "message": "Saw Andrew today, had coffee together.",
+      "expected_confidence": "low",
+      "borderline": false,
+      "expected_entity_id": null,
+      "majority_confidence": "low",
+      "majority_resolved_to": null,
+      "iteration_confidences": [
+        "low",
+        "low",
+        "low"
+      ],
+      "iteration_resolved_to": [
+        null,
+        null,
+        null
+      ],
+      "pass": true,
+      "false_high": false,
+      "false_high_count": 0,
+      "notes": []
+    },
+    {
+      "id": 6,
+      "label": "birthday mention, two candidates, no date in memory → low",
+      "message": "Need to think of a gift for Maria's birthday.",
+      "expected_confidence": "low",
+      "borderline": false,
+      "expected_entity_id": null,
+      "majority_confidence": "low",
+      "majority_resolved_to": null,
+      "iteration_confidences": [
+        "low",
+        "low",
+        "low"
+      ],
+      "iteration_resolved_to": [
+        null,
+        null,
+        null
+      ],
+      "pass": true,
+      "false_high": false,
+      "false_high_count": 0,
+      "notes": []
+    },
+    {
+      "id": 7,
+      "label": "generic positive, no signal → low",
+      "message": "Andrew called, he's in a great mood.",
+      "expected_confidence": "low",
+      "borderline": false,
+      "expected_entity_id": null,
+      "majority_confidence": "low",
+      "majority_resolved_to": null,
+      "iteration_confidences": [
+        "low",
+        "low",
+        "low"
+      ],
+      "iteration_resolved_to": [
+        null,
+        null,
+        null
+      ],
+      "pass": true,
+      "false_high": false,
+      "false_high_count": 0,
+      "notes": []
+    },
+    {
+      "id": 8,
+      "label": "travel mention, both could travel → low",
+      "message": "Maria is coming back from a trip this weekend.",
+      "expected_confidence": "low",
+      "borderline": false,
+      "expected_entity_id": null,
+      "majority_confidence": "high",
+      "majority_resolved_to": "ent-wife",
+      "iteration_confidences": [
+        "high",
+        "high",
+        "high"
+      ],
+      "iteration_resolved_to": [
+        "ent-wife",
+        "ent-wife",
+        "ent-wife"
+      ],
+      "pass": false,
+      "false_high": true,
+      "false_high_count": 3,
+      "notes": [
+        "FALSE HIGH — model confident when it shouldn't be"
+      ]
+    },
+    {
+      "id": 9,
+      "label": "single candidate, no context clue → borderline",
+      "message": "Talked to Sergey about the situation.",
+      "expected_confidence": "high",
+      "borderline": true,
+      "expected_entity_id": null,
+      "majority_confidence": "high",
+      "majority_resolved_to": "ent-sergey",
+      "iteration_confidences": [
+        "high",
+        "high",
+        "high"
+      ],
+      "iteration_resolved_to": [
+        "ent-sergey",
+        "ent-sergey",
+        "ent-sergey"
+      ],
+      "pass": true,
+      "false_high": false,
+      "false_high_count": 0,
+      "notes": [
+        "borderline — accepted either, got \"high\""
+      ]
+    },
+    {
+      "id": 10,
+      "label": "relationship topic + wife entity → high",
+      "message": "Had a long talk with Maria about our vacation plans.",
+      "expected_confidence": "high",
+      "borderline": false,
+      "expected_entity_id": "ent-wife",
+      "majority_confidence": "high",
+      "majority_resolved_to": "ent-wife",
+      "iteration_confidences": [
+        "high",
+        "high",
+        "high"
+      ],
+      "iteration_resolved_to": [
+        "ent-wife",
+        "ent-wife",
+        "ent-wife"
+      ],
+      "pass": true,
+      "false_high": false,
+      "false_high_count": 0,
+      "notes": []
+    }
+  ]
+}

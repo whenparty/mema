@@ -1,0 +1,277 @@
+{
+  "run_at": "2026-02-20T23:20:47.696Z",
+  "model": "claude-haiku-4-5-20251001",
+  "today": "2026-02-21",
+  "iterations": 3,
+  "total_cases": 10,
+  "passed": 0,
+  "failed": 10,
+  "false_high_cases": 0,
+  "false_high_iterations": 0,
+  "criterion_met": true,
+  "avg_latency_ms": 0,
+  "total_tokens_in": 0,
+  "total_tokens_out": 0,
+  "results": [
+    {
+      "id": 1,
+      "label": "health + child entity → high",
+      "message": "Andrew has a fever again, need to call the pediatrician.",
+      "expected_confidence": "high",
+      "borderline": false,
+      "expected_entity_id": "ent-son",
+      "majority_confidence": "missing",
+      "majority_resolved_to": null,
+      "iteration_confidences": [
+        "missing",
+        "missing",
+        "missing"
+      ],
+      "iteration_resolved_to": [
+        null,
+        null,
+        null
+      ],
+      "pass": false,
+      "false_high": false,
+      "false_high_count": 0,
+      "notes": [
+        "entity not found in output"
+      ]
+    },
+    {
+      "id": 2,
+      "label": "financial + debt history → high",
+      "message": "Finally settled up with Andrew.",
+      "expected_confidence": "high",
+      "borderline": false,
+      "expected_entity_id": "ent-neighbor",
+      "majority_confidence": "missing",
+      "majority_resolved_to": null,
+      "iteration_confidences": [
+        "missing",
+        "missing",
+        "missing"
+      ],
+      "iteration_resolved_to": [
+        null,
+        null,
+        null
+      ],
+      "pass": false,
+      "false_high": false,
+      "false_high_count": 0,
+      "notes": [
+        "entity not found in output"
+      ]
+    },
+    {
+      "id": 3,
+      "label": "work context + colleague → high",
+      "message": "Maria approved the design mockups today.",
+      "expected_confidence": "high",
+      "borderline": false,
+      "expected_entity_id": "ent-colleague",
+      "majority_confidence": "missing",
+      "majority_resolved_to": null,
+      "iteration_confidences": [
+        "missing",
+        "missing",
+        "missing"
+      ],
+      "iteration_resolved_to": [
+        null,
+        null,
+        null
+      ],
+      "pass": false,
+      "false_high": false,
+      "false_high_count": 0,
+      "notes": [
+        "entity not found in output"
+      ]
+    },
+    {
+      "id": 4,
+      "label": "kindergarten context + child → high",
+      "message": "Andrew drew a picture at kindergarten, the teacher praised him.",
+      "expected_confidence": "high",
+      "borderline": false,
+      "expected_entity_id": "ent-son",
+      "majority_confidence": "missing",
+      "majority_resolved_to": null,
+      "iteration_confidences": [
+        "missing",
+        "missing",
+        "missing"
+      ],
+      "iteration_resolved_to": [
+        null,
+        null,
+        null
+      ],
+      "pass": false,
+      "false_high": false,
+      "false_high_count": 0,
+      "notes": [
+        "entity not found in output"
+      ]
+    },
+    {
+      "id": 5,
+      "label": "neutral event, two candidates → low",
+      "message": "Saw Andrew today, had coffee together.",
+      "expected_confidence": "low",
+      "borderline": false,
+      "expected_entity_id": null,
+      "majority_confidence": "missing",
+      "majority_resolved_to": null,
+      "iteration_confidences": [
+        "missing",
+        "missing",
+        "missing"
+      ],
+      "iteration_resolved_to": [
+        null,
+        null,
+        null
+      ],
+      "pass": false,
+      "false_high": false,
+      "false_high_count": 0,
+      "notes": [
+        "entity not found in output"
+      ]
+    },
+    {
+      "id": 6,
+      "label": "birthday mention, two candidates, no date in memory → low",
+      "message": "Need to think of a gift for Maria's birthday.",
+      "expected_confidence": "low",
+      "borderline": false,
+      "expected_entity_id": null,
+      "majority_confidence": "missing",
+      "majority_resolved_to": null,
+      "iteration_confidences": [
+        "missing",
+        "missing",
+        "missing"
+      ],
+      "iteration_resolved_to": [
+        null,
+        null,
+        null
+      ],
+      "pass": false,
+      "false_high": false,
+      "false_high_count": 0,
+      "notes": [
+        "entity not found in output"
+      ]
+    },
+    {
+      "id": 7,
+      "label": "generic positive, no signal → low",
+      "message": "Andrew called, he's in a great mood.",
+      "expected_confidence": "low",
+      "borderline": false,
+      "expected_entity_id": null,
+      "majority_confidence": "missing",
+      "majority_resolved_to": null,
+      "iteration_confidences": [
+        "missing",
+        "missing",
+        "missing"
+      ],
+      "iteration_resolved_to": [
+        null,
+        null,
+        null
+      ],
+      "pass": false,
+      "false_high": false,
+      "false_high_count": 0,
+      "notes": [
+        "entity not found in output"
+      ]
+    },
+    {
+      "id": 8,
+      "label": "travel mention, both could travel → low",
+      "message": "Maria is coming back from a trip this weekend.",
+      "expected_confidence": "low",
+      "borderline": false,
+      "expected_entity_id": null,
+      "majority_confidence": "missing",
+      "majority_resolved_to": null,
+      "iteration_confidences": [
+        "missing",
+        "missing",
+        "missing"
+      ],
+      "iteration_resolved_to": [
+        null,
+        null,
+        null
+      ],
+      "pass": false,
+      "false_high": false,
+      "false_high_count": 0,
+      "notes": [
+        "entity not found in output"
+      ]
+    },
+    {
+      "id": 9,
+      "label": "single candidate, no context clue → borderline",
+      "message": "Talked to Sergey about the situation.",
+      "expected_confidence": "high",
+      "borderline": true,
+      "expected_entity_id": null,
+      "majority_confidence": "missing",
+      "majority_resolved_to": null,
+      "iteration_confidences": [
+        "missing",
+        "missing",
+        "missing"
+      ],
+      "iteration_resolved_to": [
+        null,
+        null,
+        null
+      ],
+      "pass": false,
+      "false_high": false,
+      "false_high_count": 0,
+      "notes": [
+        "borderline — accepted either, got \"missing\""
+      ]
+    },
+    {
+      "id": 10,
+      "label": "relationship topic + wife entity → high",
+      "message": "Had a long talk with Maria about our vacation plans.",
+      "expected_confidence": "high",
+      "borderline": false,
+      "expected_entity_id": "ent-wife",
+      "majority_confidence": "missing",
+      "majority_resolved_to": null,
+      "iteration_confidences": [
+        "missing",
+        "missing",
+        "missing"
+      ],
+      "iteration_resolved_to": [
+        null,
+        null,
+        null
+      ],
+      "pass": false,
+      "false_high": false,
+      "false_high_count": 0,
+      "notes": [
+        "entity not found in output"
+      ]
+    }
+  ]
+}

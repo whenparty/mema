@@ -133,7 +133,7 @@ Determines the number of LLM calls per message → affects cost, latency, and pi
 |---|---|
 | **Priority** | P0 |
 | **Effort** | M |
-| **Status** | ⬜ |
+| **Status** | ✅ |
 | **Traceability** | FR-MEM.3 (entity disambiguation), ADR 003, TASK-0.3 |
 | **Dependency** | TASK-0.3 (closed) |
 

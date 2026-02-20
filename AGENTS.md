@@ -104,7 +104,7 @@ mema/
 Milestone: M0 · Spikes & Foundation
 Target: 2026-03-07
 In progress: —
-Completed: TASK-0.1 (Bun runtime compatibility), TASK-0.2 (Drizzle + pgvector), TASK-0.3 (Combined LLM extraction call), TASK-0.5 (Semantic search — Russian)
+Completed: TASK-0.1 (Bun runtime compatibility), TASK-0.2 (Drizzle + pgvector), TASK-0.3 (Combined LLM extraction call), TASK-0.3-ext (Entity confidence classification), TASK-0.5 (Semantic search — Russian)
 Blocked: —
 Decisions pending: 7 spikes (see docs/decisions/README.md)
 
@@ -119,6 +119,7 @@ Full write-ups: `docs/decisions/NNN-*.md` | Index: `docs/decisions/README.md`
 | TASK-0.1 | ✅ Bun 1.3 works with grammy, pg-boss, Drizzle+pgvector — no blockers | accepted |
 | TASK-0.2 | ✅ Native vector() + cosineDistance() in Drizzle — no custom types, brute-force <5ms at 1K facts | accepted |
 | TASK-0.3 | ✅ Combined call works — Claude Haiku 4.5 best (85.6% score, 3.4s, 100% intent/injection). Split tested: no quality gain, 2.7x slower. Prompt iteration needed for 85% fact target (currently 84.4%) | accepted |
+| TASK-0.3-ext | ✅ Entity confidence classification works in combined call — false_high 1/10 (at threshold), false_low rare. No separate disambiguation step needed. Entity resolution correct in all high-confidence cases | accepted |
 | TASK-0.4 | Multi-model generation | deferred — spike needs real pipeline data, not synthetic; implement with validator first, evaluate later |
 | TASK-0.5 | ✅ text-embedding-3-small + fact_type filtering passes all criteria (direct R@5 89.4%, indirect 62.5%). Add `relevant_fact_types` to step 8 structured output — no extra LLM call. Small+filtered outperforms large+pure at 6.5x lower cost | accepted |
 | TASK-0.6 | RRULE library for Bun | pending |
