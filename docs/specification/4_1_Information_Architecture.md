@@ -146,8 +146,8 @@ Intermediate states are divided into two types: `CONFIRM` (bot awaits a decision
           │                │  │                │
           │  context.type: │  │  context.type: │
           │  · conflict    │  │  · missing_data│
-          │  · delete      │  │                │
-          │  · acct_delete │  │                │
+          │  · delete      │  │  · entity_dis- │
+          │  · acct_delete │  │    ambiguation │
           │  · interest    │  │                │
           └───────┬────────┘  └───────┬────────┘
                   │                   │
@@ -166,6 +166,7 @@ Intermediate states are divided into two types: `CONFIRM` (bot awaits a decision
 | `CONFIRM` | `account_delete` | Intent `system.delete_account` (FR-PLT.3) | Irreversible deletion confirmation / cancel | Full deletion or cancel |
 | `CONFIRM` | `interest` | Interest detection found a promoted candidate for the current topic (FR-MEM.15) | Confirmation / rejection | Create Fact with `preference` or dismiss candidate |
 | `AWAIT` | `missing_data` | Data for the request is missing — city, date, etc. (FR-REM.6, FR-REM.7, FR-COM.4). Includes timezone determination fallback: if city is unknown during first reminder creation — bot asks for city | Missing information | Continue original scenario |
+| `AWAIT` | `entity_disambiguation` | Compact model returned `entity_confidence: low` during entity resolution (FR-MEM.3) | Clarification: "is this your son or your neighbor Andrew?" | Save the fact with the specified entity and respond to the original request |
 
 ### Intermediate State Reset
 
@@ -177,7 +178,7 @@ An intermediate state resets to `IDLE` in two cases:
 On reset:
 
 - `CONFIRM` — unfinished confirmations are canceled. The fact is not updated / deleted / saved. Interest candidate remains in `promoted` status for next time.
-- `AWAIT` — unfinished scenario is canceled. The bot does not create a reminder "blindly."
+- `AWAIT` — unfinished scenario is canceled. The bot does not create a reminder "blindly." For `entity_disambiguation`: the fact is dropped, and the bot notifies the user: *"By the way, I didn't save [X] — didn't get your answer."*
 
 **Handling "bare" confirmations in IDLE:** when short messages ("yes," "no," "ok") are received in IDLE state, the system checks for a recently reset intermediate state (~5 minutes). If found — the bot responds in the context of the reset state, helping the user continue the interrupted scenario.
 

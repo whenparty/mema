@@ -21,7 +21,7 @@ Prioritized task list for MVP implementation. Two levels: epics for overview, ta
 
 | # | Epic | Tasks | Estimate | Priority |
 |---|------|-------|----------|----------|
-| 0 | Tech Spikes | 11 | 36 h | P0–P2 |
+| 0 | Tech Spikes | 12 | 40 h | P0–P2 |
 | 1 | Project Setup & Infrastructure | 7 | 20 h | P0 |
 | 2 | Telegram Gateway | 4 | 12 h | P0 |
 | 3 | LLM Abstraction Layer | 4 | 14 h | P0 |
@@ -35,7 +35,7 @@ Prioritized task list for MVP implementation. Two levels: epics for overview, ta
 | 11 | Admin & Monitoring | 6 | 16 h | P0–P1 |
 | 12 | Evaluation & Quality | 4 | 14 h | P1 |
 | 13 | Interest Detection | 4 | 16 h | P1 |
-| | **Total** | **82** | **~278 h** | |
+| | **Total** | **83** | **~282 h** | |
 
 ---
 
@@ -50,6 +50,7 @@ Spikes are included in the backlog as tasks for tracking in GitHub Issues. Descr
 | TASK-0.1 | Spike: Bun compatibility with dependencies | P0 | 4 h | — |
 | TASK-0.2 | Spike: Drizzle ORM + pgvector | P0 | 2 h | — |
 | TASK-0.3 | Spike: Combined LLM extraction call | P0 | 8 h | — |
+| TASK-0.3-ext | Spike: Entity confidence classification test | P0 | 4 h | TASK-0.3 |
 | TASK-0.4 | Spike: Multi-model generation (latency + quality) | P1 | 4 h | — |
 | TASK-0.5 | Spike: Semantic search in Russian | P1 | 4 h | — |
 | TASK-0.6 | Spike: RRULE library for Bun | P1 | 2 h | TASK-0.1 |

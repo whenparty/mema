@@ -87,6 +87,16 @@ Example: "we went to the indoor Bella" → Entity: `{ canonical_name: "Bella", t
 
 A fact can be linked to multiple entities simultaneously (many-to-many relationship via a junction table). Example: "Went skiing with Dima and Misha" — the fact is linked to two entities.
 
+#### Ambiguous Entity Disambiguation
+
+When multiple entities share the same name, the compact model evaluates resolution confidence (`entity_confidence`):
+
+**`high`** — a single candidate exists and the message context unambiguously points to it (e.g., `fact_type: health` when a child entity is present). The bot saves the fact immediately and embeds a soft confirmation at the beginning of the response: *"Just to confirm — you mean your son?"*. If the user explicitly denies — the fact is re-saved via `memory.edit`.
+
+**`low`** — multiple equally likely candidates exist or there is insufficient contextual signal. The bot does not save the fact and does not respond to the substance of the request until resolution. Transitions to `AWAIT (type: entity_disambiguation)` and asks a clarifying question. After the user's response — saves the fact and responds.
+
+If the topic changes before resolution (`low` case) — `AWAIT` resets, the fact is dropped. The bot notifies: *"By the way, I didn't save the info about [X] — I didn't get an answer."*
+
 ### FR-MEM.4 · Conflict Detection | MUST
 
 When receiving a fact that contradicts a previously saved one, the bot distinguishes three types of conflicts:

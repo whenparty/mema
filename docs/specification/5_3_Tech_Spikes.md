@@ -127,6 +127,48 @@ Determines the number of LLM calls per message → affects cost, latency, and pi
 
 ---
 
+## Spike 3-ext · Entity Confidence Classification Test
+
+| | |
+|---|---|
+| **Priority** | P0 |
+| **Effort** | M |
+| **Status** | ⬜ |
+| **Traceability** | FR-MEM.3 (entity disambiguation), ADR 003, TASK-0.3 |
+| **Dependency** | TASK-0.3 (closed) |
+
+### Question
+
+Can Claude Haiku 4.5 reliably assess `entity_confidence` when disambiguating ambiguous entities? This is a distinct skill from fact extraction — the model must correctly evaluate its own confidence level.
+
+### Context
+
+Entity disambiguation adds an `entity_confidence` field (`high` / `low`) to structured output. `high` → optimistic save with soft confirmation, `low` → blocking AWAIT state. The balance is critical: false `high` (model confident when it shouldn't be) leads to incorrect fact storage; false `low` leads to unnecessary user confirmation. False `high` is significantly worse for UX.
+
+### Test Cases (8–10 instances, three types)
+
+| Type | Scenario | Expected `entity_confidence` |
+|------|----------|------------------------------|
+| Single candidate + strong signal | `fact_type: health` + entity-child | `high` |
+| Single candidate + strong signal | `fact_type: financial` + entity with financial history | `high` |
+| Multiple candidates, same name | Andrew-son and Andrew-neighbor, neutral context | `low` |
+| Multiple candidates, same name | Andrew-son and Andrew-neighbor, health context | `high` → son |
+| Single candidate, weak signal | New mention, no contextual clues | borderline |
+
+### Success Criteria
+
+- `false high` (model confident when it shouldn't be) — **no more than 1 out of 10 cases**
+- `false low` acceptable — unnecessary confirmation is better than incorrect storage, but tolerable
+
+### If Test Fails
+
+If `false high` > 1/10 — consider splitting the combined call: entity disambiguation as a separate step after main extraction. Cost: +1 LLM call for messages with ambiguous entities.
+
+### Impact on Backlog
+
+Blocks entity disambiguation implementation in EPIC-5 (TASK-5.3). If test fails — pipeline complexity increases (additional LLM call), processing cost rises for messages with ambiguous entities.
+
+
 ## Spike 4 · Multi-Model Generation: Latency and Validation Quality
 
 | | |
