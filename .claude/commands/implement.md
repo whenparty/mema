@@ -168,9 +168,12 @@ The subagent updates the issue with deviations, adds a closing comment, updates
 AGENTS.md (sprint + module docs), and returns a suggested conventional commit message
 (e.g., `feat(db): TASK-1.3 — add schema and migrations`).
 
-Present the commit message and the execution summary to me. STOP and wait for me to commit.
+Commit to the feature branch automatically using the suggested commit message:
+`git add <files> && git commit -m "<message>"`
 
-**After user commits**, ask for confirmation to push and merge, then:
+Present the execution summary to the user.
+
+Then ask for confirmation to push and merge. **After user confirms**:
 1. Merge the feature branch into main: `git checkout main && git merge task/TASK-X.Y`
 2. Push to remote: `git push`
 3. Close the issue: `gh issue close <number> --repo whenparty/mema`
@@ -286,6 +289,7 @@ validation report, review verdict, commit message.
 - If implementer hits a blocker after 3 attempts at any step, STOP and explain —
   do not loop endlessly
 - Always work in a feature branch (`task/TASK-X.Y`) — never commit directly to main
-- Present commit message at the end. NEVER run git add/commit/push yourself
+- Commit to the feature branch automatically after review is APPROVED — do not ask the user
+- NEVER push to remote or merge to main without user confirmation
 - If the task turns out larger than expected mid-implementation, STOP and discuss
   splitting it with me rather than continuing with a bloated PR
