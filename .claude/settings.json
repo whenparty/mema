@@ -45,11 +45,9 @@
     "deny": [
       "Bash(git push*)",
       "Bash(rm -rf*)",
-      "Edit(.github/**)",
       "Edit(CLAUDE.md)",
       "Write(.claude/settings.json)",
       "Write(.claude/settings.local.json)",
-      "Write(.github/**)",
       "Write(CLAUDE.md)"
     ]
   },
