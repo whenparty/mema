@@ -4,7 +4,6 @@
 	"type": "module",
 	"scripts": {
 		"dev": "bun run --watch src/app.ts",
-		"build": "bun build src/app.ts --outdir dist --target bun",
 		"start": "bun run src/app.ts",
 		"test": "vitest run",
 		"test:watch": "vitest",

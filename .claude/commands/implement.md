@@ -209,6 +209,27 @@ Based on observed patterns:
    apply it directly and re-run validator only. Reserve the implementer→validator→reviewer
    loop for actual code changes.
 
+## Subagent Responsibility Matrix
+
+Each subagent has a strict scope. No overlaps — if two agents could do the same thing,
+only one is responsible.
+
+| Subagent | Role | Reads code | Writes code | Allowed commands | Reads specs |
+|----------|------|:----------:|:-----------:|------------------|:-----------:|
+| **context-loader** (general-purpose) | Gather task context from GitHub + specs | no | no | `gh` | yes |
+| **planner** | Create step-by-step plan | yes | no | none | yes |
+| **plan-verifier** | Check plan correctness | yes | no | none | yes |
+| **implementer** | Write code via TDD | yes | **yes** | `bun test <file>` only | no |
+| **validator** | Run CI checks | no | no | `bun test`, `bun run typecheck`, `bun run lint` | no |
+| **reviewer** | Evaluate code quality | yes | no | `git diff`, `git status` only | yes |
+| **close-task** (general-purpose) | Update GitHub + AGENTS.md | no | **yes** (AGENTS.md only) | `gh` | no |
+
+**Key boundaries:**
+- **validator owns CI** — only it runs tests/typecheck/lint. Reviewer trusts its report.
+- **implementer owns TDD** — runs `bun test <file>` per step. Does NOT run full suite.
+- **reviewer owns code quality** — reads diffs and files. Does NOT run any build/test/lint.
+- **planner and plan-verifier are read-only** — no Bash, no writes.
+
 ## Context Management
 
 All heavy work runs in subagents to protect the main context window:
