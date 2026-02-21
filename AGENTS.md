@@ -58,9 +58,9 @@ Each `src/` subdirectory gets its own `AGENTS.md` when first implemented (see Mo
 Milestone: M0 · Spikes & Foundation
 Target: 2026-03-07
 In progress: —
-Completed: TASK-0.1, TASK-0.2, TASK-0.3, TASK-0.3-ext, TASK-0.5, TASK-0.6, TASK-0.9, TASK-1.1, TASK-1.2, TASK-1.3, TASK-1.4
+Completed: TASK-0.1, TASK-0.2, TASK-0.3, TASK-0.3-ext, TASK-0.5, TASK-0.6, TASK-0.9, TASK-1.1, TASK-1.2, TASK-1.3, TASK-1.4, TASK-1.5
 Blocked: —
-Next: TASK-1.5 (Database backup) — unblocked by TASK-1.2; also unblocked: TASK-1.6, TASK-1.7
+Next: TASK-1.6, TASK-1.7
 
 ---
 
