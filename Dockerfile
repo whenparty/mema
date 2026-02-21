@@ -36,9 +36,11 @@ COPY --from=build /app/package.json ./
 COPY --from=build /app/tsconfig.json ./
 COPY --from=build /app/src/ ./src/
 
-# TODO: Uncomment when these directories have content beyond .gitkeep
+# Drizzle migration files
+COPY --from=build /app/drizzle/ ./drizzle/
+
+# TODO: Uncomment when prompts directory has content beyond .gitkeep
 # COPY --from=build /app/prompts/ ./prompts/
-# COPY --from=build /app/drizzle/ ./drizzle/
 
 EXPOSE 3000
 
