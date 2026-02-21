@@ -14,8 +14,6 @@ out/
 # Bun
 bun.lockb
 
-# Drizzle
-drizzle/meta/
 
 # IDE
 .idea/
