@@ -138,7 +138,10 @@ If validator returns **FAIL**:
    - Launch a **reviewer** subagent (`Task` tool, `subagent_type: reviewer`).
      Pass it: the plan and the task brief for context.
      The reviewer returns a verdict: APPROVED / NEEDS_REVISION / FAILED
-   - Run Copilot review: `copilot -p "/review" --allow-all` (background Bash)
+   - Run Copilot review via background Bash: `copilot -p "<prompt>" --allow-all`.
+     Pass the SAME detailed context as the reviewer subagent (task brief, AC,
+     plan summary, validation result) — not just a bare `/review` command.
+     Copilot needs the full context to give meaningful feedback.
 3. Present both verdicts to me
 
 If verdict is **NEEDS_REVISION**:
