@@ -58,9 +58,9 @@ Each `src/` subdirectory gets its own `AGENTS.md` when first implemented (see Mo
 Milestone: M0 · Spikes & Foundation
 Target: 2026-03-07
 In progress: —
-Completed: TASK-0.1, TASK-0.2, TASK-0.3, TASK-0.3-ext, TASK-0.5, TASK-0.6, TASK-0.9, TASK-1.1, TASK-1.2
+Completed: TASK-0.1, TASK-0.2, TASK-0.3, TASK-0.3-ext, TASK-0.5, TASK-0.6, TASK-0.9, TASK-1.1, TASK-1.2, TASK-1.3
 Blocked: —
-Next: TASK-1.3 (DB schema / Drizzle migrations) — unblocked by TASK-1.2 + TASK-0.2
+Next: TASK-1.4 (CI/CD: GitHub Actions) — unblocked by TASK-1.2; also unblocked: TASK-1.5, TASK-1.6, TASK-1.7
 
 ---
 
@@ -97,7 +97,7 @@ can understand a module without reading every source file.
 
 | Module | File | Status |
 |--------|------|--------|
-| (created during implementation as modules are built) | | |
+| infra/db | src/infra/db/AGENTS.md | created |
 
 **Structure of a module AGENTS.md:**
 ```
@@ -207,7 +207,8 @@ Update this table as new spikes produce actionable constraints.
 ## Testing Conventions
 
 - TDD: failing test -> implementation -> refactor
-- Colocated tests: `foo.ts` -> `foo.test.ts` in the same directory
+- Tests in `tests/` subdirectory: `src/module/foo.ts` -> `src/module/tests/foo.test.ts`
+- E2E tests in `tests/e2e/` (root level, black-box, require Docker)
 - Test behavior, not implementation details
 - `tests/eval/` — synthetic "message -> expected facts" pairs for extraction quality regression
 - Evaluation: every 5th message is sent for async LLM-as-judge assessment

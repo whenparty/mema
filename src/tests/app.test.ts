@@ -1,5 +1,5 @@
+import { app } from "@/app";
 import { describe, expect, it } from "vitest";
-import { app } from "./app";
 
 describe("Health endpoint", () => {
 	it("GET /health returns 200 with status ok", async () => {
