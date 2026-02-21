@@ -104,9 +104,9 @@ mema/
 Milestone: M0 · Spikes & Foundation
 Target: 2026-03-07
 In progress: —
-Completed: TASK-0.1, TASK-0.2, TASK-0.3, TASK-0.3-ext, TASK-0.5, TASK-0.6, TASK-0.9, TASK-1.1
+Completed: TASK-0.1, TASK-0.2, TASK-0.3, TASK-0.3-ext, TASK-0.5, TASK-0.6, TASK-0.9, TASK-1.1, TASK-1.2
 Blocked: —
-Next: TASK-1.2 (Docker Compose) — unblocked by TASK-1.1
+Next: TASK-1.3 (DB schema / Drizzle migrations) — unblocked by TASK-1.2 + TASK-0.2
 
 ---
 
@@ -209,6 +209,20 @@ The codebase follows a simplified clean architecture with three layers:
 - Per-user serialization: max one message processed per user at a time (FR-PLT.6)
 - **`spikes/` is off-limits** — standalone experiments with their own deps; never read, modify, reference, or run spike code during implementation, planning, or review
 - **`docs/decisions/` is the source of truth for technology choices** — spike results, version constraints, and workarounds live here. Read relevant decision docs when planning or reviewing tasks that depend on spike outcomes (see Spike Results table)
+
+### Hard Constraints from Spike Decisions
+
+Actionable requirements extracted from `docs/decisions/`. Must be followed by any task touching the relevant area — planners and implementers should not need to re-read decision docs for these.
+
+| Constraint | Area | Source | Reason |
+|-----------|------|--------|--------|
+| `ENV TZ=UTC` in Dockerfile and `TZ=UTC` prefix for dev scripts | Docker, Reminders | [006](docs/decisions/006-rrule-library-choice.md) | rrule.js TZID+DST breaks when process TZ ≠ UTC |
+| `{ PgBoss }` named import, explicit `createQueue()` before `send()` | Job queue | [docs/decisions/](docs/decisions/) | pg-boss v12 API change |
+| Native `vector()` type in Drizzle, `cosineDistance()` for similarity | Database | [002](docs/decisions/002-drizzle-pgvector.md) | No custom types needed, brute-force <5ms at 1K facts |
+| GPT-5 family: no `temperature: 0`, use `reasoning_effort: "low"` | LLM | [003](docs/decisions/003-combined-extraction-call.md) | API rejects temperature param |
+| `pgvector/pgvector:pg17` Docker image | Database | [002](docs/decisions/002-drizzle-pgvector.md) | Tested with pgvector 0.8.1 + PG17 |
+
+Update this table as new spikes produce actionable constraints.
 
 ---
 
@@ -333,7 +347,8 @@ Full routing logic: @docs/specification/4_1_Information_Architecture.md
 
 ## Git Conventions
 
-- Conventional commits: `feat|fix|refactor|chore|docs|test(scope): message`
+- Conventional commits: `feat|fix|refactor|chore|docs|test(scope): TASK-X.Y — message`
+- Always include the task ID (e.g., `TASK-1.2`) in the commit message when working on a tracked task
 - Atomic commits — one logical change per commit
 - Run tests before committing
 
