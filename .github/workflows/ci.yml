@@ -1,0 +1,105 @@
+# CI/CD Pipeline for Mema
+#
+# Required GitHub Secrets:
+#   VPS_HOST         - VPS IP address or hostname
+#   VPS_USER         - SSH username for the VPS
+#   VPS_SSH_KEY      - Private SSH key for VPS access
+#   VPS_DEPLOY_PATH  - Absolute path to the project directory on the VPS
+#
+# Automatic:
+#   GITHUB_TOKEN     - Provided automatically by GitHub Actions (used for GHCR login)
+#
+# VPS Prerequisites:
+#   - SSH access configured for the deploy user
+#   - Docker and Docker Compose installed
+#   - Authenticated to GHCR: docker login ghcr.io
+#   - .env file present at VPS_DEPLOY_PATH
+
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  ci:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_DB: mema
+          POSTGRES_USER: mema
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U mema -d mema"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://mema:password@localhost:5432/mema
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3"
+
+      - run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Test
+        run: bun run test
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/whenparty/mema:latest
+            ghcr.io/whenparty/mema:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd ${{ secrets.VPS_DEPLOY_PATH }}
+            docker compose pull app
+            docker compose up -d

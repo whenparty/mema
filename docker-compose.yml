@@ -18,6 +18,7 @@ services:
     restart: unless-stopped
 
   app:
+    image: ghcr.io/whenparty/mema:latest
     build: .
     ports:
       - "${PORT:-3000}:3000"
