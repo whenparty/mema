@@ -28,4 +28,3 @@ docker-compose.yml
 docker-compose.override.yml
 Dockerfile
 .dockerignore
-drizzle/meta
