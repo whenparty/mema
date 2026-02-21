@@ -104,9 +104,9 @@ mema/
 Milestone: M0 · Spikes & Foundation
 Target: 2026-03-07
 In progress: —
-Completed: TASK-0.1, TASK-0.2, TASK-0.3, TASK-0.3-ext, TASK-0.5, TASK-0.6, TASK-0.9
+Completed: TASK-0.1, TASK-0.2, TASK-0.3, TASK-0.3-ext, TASK-0.5, TASK-0.6, TASK-0.9, TASK-1.1
 Blocked: —
-Next: TASK-1.1 (repo init) — critical path, unblocks 6 tasks
+Next: TASK-1.2 (Docker Compose) — unblocked by TASK-1.1
 
 ---
 
