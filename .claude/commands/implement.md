@@ -98,7 +98,14 @@ If validator returns **FAIL**:
    Pass it: the plan and the task brief for context.
    The reviewer returns a verdict: APPROVED / NEEDS_REVISION / FAILED
 
-If verdict is **NEEDS_REVISION**:
+If verdict is **NEEDS_REVISION**, classify the issues:
+
+**Trivial fixes** (missing file in commit, add line to .gitignore, fix typo, adjust config value):
+- Apply the fix yourself directly (Edit/Write tool) — do NOT launch implementer
+- Re-run **validator** only (no reviewer re-run needed)
+- If validator passes — proceed to Phase 4, note the fix as a deviation
+
+**Code changes** (logic errors, missing test cases, security issues, wrong patterns):
 - Launch the **implementer** subagent with: the approved plan + review feedback
 - Re-run validator
 - Re-run reviewer
@@ -148,16 +155,26 @@ After Phase 4 completes, present this summary:
 ## Execution Summary: TASK-X.Y
 
 ### Subagent Invocations
-| Subagent        | Invocations | Reason for re-runs             |
-|-----------------|:-----------:|--------------------------------|
-| context-loader  | 1           | —                              |
-| planner         | N           | [verifier FAIL × (N-1)]        |
-| plan-verifier   | N           | [planner revisions × (N-1)]    |
-| implementer     | N           | [validator FAIL × A, review × B] |
-| validator       | N           | [impl fix × A, review fix × B]  |
-| reviewer        | N           | [revision × (N-1)]             |
-| close-task      | 1           | —                              |
-| **Total**       | **N**       |                                |
+| Subagent | Invocations | Context (tokens / tool calls) | Reason for re-runs | Return to user |
+|----------|:-----------:|:-----------------------------:|---------------------|----------------|
+| context-loader  | 1 | NK / N calls | — | No |
+| planner         | N | NK / N calls | [verifier FAIL × (N-1)] | No |
+| plan-verifier   | N | NK / N calls | [planner revisions × (N-1)] | Yes — plan approval |
+| implementer     | N | NK / N calls | [validator FAIL × A, review × B] | No |
+| validator       | N | NK / N calls | [impl fix × A, review fix × B] | No |
+| reviewer        | N | NK / N calls | [revision × (N-1)] | No |
+| close-task      | 1 | NK / N calls | — | Yes — commit |
+| **Total**       | **N** | **~NK / N calls** | | **N stops** |
+
+### Returns to User
+| # | Phase | Reason | Was it necessary? |
+|---|-------|--------|-------------------|
+| N | After Phase Na | [reason] | [Yes/No — assessment] |
+
+### Context Efficiency
+| Subagent | Assessment |
+|----------|------------|
+| [name] | [Efficient/Heavy — reason, e.g. "re-read files already loaded by context-loader"] |
 
 ### Tool Issues
 - [tool name] — [what failed and why] (or "None")
@@ -169,6 +186,28 @@ After Phase 4 completes, present this summary:
 
 Track these counters throughout execution. Increment each time a subagent is launched.
 If a subagent reports a tool permission denial or unavailable tool, record it.
+
+### Recommendations for Context Optimization
+
+Based on observed patterns:
+
+1. **Planner re-reads context-loader files.** Subagents don't share context —
+   this is unavoidable. To minimize: pass spec summaries (not just references)
+   from context-loader into the planner prompt so it reads fewer files itself.
+2. **Plan-verifier re-reads planner files.** Same issue. Mitigation: include
+   relevant file snippets (not just paths) in the plan text itself so the
+   verifier can check without re-reading everything.
+3. **Reviewer is the heaviest subagent.** It re-reads specs to verify AC coverage.
+   Mitigation: pass the AC checklist with spec summaries into the reviewer prompt —
+   it should focus on the git diff, not re-research the spec.
+4. **Validator is the most efficient.** 3 commands, minimal context — good model
+   for what a focused subagent should look like.
+5. **Returns to user are mandatory at two points:** plan approval and commit.
+   Both are intentional safety gates — do not try to skip them.
+6. **Trivial reviewer fixes should not re-trigger the full loop.** If the reviewer
+   asks for a minor change (add file to commit, fix config value, add .gitignore entry),
+   apply it directly and re-run validator only. Reserve the implementer→validator→reviewer
+   loop for actual code changes.
 
 ## Context Management
 

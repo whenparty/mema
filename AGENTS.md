@@ -207,6 +207,8 @@ The codebase follows a simplified clean architecture with three layers:
 - No synchronous blocking calls in pipeline code (NFR-PERF.3)
 - Logs contain metadata only, never full message text (NFR-OBS.1)
 - Per-user serialization: max one message processed per user at a time (FR-PLT.6)
+- **`spikes/` is off-limits** — standalone experiments with their own deps; never read, modify, reference, or run spike code during implementation, planning, or review
+- **`docs/decisions/` is the source of truth for technology choices** — spike results, version constraints, and workarounds live here. Read relevant decision docs when planning or reviewing tasks that depend on spike outcomes (see Spike Results table)
 
 ---
 
