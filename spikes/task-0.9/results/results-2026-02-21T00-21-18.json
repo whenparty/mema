@@ -1,0 +1,3657 @@
+{
+  "run_at": "2026-02-21T00:21:18.639Z",
+  "test_count": 28,
+  "configs": [
+    {
+      "label": "gpt-5-nano",
+      "model": "gpt-5-nano",
+      "provider": "openai"
+    },
+    {
+      "label": "gpt-5-mini",
+      "model": "gpt-5-mini",
+      "provider": "openai"
+    },
+    {
+      "label": "claude-haiku-4-5",
+      "model": "claude-haiku-4-5-20251001",
+      "provider": "anthropic"
+    },
+    {
+      "label": "haiku→validate→mini"
+    }
+  ],
+  "results": {
+    "gpt-5-nano": {
+      "total_cases": 28,
+      "avg_score": 0.9704854669140383,
+      "avg_latency_ms": 4789,
+      "parse_rate": 1,
+      "recurring_accuracy": 1,
+      "freq_accuracy": 1,
+      "wall_clock_accuracy": 0.8888888888888888,
+      "total_tokens_in": 20982,
+      "total_tokens_out": 16479,
+      "runs": [
+        {
+          "test_id": 1,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260301T090000\nRRULE:FREQ=DAILY",
+            "one_time_datetime": null,
+            "explanation": "Interpreted as a daily reminder at 09:00 in Europe/Berlin, starting on 2026-03-01 (the next occurrence from the reference date).",
+            "needs_clarification": false,
+            "assumptions": [
+              "Time was not specified; defaulted to 09:00 local time (Europe/Berlin). The next occurrence is 2026-03-01 09:00 Europe/Berlin."
+            ]
+          },
+          "latency_ms": 4844,
+          "tokens": {
+            "input": 749,
+            "output": 660
+          },
+          "error": null
+        },
+        {
+          "test_id": 2,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260302T100000\nRRULE:FREQ=WEEKLY;BYDAY=MO",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder set for every Monday at 10:00 in Europe/Berlin, starting from next Monday relative to 2026-03-01 (the reference date).",
+            "needs_clarification": false,
+            "assumptions": [
+              "Time is wall-clock in Europe/Berlin, 10:00 local time.",
+              "Start date is the next Monday after 2026-03-01 (2026-03-02)."
+            ]
+          },
+          "latency_ms": 4014,
+          "tokens": {
+            "input": 747,
+            "output": 471
+          },
+          "error": null
+        },
+        {
+          "test_id": 3,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=US/Eastern:20260306T170000\nRRULE:FREQ=WEEKLY;BYDAY=FR",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder set for Fridays at 5:00 PM US/Eastern, starting on the next Friday after the reference date (2026-03-01).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 4262,
+          "tokens": {
+            "input": 748,
+            "output": 556
+          },
+          "error": null
+        },
+        {
+          "test_id": 4,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260302T083000\nRRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;INTERVAL=1",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder set for every weekday (Monday through Friday) at 08:30 in Europe/Berlin time. The next occurrence from the reference date 2026-03-01 (Sunday) is 2026-03-02 at 08:30.",
+            "needs_clarification": false,
+            "assumptions": [
+              "Weekdays are Monday to Friday",
+              "Time is 08:30 in Europe/Berlin",
+              "No end date specified"
+            ]
+          },
+          "latency_ms": 5247,
+          "tokens": {
+            "input": 747,
+            "output": 615
+          },
+          "error": null
+        },
+        {
+          "test_id": 5,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260301T120000\nRRULE:FREQ=WEEKLY;BYDAY=SU",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder: every Sunday at 12:00 Europe/Berlin time. The first occurrence is the next Sunday from the reference date (2026-03-01), which is 2026-03-01 at 12:00. The rule repeats weekly on Sundays.",
+            "needs_clarification": false,
+            "assumptions": [
+              "Time specified as 12:00 local time (noon)",
+              "Timezone is Europe/Berlin",
+              "First occurrence anchored to 2026-03-01 (Sunday)"
+            ]
+          },
+          "latency_ms": 4503,
+          "tokens": {
+            "input": 744,
+            "output": 552
+          },
+          "error": null
+        },
+        {
+          "test_id": 6,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260301T090000\nRRULE:FREQ=MONTHLY;BYMONTHDAY=1",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder set for the 1st day of every month at 09:00 in Europe/Berlin time, starting on 2026-03-01.",
+            "needs_clarification": false,
+            "assumptions": [
+              "Time is 09:00 local time (Europe/Berlin).",
+              "First occurrence is 2026-03-01 (the 1st of March, 2026) since that is the next 1st day in the reference frame."
+            ]
+          },
+          "latency_ms": 6022,
+          "tokens": {
+            "input": 754,
+            "output": 747
+          },
+          "error": null
+        },
+        {
+          "test_id": 7,
+          "category": "simple",
+          "score": 0.7857142857142857,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": false,
+            "notes": [
+              "wall_clock_error: RangeError: invalid time zone: US-Eastern"
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=US-Eastern:20260315T100000\nRRULE:FREQ=YEARLY",
+            "one_time_datetime": null,
+            "explanation": "Recurring yearly reminder set for March 15 at 10:00 US/Eastern, next occurrence anchored to 2026-03-15.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 3198,
+          "tokens": {
+            "input": 750,
+            "output": 298
+          },
+          "error": null
+        },
+        {
+          "test_id": 8,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": true,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260303T140000\nRRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=TU",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder: every other Tuesday at 14:00 local time in Europe/Berlin, starting with the next Tuesday after the reference date (2026-03-03 14:00).",
+            "needs_clarification": false,
+            "assumptions": [
+              "No end date specified; reminder continues indefinitely.",
+              "Timezone is Europe/Berlin; 14:00 is wall-clock time and respects DST changes.",
+              "Start date anchored to the next Tuesday from 2026-03-01 (Sunday)."
+            ]
+          },
+          "latency_ms": 5693,
+          "tokens": {
+            "input": 748,
+            "output": 746
+          },
+          "error": null
+        },
+        {
+          "test_id": 9,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": true,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260302T100000\nRRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=MO",
+            "one_time_datetime": null,
+            "explanation": "Interpreted as a recurring reminder every 2 weeks on Mondays at 10:00 in Europe/Berlin time. The next Monday after 2026-03-01 is 2026-03-02, so that date is used as DTSTART. The RRULE specifies weekly frequency with an interval of 2 and restricts occurrences to Mondays.",
+            "needs_clarification": false,
+            "assumptions": [
+              "Timezone is Europe/Berlin; wall-clock time is 10:00.",
+              "Start date is the next Monday from the reference date (2026-03-01).",
+              "No end date specified; recurrence continues indefinitely."
+            ]
+          },
+          "latency_ms": 4575,
+          "tokens": {
+            "input": 750,
+            "output": 592
+          },
+          "error": null
+        },
+        {
+          "test_id": 10,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": true,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=US/Eastern:20260301T200000\nRRULE:FREQ=DAILY;INTERVAL=3",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder: every 3 days at 8:00 PM US/Eastern, starting on the next occurrence from 2026-03-01 (assumed date in reference moment).",
+            "needs_clarification": false,
+            "assumptions": [
+              "Timezone is US/Eastern",
+              "First occurrence is 2026-03-01 at 20:00 local time",
+              "Pattern is every 3 days (INTERVAL=3) starting from the first occurrence"
+            ]
+          },
+          "latency_ms": 5111,
+          "tokens": {
+            "input": 747,
+            "output": 613
+          },
+          "error": null
+        },
+        {
+          "test_id": 11,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260302T070000\nRRULE:FREQ=WEEKLY;BYDAY=MO,WE",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder set for every Monday and Wednesday at 07:00 in Europe/Berlin time, starting from the next occurrence after 2026-03-01 (Monday, 2026-03-02).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 5024,
+          "tokens": {
+            "input": 749,
+            "output": 642
+          },
+          "error": null
+        },
+        {
+          "test_id": 12,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260303T180000\\nRRULE:FREQ=WEEKLY;BYDAY=TU,TH",
+            "one_time_datetime": null,
+            "explanation": "Interpreted as a recurring reminder every week on Tuesday and Thursday at 18:00 in Europe/Berlin time. The first occurrence after the reference date (2026-03-01, a Sunday) is 2026-03-03 at 18:00.",
+            "needs_clarification": false,
+            "assumptions": [
+              "Time is local wall-clock time (Europe/Berlin) and 18:00 refers to that time zone.",
+              "First occurrence is the next Tuesday after the reference date: 2026-03-03.",
+              "Reminders recur weekly on both Tuesday and Thursday with no interval gaps."
+            ]
+          },
+          "latency_ms": 5445,
+          "tokens": {
+            "input": 753,
+            "output": 598
+          },
+          "error": null
+        },
+        {
+          "test_id": 13,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260315T100000\nRRULE:FREQ=MONTHLY;BYMONTHDAY=15",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder set for the 15th day of every month at 10:00 in Europe/Berlin time. The first occurrence after 2026-03-01 is 2026-03-15 10:00.",
+            "needs_clarification": false,
+            "assumptions": [
+              "Time is wall-clock in Europe/Berlin",
+              "First occurrence is the next 15th after 2026-03-01 (2026-03-15 10:00)"
+            ]
+          },
+          "latency_ms": 4703,
+          "tokens": {
+            "input": 752,
+            "output": 548
+          },
+          "error": null
+        },
+        {
+          "test_id": 14,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": true,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260401T090000\nRRULE:FREQ=MONTHLY;INTERVAL=2;BYMONTHDAY=1",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder: every other month on the 1st at 09:00 in Europe/Berlin time. The first occurrence after the reference date 2026-03-01 is 2026-04-01 09:00, and subsequent occurrences follow every 2 months on the 1st.",
+            "needs_clarification": false,
+            "assumptions": [
+              "Time is wall-clock time in Europe/Berlin",
+              "First occurrence is after the reference date (2026-03-01) and on the 1st of the month at 09:00"
+            ]
+          },
+          "latency_ms": 5743,
+          "tokens": {
+            "input": 753,
+            "output": 762
+          },
+          "error": null
+        },
+        {
+          "test_id": 15,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": true,
+            "wallClockCorrect": true,
+            "notes": [
+              "bySetPos: encoded via BYDAY nth (e.g., 3TH) — valid"
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260319T150000\nRRULE:FREQ=MONTHLY;BYDAY=3TH",
+            "one_time_datetime": null,
+            "explanation": "Interpreted as a recurring reminder on the third Thursday of every month at 15:00 in Europe/Berlin time. The first occurrence from the reference date (2026-03-01) is 2026-03-19 15:00 Europe/Berlin.",
+            "needs_clarification": false,
+            "assumptions": [
+              "Timezone is Europe/Berlin",
+              "Pattern is strictly monthly on the third Thursday (BYDAY=3TH)",
+              "If the third Thursday does not exist in a month (it always does), no exception is needed"
+            ]
+          },
+          "latency_ms": 4610,
+          "tokens": {
+            "input": 751,
+            "output": 561
+          },
+          "error": null
+        },
+        {
+          "test_id": 16,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": true,
+            "wallClockCorrect": true,
+            "notes": [
+              "bySetPos: encoded via BYDAY nth (e.g., 3TH) — valid"
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=US/Eastern:20260327T170000\nRRULE:FREQ=MONTHLY;BYDAY=-1FR",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder set to the last Friday of every month at 17:00 in US/Eastern. The first occurrence after 2026-03-01 is 2026-03-27 17:00.",
+            "needs_clarification": false,
+            "assumptions": [
+              "Assumed the phrase 'Last Friday of the month' means the last Friday in each calendar month (BYDAY=-1FR)."
+            ]
+          },
+          "latency_ms": 4273,
+          "tokens": {
+            "input": 749,
+            "output": 530
+          },
+          "error": null
+        },
+        {
+          "test_id": 17,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260331T230000\nRRULE:FREQ=MONTHLY;BYMONTHDAY=-1",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder on the last day of each month at 23:00 (Europe/Berlin). The first occurrence is the next last day after the reference date: 2026-03-31.",
+            "needs_clarification": false,
+            "assumptions": [
+              "Timezone: Europe/Berlin",
+              "First occurrence anchors to the next last day after 2026-03-01"
+            ]
+          },
+          "latency_ms": 4726,
+          "tokens": {
+            "input": 750,
+            "output": 590
+          },
+          "error": null
+        },
+        {
+          "test_id": 18,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": true,
+            "wallClockCorrect": true,
+            "notes": [
+              "bySetPos: encoded via BYDAY nth (e.g., 3TH) — valid"
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260302T090000\nRRULE:FREQ=MONTHLY;BYDAY=1MO",
+            "one_time_datetime": null,
+            "explanation": "Interpreted as a recurring reminder on the first Monday of every month at 09:00 in Europe/Berlin time. The next occurrence from the reference date (2026-03-01) is 2026-03-02 at 09:00.",
+            "needs_clarification": false,
+            "assumptions": [
+              "Time interpreted as wall-clock time in Europe/Berlin (TZID Europe/Berlin)."
+            ]
+          },
+          "latency_ms": 3787,
+          "tokens": {
+            "input": 750,
+            "output": 479
+          },
+          "error": null
+        },
+        {
+          "test_id": 19,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": true,
+            "wallClockCorrect": true,
+            "notes": [
+              "bySetPos: encoded via BYDAY nth (e.g., 3TH) — valid"
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260311T113000\\nRRULE:FREQ=MONTHLY;BYDAY=2WE",
+            "one_time_datetime": null,
+            "explanation": "Interpreted as a recurring reminder on the second Wednesday of every month at 11:30 in Europe/Berlin time. The first occurrence after the reference date (2026-03-01, Sunday) is 2026-03-11 11:30 local time.",
+            "needs_clarification": false,
+            "assumptions": [
+              "The phrase \"every second Wednesday of the month\" means the second Wednesday of each calendar month (not every other Wednesday).",
+              "Time is 11:30 local time in Europe/Berlin and uses wall-clock time with no daylight saving adjustments specified beyond the TZ rules."
+            ]
+          },
+          "latency_ms": 5424,
+          "tokens": {
+            "input": 751,
+            "output": 638
+          },
+          "error": null
+        },
+        {
+          "test_id": 20,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": true,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260401T080000\nRRULE:FREQ=MONTHLY;INTERVAL=3;BYMONTH=1,4,7,10;BYMONTHDAY=1",
+            "one_time_datetime": null,
+            "explanation": "Interpreted as a recurring reminder on the first day of every quarter (Jan 1, Apr 1, Jul 1, Oct 1) at 08:00 in Europe/Berlin time. The next occurrence from 2026-03-01 is 2026-04-01 08:00 Europe/Berlin.",
+            "needs_clarification": false,
+            "assumptions": [
+              "Time is wall-clock local time in Europe/Berlin.",
+              "First day of quarter means the first day of January, April, July, and October."
+            ]
+          },
+          "latency_ms": 6879,
+          "tokens": {
+            "input": 751,
+            "output": 834
+          },
+          "error": null
+        },
+        {
+          "test_id": 21,
+          "category": "ambiguous",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260415T090000\nRRULE:FREQ=MONTHLY;INTERVAL=1",
+            "one_time_datetime": null,
+            "explanation": "Interpreted as a monthly reminder on the same day of the month as today (the 15th). Since the reference date is 2026-03-15, the first occurrence is the next month on 2026-04-15 at 09:00 Europe/Berlin.",
+            "needs_clarification": false,
+            "assumptions": [
+              "Default time 09:00 when not specified",
+              "Monthly recurrence on the same day of month as the reference date",
+              "First occurrence is the next month after the reference date"
+            ]
+          },
+          "latency_ms": 6350,
+          "tokens": {
+            "input": 748,
+            "output": 746
+          },
+          "error": null
+        },
+        {
+          "test_id": 22,
+          "category": "ambiguous",
+          "score": 0.9333333333333333,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": false,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": [
+              "byMonthDay: got [], expected [1]"
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=US/Eastern:20260401T090000\nRRULE:FREQ=MONTHLY",
+            "one_time_datetime": null,
+            "explanation": "Recurring monthly reminder for rent starting on the next month after today (April 1, 2026) at 09:00 US/Eastern. Subsequent reminders occur on the same day each month.",
+            "needs_clarification": false,
+            "assumptions": [
+              "Rent due date assumed to be the 1st of each month since no specific day was provided",
+              "Time assumed 09:00 local time (wall-clock) in US/Eastern"
+            ]
+          },
+          "latency_ms": 4948,
+          "tokens": {
+            "input": 746,
+            "output": 668
+          },
+          "error": null
+        },
+        {
+          "test_id": 23,
+          "category": "ambiguous",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260301T070000\nRRULE:FREQ=DAILY",
+            "one_time_datetime": null,
+            "explanation": "Recurring daily reminder at 07:00 in Europe/Berlin. The next occurrence is 2026-03-01 at 07:00, and it repeats every day.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 4444,
+          "tokens": {
+            "input": 745,
+            "output": 506
+          },
+          "error": null
+        },
+        {
+          "test_id": 24,
+          "category": "ambiguous",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260304T090000\nRRULE:FREQ=WEEKLY",
+            "one_time_datetime": null,
+            "explanation": "Recurring weekly reminder starting on 2026-03-04 at 09:00 Europe/Berlin, repeating every week on Wednesdays.",
+            "needs_clarification": false,
+            "assumptions": [
+              "Time defaulted to 09:00 (local wall-clock)",
+              "Start date anchored to the next occurrence from 2026-03-04 (Wednesday)",
+              "Timezone is Europe/Berlin"
+            ]
+          },
+          "latency_ms": 4299,
+          "tokens": {
+            "input": 744,
+            "output": 522
+          },
+          "error": null
+        },
+        {
+          "test_id": 25,
+          "category": "ambiguous",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260305T100000\nRRULE:FREQ=MONTHLY;BYMONTHDAY=5,20;INTERVAL=1",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder on the 5th and 20th of every month at 10:00 in Europe/Berlin time. The next occurrence after 2026-03-01 is 2026-03-05 10:00.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 4463,
+          "tokens": {
+            "input": 760,
+            "output": 596
+          },
+          "error": null
+        },
+        {
+          "test_id": 26,
+          "category": "one_time",
+          "score": 0.7272727272727273,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": null,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": false,
+            "notes": [
+              "wall_clock: got 14:00, expected 15:00"
+            ]
+          },
+          "llm_result": {
+            "is_recurring": false,
+            "rrule_string": null,
+            "one_time_datetime": "2026-03-02T15:00:00+01:00",
+            "explanation": "One-time reminder for tomorrow at 3:00 PM in Europe/Berlin time.",
+            "needs_clarification": false,
+            "assumptions": [
+              "Reference date is 2026-03-01 (Sunday).",
+              "'Tomorrow' means 2026-03-02.",
+              "Time is 3:00 PM local time in Europe/Berlin.",
+              "DST not applicable on 2026-03-02; offset is +01:00 (CET)."
+            ]
+          },
+          "latency_ms": 4596,
+          "tokens": {
+            "input": 748,
+            "output": 465
+          },
+          "error": null
+        },
+        {
+          "test_id": 27,
+          "category": "one_time",
+          "score": 0.7272727272727273,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": null,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": false,
+            "notes": [
+              "wall_clock: got 18:00, expected 14:00"
+            ]
+          },
+          "llm_result": {
+            "is_recurring": false,
+            "rrule_string": null,
+            "one_time_datetime": "2026-03-20T14:00:00-04:00",
+            "explanation": "One-time reminder set for March 20, 2026 at 14:00 US/Eastern.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 3954,
+          "tokens": {
+            "input": 751,
+            "output": 532
+          },
+          "error": null
+        },
+        {
+          "test_id": 28,
+          "category": "one_time",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": null,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": null,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": false,
+            "rrule_string": null,
+            "one_time_datetime": "2026-03-01T14:00:00",
+            "explanation": "One-time reminder requested for \"in 2 hours\". Assuming current date 2026-03-01 (Sunday) and current time 12:00 in Europe/Berlin, the reminder is scheduled for 2026-03-01 14:00 Europe/Berlin.",
+            "needs_clarification": false,
+            "assumptions": [
+              "Current date: 2026-03-01 (Sunday)",
+              "Current time assumed: 12:00 in Europe/Berlin for relative timing",
+              "Timezone: Europe/Berlin"
+            ]
+          },
+          "latency_ms": 2967,
+          "tokens": {
+            "input": 747,
+            "output": 412
+          },
+          "error": null
+        }
+      ]
+    },
+    "gpt-5-mini": {
+      "total_cases": 28,
+      "avg_score": 0.9619047619047619,
+      "avg_latency_ms": 5744,
+      "parse_rate": 0.9285714285714286,
+      "recurring_accuracy": 1,
+      "freq_accuracy": 1,
+      "wall_clock_accuracy": 1,
+      "total_tokens_in": 20982,
+      "total_tokens_out": 9974,
+      "runs": [
+        {
+          "test_id": 1,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260302T090000\nRRULE:FREQ=DAILY",
+            "one_time_datetime": null,
+            "explanation": "Created a daily recurring reminder at 09:00 Europe/Berlin, starting at the next occurrence (since 09:00 on 2026-03-01 has already passed, the first occurrence is 2026-03-02 09:00).",
+            "needs_clarification": false,
+            "assumptions": [
+              "Reference time on 2026-03-01 is 12:00 (no current time was provided), so today's 09:00 is treated as already passed.",
+              "Seconds set to :00 for the DTSTART time.",
+              "User timezone is Europe/Berlin (provided)."
+            ]
+          },
+          "latency_ms": 7457,
+          "tokens": {
+            "input": 749,
+            "output": 523
+          },
+          "error": null
+        },
+        {
+          "test_id": 2,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260302T100000\nRRULE:FREQ=WEEKLY;BYDAY=MO",
+            "one_time_datetime": null,
+            "explanation": "A weekly recurring reminder on Mondays at 10:00 Europe/Berlin. The DTSTART is set to the next Monday from the reference date (2026-03-01), which is 2026-03-02 at 10:00.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 4183,
+          "tokens": {
+            "input": 747,
+            "output": 205
+          },
+          "error": null
+        },
+        {
+          "test_id": 3,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=US/Eastern:20260306T170000\nRRULE:FREQ=WEEKLY;BYDAY=FR",
+            "one_time_datetime": null,
+            "explanation": "Creates a weekly reminder every Friday at 5:00 PM US/Eastern. The DTSTART is set to the next Friday (2026-03-06) at 17:00.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 3888,
+          "tokens": {
+            "input": 748,
+            "output": 255
+          },
+          "error": null
+        },
+        {
+          "test_id": 4,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260302T083000\nRRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR",
+            "one_time_datetime": null,
+            "explanation": "Creates a weekly recurring reminder on weekdays (Monday through Friday) at 08:30 Europe/Berlin time. The DTSTART is the next occurrence after the reference date (2026-03-01), which is Monday 2026-03-02 at 08:30.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 4665,
+          "tokens": {
+            "input": 747,
+            "output": 283
+          },
+          "error": null
+        },
+        {
+          "test_id": 5,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260301T120000\nRRULE:FREQ=WEEKLY;BYDAY=SU",
+            "one_time_datetime": null,
+            "explanation": "Created a weekly recurring reminder every Sunday at 12:00 (noon), with the first occurrence on the reference date (2026-03-01) at 12:00 Europe/Berlin time.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 4811,
+          "tokens": {
+            "input": 744,
+            "output": 325
+          },
+          "error": null
+        },
+        {
+          "test_id": 6,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260401T090000\nRRULE:FREQ=MONTHLY;BYMONTHDAY=1",
+            "one_time_datetime": null,
+            "explanation": "Monthly recurring reminder on the 1st of every month at 09:00 Europe/Berlin. The DTSTART is set to the next occurrence after the reference date (2026-03-01), which is 2026-04-01 at 09:00.",
+            "needs_clarification": true,
+            "assumptions": [
+              "Reference time on 2026-03-01 is 12:00 (no time provided), so the 2026-03-01 09:00 occurrence has already passed.",
+              "User meant a recurring monthly reminder on the 1st of each month at 09:00 local time (Europe/Berlin)."
+            ]
+          },
+          "latency_ms": 8777,
+          "tokens": {
+            "input": 754,
+            "output": 667
+          },
+          "error": null
+        },
+        {
+          "test_id": 7,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=US/Eastern:20260315T100000\nRRULE:FREQ=YEARLY;BYMONTH=3;BYMONTHDAY=15",
+            "one_time_datetime": null,
+            "explanation": "Schedule a yearly recurring reminder on March 15 at 10:00 AM US/Eastern, starting with the next occurrence on 2026-03-15 at 10:00.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 3937,
+          "tokens": {
+            "input": 750,
+            "output": 197
+          },
+          "error": null
+        },
+        {
+          "test_id": 8,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": true,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260303T140000\nRRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=TU",
+            "one_time_datetime": null,
+            "explanation": "Scheduled a recurring reminder every other week on Tuesday at 14:00, starting on the next Tuesday from the reference date (2026-03-03) in Europe/Berlin time.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 3996,
+          "tokens": {
+            "input": 748,
+            "output": 262
+          },
+          "error": null
+        },
+        {
+          "test_id": 9,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": true,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260302T100000\nRRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=MO",
+            "one_time_datetime": null,
+            "explanation": "Created a biweekly (every 2 weeks) reminder occurring on Mondays at 10:00 Europe/Berlin, with the first occurrence on the next Monday after the reference date (2026-03-02).",
+            "needs_clarification": false,
+            "assumptions": [
+              "The recurrence should start at the next Monday following the reference date (2026-03-02).",
+              "Time 10:00 is local wall-clock time in Europe/Berlin and seconds set to :00."
+            ]
+          },
+          "latency_ms": 4674,
+          "tokens": {
+            "input": 750,
+            "output": 317
+          },
+          "error": null
+        },
+        {
+          "test_id": 10,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": true,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=US/Eastern:20260301T200000\nRRULE:FREQ=DAILY;INTERVAL=3",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder every 3 days at 20:00 (8:00 PM) in the US/Eastern timezone. The DTSTART is the next occurrence from the reference date (2026-03-01).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 4615,
+          "tokens": {
+            "input": 747,
+            "output": 260
+          },
+          "error": null
+        },
+        {
+          "test_id": 11,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260302T070000\nRRULE:FREQ=WEEKLY;BYDAY=MO,WE",
+            "one_time_datetime": null,
+            "explanation": "Creates a weekly recurring reminder on Mondays and Wednesdays at 07:00 Europe/Berlin, starting on the next occurrence (Monday, 2 March 2026).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 4328,
+          "tokens": {
+            "input": 749,
+            "output": 255
+          },
+          "error": null
+        },
+        {
+          "test_id": 12,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260303T180000\nRRULE:FREQ=WEEKLY;BYDAY=TU,TH;INTERVAL=1",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder every week on Tuesday and Thursday at 18:00, starting at the next occurrence (Tuesday, 2026-03-03) in Europe/Berlin time.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 4097,
+          "tokens": {
+            "input": 753,
+            "output": 262
+          },
+          "error": null
+        },
+        {
+          "test_id": 13,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260315T100000\nRRULE:FREQ=MONTHLY;BYMONTHDAY=15",
+            "one_time_datetime": null,
+            "explanation": "Recurring monthly on the 15th day of each month at 10:00 Europe/Berlin. The DTSTART is set to the next occurrence (2026-03-15 10:00).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 5013,
+          "tokens": {
+            "input": 752,
+            "output": 261
+          },
+          "error": null
+        },
+        {
+          "test_id": 14,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": true,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260501T090000\nRRULE:FREQ=MONTHLY;INTERVAL=2;BYMONTHDAY=1",
+            "one_time_datetime": null,
+            "explanation": "Schedule set for the 1st day of every other month at 09:00 Europe/Berlin. Since 2026-03-01 09:00 has already passed on the reference date, the first occurrence is 2026-05-01 at 09:00, then every 2 months thereafter.",
+            "needs_clarification": true,
+            "assumptions": [
+              "Reference date/time is 2026-03-01 and current time is assumed to be 12:00 (no time provided).",
+              "Because 2026-03-01 09:00 is earlier than the assumed current time, the next occurrence moves to 2026-05-01 09:00.",
+              "\"Every other month\" is interpreted as an interval of 2 months (INTERVAL=2) starting from the next eligible 1st of the month."
+            ]
+          },
+          "latency_ms": 11535,
+          "tokens": {
+            "input": 753,
+            "output": 714
+          },
+          "error": null
+        },
+        {
+          "test_id": 15,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": true,
+            "wallClockCorrect": true,
+            "notes": [
+              "bySetPos: encoded via BYDAY nth (e.g., 3TH) — valid"
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260319T150000\nRRULE:FREQ=MONTHLY;BYDAY=3TH",
+            "one_time_datetime": null,
+            "explanation": "Scheduled a recurring monthly reminder on the third Thursday of each month at 15:00 Europe/Berlin. The DTSTART is set to the next occurrence after the reference date (2026-03-01), which is 2026-03-19 at 15:00.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 6637,
+          "tokens": {
+            "input": 751,
+            "output": 404
+          },
+          "error": null
+        },
+        {
+          "test_id": 16,
+          "category": "complex",
+          "score": 0.5,
+          "validation": {
+            "parseable": false,
+            "parseError": "Error: Invalid UNTIL value: 20260327T17000000",
+            "recurringCorrect": true,
+            "freqCorrect": null,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": null,
+            "notes": [
+              "parse_error: Invalid UNTIL value: 20260327T17000000",
+              "raw_rrule: \"DTSTART;TZID=US/Eastern:20260327T17000000\nRRULE:FREQ=MONTHLY;BYDAY=-1FR\""
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=US/Eastern:20260327T17000000\nRRULE:FREQ=MONTHLY;BYDAY=-1FR",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder scheduled for the last Friday of every month at 17:00 US/Eastern. The DTSTART is the next occurrence after the reference date (March 1, 2026), which is March 27, 2026.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 5902,
+          "tokens": {
+            "input": 749,
+            "output": 331
+          },
+          "error": null
+        },
+        {
+          "test_id": 17,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260331T230000\nRRULE:FREQ=MONTHLY;BYMONTHDAY=-1",
+            "one_time_datetime": null,
+            "explanation": "Created a monthly recurring rule for the last calendar day of each month at 23:00 Europe/Berlin. The DTSTART is the next occurrence after the reference date (2026-03-01), which is 2026-03-31 at 23:00.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 5539,
+          "tokens": {
+            "input": 750,
+            "output": 275
+          },
+          "error": null
+        },
+        {
+          "test_id": 18,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": true,
+            "wallClockCorrect": true,
+            "notes": [
+              "bySetPos: encoded via BYDAY nth (e.g., 3TH) — valid"
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260302T090000\nRRULE:FREQ=MONTHLY;BYDAY=1MO",
+            "one_time_datetime": null,
+            "explanation": "Set a monthly recurrence on the first Monday of each month at 09:00 Europe/Berlin. The DTSTART is the next occurrence from the reference date (2026-03-01), which is 2026-03-02 at 09:00.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 5337,
+          "tokens": {
+            "input": 750,
+            "output": 273
+          },
+          "error": null
+        },
+        {
+          "test_id": 19,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": true,
+            "wallClockCorrect": true,
+            "notes": [
+              "bySetPos: encoded via BYDAY nth (e.g., 3TH) — valid"
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260311T113000\nRRULE:FREQ=MONTHLY;BYDAY=2WE",
+            "one_time_datetime": null,
+            "explanation": "Recurring monthly on the second Wednesday of each month at 11:30 Europe/Berlin. The DTSTART is set to the next occurrence after the reference date (2026-03-01), which is 2026-03-11 at 11:30.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 5494,
+          "tokens": {
+            "input": 751,
+            "output": 337
+          },
+          "error": null
+        },
+        {
+          "test_id": 20,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": true,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260301T080000\nRRULE:FREQ=MONTHLY;INTERVAL=3;BYMONTHDAY=1",
+            "one_time_datetime": null,
+            "explanation": "Create a quarterly recurring reminder occurring every 3 months on the 1st day of the month at 08:00 Europe/Berlin, starting on 2026-03-01 at 08:00.",
+            "needs_clarification": true,
+            "assumptions": [
+              "The next occurrence is on 2026-03-01 at 08:00 Europe/Berlin (the reference date is 2026-03-01 and today counts as the first occurrence).",
+              "Quarterly means every 3 months (implemented as FREQ=MONTHLY;INTERVAL=3)."
+            ]
+          },
+          "latency_ms": 9379,
+          "tokens": {
+            "input": 751,
+            "output": 594
+          },
+          "error": null
+        },
+        {
+          "test_id": 21,
+          "category": "ambiguous",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260315T090000\nRRULE:FREQ=MONTHLY;BYMONTHDAY=15",
+            "one_time_datetime": null,
+            "explanation": "Interpreted 'once a month' as a monthly recurring reminder starting on the reference date (2026-03-15) at the default time 09:00, repeating monthly on the 15th of each month.",
+            "needs_clarification": true,
+            "assumptions": [
+              "Start the monthly series on the reference date (2026-03-15).",
+              "No time was specified, so defaulted to 09:00 (user's timezone Europe/Berlin).",
+              "The recurrence should occur on the same day-of-month as the start date (15th)."
+            ]
+          },
+          "latency_ms": 6894,
+          "tokens": {
+            "input": 748,
+            "output": 460
+          },
+          "error": null
+        },
+        {
+          "test_id": 22,
+          "category": "ambiguous",
+          "score": 0.9333333333333333,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": false,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": [
+              "byMonthDay: got [], expected [1]"
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=US/Eastern:20260301T090000\nRRULE:FREQ=MONTHLY",
+            "one_time_datetime": null,
+            "explanation": "Interpreted as a monthly recurring reminder on the 1st of each month at 09:00 US/Eastern, starting on the next occurrence (2026-03-01 09:00).",
+            "needs_clarification": true,
+            "assumptions": [
+              "The reminder should occur on the 1st day of every month (user did not specify which day).",
+              "Default time of 09:00 AM US/Eastern was used because no time was provided."
+            ]
+          },
+          "latency_ms": 6594,
+          "tokens": {
+            "input": 746,
+            "output": 366
+          },
+          "error": null
+        },
+        {
+          "test_id": 23,
+          "category": "ambiguous",
+          "score": 0.5,
+          "validation": {
+            "parseable": false,
+            "parseError": "Error: Invalid UNTIL value: 20260302T07000000",
+            "recurringCorrect": true,
+            "freqCorrect": null,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": null,
+            "notes": [
+              "parse_error: Invalid UNTIL value: 20260302T07000000",
+              "raw_rrule: \"DTSTART;TZID=Europe/Berlin:20260302T07000000\nRRULE:FREQ=DAILY\""
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260302T07000000\nRRULE:FREQ=DAILY",
+            "one_time_datetime": null,
+            "explanation": "Schedule a daily recurring reminder at 07:00 Europe/Berlin. The DTSTART is set to the next morning (2026-03-02 07:00) because 07:00 on the reference date has already passed.",
+            "needs_clarification": false,
+            "assumptions": [
+              "Reference date/time is 2026-03-01 and, since no current time was given, I assumed the current time is 12:00, so 07:00 on 2026-03-01 has already passed and the next occurrence is 2026-03-02 07:00."
+            ]
+          },
+          "latency_ms": 8766,
+          "tokens": {
+            "input": 745,
+            "output": 586
+          },
+          "error": null
+        },
+        {
+          "test_id": 24,
+          "category": "ambiguous",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260304T090000\nRRULE:FREQ=WEEKLY",
+            "one_time_datetime": null,
+            "explanation": "Interpreted as a weekly recurring reminder starting on the next occurrence anchored to the reference date (Wednesday 2026-03-04). No time was specified, so the default time 09:00 (Europe/Berlin) was used.",
+            "needs_clarification": true,
+            "assumptions": [
+              "User wants the reminder to occur weekly on the same weekday as the reference date (Wednesday).",
+              "No time was specified, so defaulted to 09:00 Europe/Berlin.",
+              "Started the series on 2026-03-04 (the reference date) at 09:00 as the first occurrence."
+            ]
+          },
+          "latency_ms": 9133,
+          "tokens": {
+            "input": 744,
+            "output": 654
+          },
+          "error": null
+        },
+        {
+          "test_id": 25,
+          "category": "ambiguous",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260305T100000\nRRULE:FREQ=MONTHLY;BYMONTHDAY=5,20",
+            "one_time_datetime": null,
+            "explanation": "Every month on the 5th and 20th at 10:00 Europe/Berlin. The DTSTART is the next occurrence after the reference date (2026-03-01), which is 2026-03-05 at 10:00.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 4282,
+          "tokens": {
+            "input": 760,
+            "output": 275
+          },
+          "error": null
+        },
+        {
+          "test_id": 26,
+          "category": "one_time",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": null,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": false,
+            "rrule_string": null,
+            "one_time_datetime": "2026-03-02T15:00:00",
+            "explanation": "Scheduled a one-time reminder for tomorrow (2026-03-02) at 15:00 in your Europe/Berlin timezone.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 3016,
+          "tokens": {
+            "input": 748,
+            "output": 166
+          },
+          "error": null
+        },
+        {
+          "test_id": 27,
+          "category": "one_time",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": null,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": false,
+            "rrule_string": null,
+            "one_time_datetime": "2026-03-20T14:00:00",
+            "explanation": "Scheduled a one-time reminder on the next March 20 at 14:00 in the user's US/Eastern timezone (2026-03-20 14:00).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 3381,
+          "tokens": {
+            "input": 751,
+            "output": 174
+          },
+          "error": null
+        },
+        {
+          "test_id": 28,
+          "category": "one_time",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": null,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": null,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": false,
+            "rrule_string": null,
+            "one_time_datetime": "2026-03-01T14:00:00",
+            "explanation": "Interpreted 'in 2 hours' relative to the reference time of 2026-03-01 12:00 (Europe/Berlin), resulting in a one-time reminder at 14:00 on 2026-03-01 Europe/Berlin.",
+            "needs_clarification": false,
+            "assumptions": [
+              "Used the provided reference time of 12:00 on 2026-03-01 as the starting point to compute 'in 2 hours'."
+            ]
+          },
+          "latency_ms": 4504,
+          "tokens": {
+            "input": 747,
+            "output": 293
+          },
+          "error": null
+        }
+      ]
+    },
+    "claude-haiku-4-5": {
+      "total_cases": 28,
+      "avg_score": 0.9821428571428571,
+      "avg_latency_ms": 2030,
+      "parse_rate": 0.9642857142857143,
+      "recurring_accuracy": 1,
+      "freq_accuracy": 1,
+      "wall_clock_accuracy": 1,
+      "total_tokens_in": 43337,
+      "total_tokens_out": 6322,
+      "runs": [
+        {
+          "test_id": 1,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "explanation": "Daily recurring reminder at 9:00 AM in the user's timezone (Europe/Berlin). The first occurrence is set for tomorrow (2026-03-02) at 09:00.",
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260302T090000\nRRULE:FREQ=DAILY",
+            "one_time_datetime": null,
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1810,
+          "tokens": {
+            "input": 1547,
+            "output": 198
+          },
+          "error": null
+        },
+        {
+          "test_id": 2,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260303T100000\nRRULE:FREQ=WEEKLY;BYDAY=MO",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder every Monday at 10:00 AM in Europe/Berlin timezone. The first occurrence is anchored to Monday, March 3, 2026 (the next Monday from the reference date of March 1, 2026).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1834,
+          "tokens": {
+            "input": 1545,
+            "output": 217
+          },
+          "error": null
+        },
+        {
+          "test_id": 3,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=US/Eastern:20260306T170000\nRRULE:FREQ=WEEKLY;BYDAY=FR",
+            "one_time_datetime": null,
+            "explanation": "This is a recurring weekly reminder set for every Friday at 5:00 PM (17:00) in US/Eastern timezone. The first occurrence is anchored to Friday, March 6, 2026, which is the next Friday from the reference date of March 1, 2026.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 2012,
+          "tokens": {
+            "input": 1547,
+            "output": 226
+          },
+          "error": null
+        },
+        {
+          "test_id": 4,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": [
+              "freq: DAILY+BYDAY accepted as equivalent to WEEKLY+BYDAY"
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260302T083000\nRRULE:FREQ=DAILY;BYDAY=MO,TU,WE,TH,FR",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder every weekday (Monday through Friday) at 8:30 AM in Europe/Berlin timezone. The first occurrence is set to Monday, March 2, 2026 at 8:30 AM (the next weekday from the reference date of Sunday, March 1, 2026).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 2061,
+          "tokens": {
+            "input": 1546,
+            "output": 243
+          },
+          "error": null
+        },
+        {
+          "test_id": 5,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260301T120000\nRRULE:FREQ=WEEKLY;BYDAY=SU",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder every Sunday at noon (12:00) in Europe/Berlin timezone. The first occurrence is anchored to Sunday, March 1, 2026 at 12:00.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1630,
+          "tokens": {
+            "input": 1542,
+            "output": 205
+          },
+          "error": null
+        },
+        {
+          "test_id": 6,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "explanation": "Monthly recurring reminder on the 1st of each month at 9:00 AM. The first occurrence is set to April 1st, 2026 (the next 1st of the month from the reference date of March 1st, 2026).",
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260401T090000\nRRULE:FREQ=MONTHLY;BYMONTHDAY=1",
+            "one_time_datetime": null,
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 2407,
+          "tokens": {
+            "input": 1552,
+            "output": 223
+          },
+          "error": null
+        },
+        {
+          "test_id": 7,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=US/Eastern:20270315T100000\nRRULE:FREQ=YEARLY",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder set for March 15 at 10:00 AM every year. Since the current date is March 1, 2026, the first occurrence is scheduled for March 15, 2027.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1645,
+          "tokens": {
+            "input": 1550,
+            "output": 203
+          },
+          "error": null
+        },
+        {
+          "test_id": 8,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": true,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260303T140000\nRRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=TU",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder every other Tuesday at 14:00 (2:00 PM). The first occurrence is set to Tuesday, March 3, 2026, which is the next Tuesday from the reference date (March 1, 2026).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1979,
+          "tokens": {
+            "input": 1546,
+            "output": 223
+          },
+          "error": null
+        },
+        {
+          "test_id": 9,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": true,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260302T100000\nRRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=MO",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder every two weeks on Monday at 10:00 AM. The first occurrence is anchored to Monday, March 2, 2026 (the next Monday from the reference date of March 1, 2026).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1648,
+          "tokens": {
+            "input": 1548,
+            "output": 220
+          },
+          "error": null
+        },
+        {
+          "test_id": 10,
+          "category": "medium",
+          "score": 0.5,
+          "validation": {
+            "parseable": false,
+            "parseError": "Error: Invalid UNTIL value: 20260303T20:00:00",
+            "recurringCorrect": true,
+            "freqCorrect": null,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": null,
+            "notes": [
+              "parse_error: Invalid UNTIL value: 20260303T20:00:00",
+              "raw_rrule: \"DTSTART;TZID=US/Eastern:20260303T20:00:00\nRRULE:FREQ=DAILY;INTERVAL=3\""
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=US/Eastern:20260303T20:00:00\nRRULE:FREQ=DAILY;INTERVAL=3",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder every 3 days at 8:00 PM Eastern Time. The first occurrence is set to March 3, 2026 (the next occurrence of an every-3-days pattern from the reference date of March 1).",
+            "needs_clarification": false,
+            "assumptions": [
+              "First occurrence anchored to March 3, 2026 at 8:00 PM"
+            ]
+          },
+          "latency_ms": 2530,
+          "tokens": {
+            "input": 1547,
+            "output": 240
+          },
+          "error": null
+        },
+        {
+          "test_id": 11,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260302T070000\nRRULE:FREQ=WEEKLY;BYDAY=MO,WE",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder every Monday and Wednesday at 7:00 AM. The first occurrence is anchored to Monday, March 2, 2026 (the next Monday from the reference date of March 1, 2026).",
+            "needs_clarification": false,
+            "assumptions": [
+              "Time interpreted as 7:00 AM (07:00) in Europe/Berlin timezone",
+              "First occurrence set to the next Monday from the reference date"
+            ]
+          },
+          "latency_ms": 2002,
+          "tokens": {
+            "input": 1547,
+            "output": 250
+          },
+          "error": null
+        },
+        {
+          "test_id": 12,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260303T180000\nRRULE:FREQ=WEEKLY;BYDAY=TU,TH",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder every Tuesday and Thursday at 18:00 (6:00 PM) in Europe/Berlin timezone. The first occurrence is set to Tuesday, March 3, 2026 at 18:00, which is the next Tuesday from the reference date (March 1, 2026).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1812,
+          "tokens": {
+            "input": 1551,
+            "output": 234
+          },
+          "error": null
+        },
+        {
+          "test_id": 13,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260315T100000\nRRULE:FREQ=MONTHLY;BYMONTHDAY=15",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder on the 15th of every month at 10:00 AM. The first occurrence is set to March 15, 2026 (the next 15th from the reference date of March 1, 2026).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1722,
+          "tokens": {
+            "input": 1550,
+            "output": 218
+          },
+          "error": null
+        },
+        {
+          "test_id": 14,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": true,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260401T090000\nRRULE:FREQ=MONTHLY;INTERVAL=2;BYMONTHDAY=1",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder every other month (every 2 months) on the 1st at 9:00 AM. The first occurrence is anchored to April 1st, 2026 (the next 1st of a month that is 2 months away from the reference date of March 1st).",
+            "needs_clarification": false,
+            "assumptions": [
+              "Time defaults to 09:00 as specified in the request",
+              "First occurrence is April 1st, 2026 (next 1st of month that aligns with every-other-month pattern from March)"
+            ]
+          },
+          "latency_ms": 2331,
+          "tokens": {
+            "input": 1551,
+            "output": 287
+          },
+          "error": null
+        },
+        {
+          "test_id": 15,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": true,
+            "wallClockCorrect": true,
+            "notes": [
+              "bySetPos: encoded via BYDAY nth (e.g., 3TH) — valid"
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260319T150000\nRRULE:FREQ=MONTHLY;BYDAY=3TH",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder for the third Thursday of every month at 15:00 (3:00 PM). The first occurrence is anchored to March 19, 2026, which is the third Thursday of March.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1737,
+          "tokens": {
+            "input": 1549,
+            "output": 211
+          },
+          "error": null
+        },
+        {
+          "test_id": 16,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": true,
+            "wallClockCorrect": true,
+            "notes": [
+              "bySetPos: encoded via BYDAY nth (e.g., 3TH) — valid"
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=US/Eastern:20260327T170000\nRRULE:FREQ=MONTHLY;BYDAY=-1FR",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder for the last Friday of every month at 5:00 PM Eastern Time. The first occurrence is March 27, 2026 (the last Friday of March).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1754,
+          "tokens": {
+            "input": 1548,
+            "output": 204
+          },
+          "error": null
+        },
+        {
+          "test_id": 17,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260331T230000\nRRULE:FREQ=MONTHLY;BYMONTHDAY=-1",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder set for the last day of every month at 23:00 (11 PM). The first occurrence is anchored to March 31, 2026, which is the last day of March and the next occurrence from the reference date (March 1, 2026).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 2007,
+          "tokens": {
+            "input": 1548,
+            "output": 227
+          },
+          "error": null
+        },
+        {
+          "test_id": 18,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": true,
+            "wallClockCorrect": true,
+            "notes": [
+              "bySetPos: encoded via BYDAY nth (e.g., 3TH) — valid"
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260406T090000\nRRULE:FREQ=MONTHLY;BYDAY=1MO",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder set for the first Monday of every month at 09:00 in Europe/Berlin timezone. The first occurrence is April 6, 2026 (the first Monday after the reference date of March 1, 2026).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1802,
+          "tokens": {
+            "input": 1548,
+            "output": 218
+          },
+          "error": null
+        },
+        {
+          "test_id": 19,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": true,
+            "wallClockCorrect": true,
+            "notes": [
+              "bySetPos: encoded via BYDAY nth (e.g., 3TH) — valid"
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260312T113000\nRRULE:FREQ=MONTHLY;BYDAY=2WE",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder for the second Wednesday of every month at 11:30 AM. The first occurrence is anchored to March 12, 2026 (the second Wednesday of March), and will repeat monthly on the same pattern.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 2716,
+          "tokens": {
+            "input": 1549,
+            "output": 214
+          },
+          "error": null
+        },
+        {
+          "test_id": 20,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": true,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260401T080000\nRRULE:FREQ=MONTHLY;INTERVAL=3;BYMONTHDAY=1",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder every quarter (every 3 months) on the 1st day of the month at 8:00 AM. The first occurrence is anchored to April 1, 2026 (the next quarter start from the reference date of March 1, 2026).",
+            "needs_clarification": false,
+            "assumptions": [
+              "Assumed 'first day' means the 1st of each quarter month (April, July, October, January)",
+              "Assumed time zone is Europe/Berlin as provided in context"
+            ]
+          },
+          "latency_ms": 2550,
+          "tokens": {
+            "input": 1549,
+            "output": 272
+          },
+          "error": null
+        },
+        {
+          "test_id": 21,
+          "category": "ambiguous",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "explanation": "Monthly recurring reminder with no specific date or time provided. Anchored to the 15th of each month (today's date) at 09:00 (default time).",
+            "needs_clarification": true,
+            "assumptions": [
+              "Reminder should recur on the 15th of each month (today's date)",
+              "Default time set to 09:00 since no time was specified",
+              "No end date specified, so reminder continues indefinitely"
+            ],
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260415T090000\nRRULE:FREQ=MONTHLY;BYMONTHDAY=15",
+            "one_time_datetime": null
+          },
+          "latency_ms": 2339,
+          "tokens": {
+            "input": 1546,
+            "output": 249
+          },
+          "error": null
+        },
+        {
+          "test_id": 22,
+          "category": "ambiguous",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "explanation": "Monthly recurring reminder for rent. Since no specific date was mentioned, the reminder is set for the 1st of each month at 09:00 (default time). The first occurrence is April 1st, 2026 (the next month from the reference date of March 1st, 2026).",
+            "needs_clarification": true,
+            "assumptions": [
+              "Reminder should recur on the 1st of each month",
+              "Default time set to 09:00 since no specific time was provided",
+              "First occurrence is April 1st, 2026"
+            ],
+            "rrule_string": "DTSTART;TZID=US/Eastern:20260401T090000\nRRULE:FREQ=MONTHLY;BYMONTHDAY=1",
+            "one_time_datetime": null
+          },
+          "latency_ms": 2696,
+          "tokens": {
+            "input": 1545,
+            "output": 276
+          },
+          "error": null
+        },
+        {
+          "test_id": 23,
+          "category": "ambiguous",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260302T070000\nRRULE:FREQ=DAILY",
+            "one_time_datetime": null,
+            "explanation": "Recurring daily reminder at 7:00 AM in Europe/Berlin timezone. The first occurrence is set to tomorrow (March 2, 2026) at 07:00, as that is the next morning from the current reference date (March 1, 2026).",
+            "needs_clarification": false,
+            "assumptions": [
+              "Time interpreted as 07:00 (7 AM)",
+              "Reminder starts tomorrow morning and repeats every day"
+            ]
+          },
+          "latency_ms": 2540,
+          "tokens": {
+            "input": 1543,
+            "output": 242
+          },
+          "error": null
+        },
+        {
+          "test_id": 24,
+          "category": "ambiguous",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "explanation": "Weekly recurring reminder starting from the next Wednesday (today is Wednesday, 2026-03-04). Since no specific day was mentioned, the reminder will recur every Wednesday at 09:00 (default time).",
+            "needs_clarification": true,
+            "assumptions": [
+              "No specific day of week was mentioned, so using today's day (Wednesday)",
+              "No specific time was mentioned, so defaulting to 09:00",
+              "No end date was specified, so the reminder will recur indefinitely"
+            ],
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260311T090000\nRRULE:FREQ=WEEKLY",
+            "one_time_datetime": null
+          },
+          "latency_ms": 2873,
+          "tokens": {
+            "input": 1542,
+            "output": 251
+          },
+          "error": null
+        },
+        {
+          "test_id": 25,
+          "category": "ambiguous",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260305T100000\nRRULE:FREQ=MONTHLY;BYMONTHDAY=5,20",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder on the 5th and 20th of each month at 10:00 AM. Since today is March 1st, the first occurrence will be March 5th, 2026.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1820,
+          "tokens": {
+            "input": 1558,
+            "output": 212
+          },
+          "error": null
+        },
+        {
+          "test_id": 26,
+          "category": "one_time",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": null,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": false,
+            "rrule_string": null,
+            "one_time_datetime": "2026-03-02T15:00:00",
+            "explanation": "One-time reminder scheduled for tomorrow (March 2, 2026) at 3:00 PM in Europe/Berlin timezone.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1304,
+          "tokens": {
+            "input": 1546,
+            "output": 169
+          },
+          "error": null
+        },
+        {
+          "test_id": 27,
+          "category": "one_time",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": null,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": false,
+            "rrule_string": null,
+            "one_time_datetime": "2026-03-20T14:00:00",
+            "explanation": "One-time reminder scheduled for March 20, 2026 at 14:00 (2:00 PM) in US/Eastern timezone.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1346,
+          "tokens": {
+            "input": 1551,
+            "output": 173
+          },
+          "error": null
+        },
+        {
+          "test_id": 28,
+          "category": "one_time",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": null,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": null,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": false,
+            "rrule_string": null,
+            "one_time_datetime": "2026-03-01T14:00:00",
+            "explanation": "One-time reminder set for 2 hours from the reference time (12:00). The reminder is scheduled for 14:00 (2:00 PM) on March 1, 2026 in Europe/Berlin timezone.",
+            "needs_clarification": false,
+            "assumptions": [
+              "Current time assumed to be 12:00 on 2026-03-01 since no specific time was provided"
+            ]
+          },
+          "latency_ms": 1928,
+          "tokens": {
+            "input": 1546,
+            "output": 217
+          },
+          "error": null
+        }
+      ]
+    },
+    "haiku→validate→mini": {
+      "total_cases": 28,
+      "avg_score": 1,
+      "avg_latency_ms": 2400,
+      "parse_rate": 1,
+      "recurring_accuracy": 1,
+      "freq_accuracy": 1,
+      "wall_clock_accuracy": 1,
+      "total_tokens_in": 44084,
+      "total_tokens_out": 6874,
+      "runs": [
+        {
+          "test_id": 1,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "explanation": "User wants a daily reminder at 9:00 AM. Starting from tomorrow (March 2, 2026) since today is March 1, 2026.",
+            "needs_clarification": false,
+            "assumptions": [],
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260302T090000\nRRULE:FREQ=DAILY",
+            "one_time_datetime": null
+          },
+          "latency_ms": 1632,
+          "tokens": {
+            "input": 1547,
+            "output": 193
+          },
+          "error": null
+        },
+        {
+          "test_id": 2,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260303T100000\nRRULE:FREQ=WEEKLY;BYDAY=MO",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder every Monday at 10:00 AM in Europe/Berlin timezone. The first occurrence is anchored to Monday, March 3, 2026 (the next Monday from the reference date of March 1, 2026).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 2040,
+          "tokens": {
+            "input": 1545,
+            "output": 217
+          },
+          "error": null
+        },
+        {
+          "test_id": 3,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=US/Eastern:20260306T170000\nRRULE:FREQ=WEEKLY;BYDAY=FR",
+            "one_time_datetime": null,
+            "explanation": "This creates a recurring weekly reminder every Friday at 5:00 PM (17:00) in US/Eastern timezone. The first occurrence is set for Friday, March 6, 2026, which is the next Friday from the reference date of March 1, 2026.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1955,
+          "tokens": {
+            "input": 1547,
+            "output": 223
+          },
+          "error": null
+        },
+        {
+          "test_id": 4,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": [
+              "freq: DAILY+BYDAY accepted as equivalent to WEEKLY+BYDAY"
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260302T083000\nRRULE:FREQ=DAILY;BYDAY=MO,TU,WE,TH,FR",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder every weekday (Monday through Friday) at 8:30 AM in Europe/Berlin timezone. The first occurrence is set to Monday, March 2, 2026 at 8:30 AM (the next weekday from the reference date of Sunday, March 1, 2026).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1968,
+          "tokens": {
+            "input": 1546,
+            "output": 243
+          },
+          "error": null
+        },
+        {
+          "test_id": 5,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260301T120000\nRRULE:FREQ=WEEKLY;BYDAY=SU",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder every Sunday at noon (12:00). The first occurrence is anchored to Sunday, March 1, 2026 at 12:00 in Europe/Berlin timezone.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1624,
+          "tokens": {
+            "input": 1542,
+            "output": 205
+          },
+          "error": null
+        },
+        {
+          "test_id": 6,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "explanation": "Monthly recurring reminder on the 1st of each month at 9:00 AM. The first occurrence is set to April 1st, 2026 (the next 1st of the month from the reference date of March 1st, 2026).",
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260401T090000\nRRULE:FREQ=MONTHLY;BYMONTHDAY=1",
+            "one_time_datetime": null,
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1925,
+          "tokens": {
+            "input": 1552,
+            "output": 223
+          },
+          "error": null
+        },
+        {
+          "test_id": 7,
+          "category": "simple",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=US/Eastern:20270315T100000\nRRULE:FREQ=YEARLY",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder set for March 15 at 10:00 AM every year. Since the current date is March 1, 2026, the first occurrence is scheduled for March 15, 2027.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1634,
+          "tokens": {
+            "input": 1550,
+            "output": 203
+          },
+          "error": null
+        },
+        {
+          "test_id": 8,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": true,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260303T140000\nRRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=TU",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder every other Tuesday at 14:00 (2:00 PM). The first occurrence is set to Tuesday, March 3, 2026, which is the next Tuesday from the reference date (March 1, 2026).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1836,
+          "tokens": {
+            "input": 1546,
+            "output": 223
+          },
+          "error": null
+        },
+        {
+          "test_id": 9,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": true,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "explanation": "Recurring reminder every two weeks on Monday at 10:00 AM. Starting from the next Monday on or after March 1, 2026 (which is March 2, 2026).",
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260302T100000\nRRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=MO",
+            "one_time_datetime": null,
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 3744,
+          "tokens": {
+            "input": 1548,
+            "output": 213
+          },
+          "error": null
+        },
+        {
+          "test_id": 10,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": true,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=US/Eastern:20260301T200000\nRRULE:FREQ=DAILY;INTERVAL=3",
+            "one_time_datetime": null,
+            "explanation": "Schedule a recurring reminder every 3 days at 20:00 Eastern, starting at the next occurrence on 2026-03-01 at 20:00.",
+            "needs_clarification": false,
+            "assumptions": [
+              "The next occurrence from the reference date (2026-03-01) is the same day at 20:00 Eastern, so DTSTART is 2026-03-01T20:00.",
+              "Seconds are set to 00 for the DTSTART timestamp."
+            ]
+          },
+          "latency_ms": 11358,
+          "tokens": {
+            "input": 2294,
+            "output": 805
+          },
+          "error": null
+        },
+        {
+          "test_id": 11,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260302T070000\nRRULE:FREQ=WEEKLY;BYDAY=MO,WE",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder every Monday and Wednesday at 7:00 AM. The first occurrence is anchored to Monday, March 2, 2026 (the next Monday from the reference date of March 1, 2026).",
+            "needs_clarification": false,
+            "assumptions": [
+              "Time is interpreted as 7:00 AM (07:00) in the user's timezone (Europe/Berlin)"
+            ]
+          },
+          "latency_ms": 1832,
+          "tokens": {
+            "input": 1547,
+            "output": 243
+          },
+          "error": null
+        },
+        {
+          "test_id": 12,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260303T180000\nRRULE:FREQ=WEEKLY;BYDAY=TU,TH",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder every Tuesday and Thursday at 18:00 (6:00 PM) in Europe/Berlin timezone. The first occurrence is set to Tuesday, March 3, 2026 at 18:00, which is the next Tuesday from the reference date (March 1, 2026).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 2026,
+          "tokens": {
+            "input": 1551,
+            "output": 234
+          },
+          "error": null
+        },
+        {
+          "test_id": 13,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260315T100000\nRRULE:FREQ=MONTHLY;BYMONTHDAY=15",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder on the 15th of every month at 10:00 AM. The first occurrence is set to March 15, 2026 (the next 15th from the reference date of March 1, 2026).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 2015,
+          "tokens": {
+            "input": 1550,
+            "output": 218
+          },
+          "error": null
+        },
+        {
+          "test_id": 14,
+          "category": "medium",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": true,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260401T090000\nRRULE:FREQ=MONTHLY;INTERVAL=2;BYMONTHDAY=1",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder every other month (every 2 months) on the 1st at 9:00 AM. The first occurrence is anchored to April 1st, 2026 (the next 1st of the month that is 2 months away from the reference date of March 1st, 2026).",
+            "needs_clarification": false,
+            "assumptions": [
+              "Time defaults to 09:00 as specified in the request",
+              "First occurrence is April 1st, 2026 (next 1st of month that aligns with every-other-month pattern from March 1st)"
+            ]
+          },
+          "latency_ms": 2328,
+          "tokens": {
+            "input": 1551,
+            "output": 294
+          },
+          "error": null
+        },
+        {
+          "test_id": 15,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": true,
+            "wallClockCorrect": true,
+            "notes": [
+              "bySetPos: encoded via BYDAY nth (e.g., 3TH) — valid"
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260319T150000\nRRULE:FREQ=MONTHLY;BYDAY=3TH",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder for the third Thursday of every month at 15:00 (3:00 PM). The first occurrence is anchored to March 19, 2026, which is the third Thursday of March.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1757,
+          "tokens": {
+            "input": 1549,
+            "output": 211
+          },
+          "error": null
+        },
+        {
+          "test_id": 16,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": true,
+            "wallClockCorrect": true,
+            "notes": [
+              "bySetPos: encoded via BYDAY nth (e.g., 3TH) — valid"
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=US/Eastern:20260327T170000\nRRULE:FREQ=MONTHLY;BYDAY=-1FR",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder for the last Friday of every month at 5:00 PM Eastern Time. The first occurrence is March 27, 2026 (the last Friday of March).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1949,
+          "tokens": {
+            "input": 1548,
+            "output": 204
+          },
+          "error": null
+        },
+        {
+          "test_id": 17,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260331T230000\nRRULE:FREQ=MONTHLY;BYMONTHDAY=-1",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder set for the last day of every month at 23:00 (11 PM). The first occurrence is anchored to March 31, 2026, which is the last day of March and the next occurrence from the reference date (March 1, 2026).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 2864,
+          "tokens": {
+            "input": 1548,
+            "output": 227
+          },
+          "error": null
+        },
+        {
+          "test_id": 18,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": true,
+            "wallClockCorrect": true,
+            "notes": [
+              "bySetPos: encoded via BYDAY nth (e.g., 3TH) — valid"
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260406T090000\nRRULE:FREQ=MONTHLY;BYDAY=1MO",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder set for the first Monday of every month at 09:00 in Europe/Berlin timezone. The first occurrence is April 6, 2026 (the first Monday after the reference date of March 1, 2026).",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1755,
+          "tokens": {
+            "input": 1548,
+            "output": 218
+          },
+          "error": null
+        },
+        {
+          "test_id": 19,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": true,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": true,
+            "wallClockCorrect": true,
+            "notes": [
+              "bySetPos: encoded via BYDAY nth (e.g., 3TH) — valid"
+            ]
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260312T113000\nRRULE:FREQ=MONTHLY;BYDAY=2WE",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder for the second Wednesday of every month at 11:30 AM. The first occurrence is anchored to March 12, 2026 (the second Wednesday of March), and will repeat monthly on the same pattern.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1816,
+          "tokens": {
+            "input": 1549,
+            "output": 214
+          },
+          "error": null
+        },
+        {
+          "test_id": 20,
+          "category": "complex",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": true,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260401T080000\nRRULE:FREQ=MONTHLY;INTERVAL=3;BYMONTHDAY=1",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder every quarter (every 3 months) on the 1st day of the month at 8:00 AM. The first occurrence is anchored to April 1, 2026 (the next quarter start from the reference date of March 1, 2026).",
+            "needs_clarification": false,
+            "assumptions": [
+              "Assumed 'first day' means the 1st of each quarter month (April, July, October, January)",
+              "Assumed time is 8:00 AM in Europe/Berlin timezone"
+            ]
+          },
+          "latency_ms": 2280,
+          "tokens": {
+            "input": 1549,
+            "output": 275
+          },
+          "error": null
+        },
+        {
+          "test_id": 21,
+          "category": "ambiguous",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "explanation": "Monthly recurring reminder with no specific date or time provided. Anchored to the 15th of each month (today's date) at 09:00 (default time).",
+            "needs_clarification": true,
+            "assumptions": [
+              "Reminder should recur on the 15th of each month (today's date)",
+              "Default time set to 09:00 since no time was specified",
+              "No end date specified, so reminder continues indefinitely"
+            ],
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260415T090000\nRRULE:FREQ=MONTHLY;BYMONTHDAY=15",
+            "one_time_datetime": null
+          },
+          "latency_ms": 2301,
+          "tokens": {
+            "input": 1546,
+            "output": 249
+          },
+          "error": null
+        },
+        {
+          "test_id": 22,
+          "category": "ambiguous",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "explanation": "Monthly recurring reminder for rent. Since no specific date was mentioned, the reminder is set for the 1st of each month at 09:00 (default time). The first occurrence is April 1st, 2026 (the next month from the reference date of March 1st, 2026).",
+            "needs_clarification": true,
+            "assumptions": [
+              "Reminder should occur on the 1st of each month",
+              "Default time set to 09:00 since no specific time was provided",
+              "First occurrence is April 1st, 2026"
+            ],
+            "rrule_string": "DTSTART;TZID=US/Eastern:20260401T090000\nRRULE:FREQ=MONTHLY;BYMONTHDAY=1",
+            "one_time_datetime": null
+          },
+          "latency_ms": 2272,
+          "tokens": {
+            "input": 1545,
+            "output": 275
+          },
+          "error": null
+        },
+        {
+          "test_id": 23,
+          "category": "ambiguous",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260302T070000\nRRULE:FREQ=DAILY",
+            "one_time_datetime": null,
+            "explanation": "Recurring daily reminder at 7:00 AM in Europe/Berlin timezone. The first occurrence is set for tomorrow (March 2, 2026) at 7:00 AM, and it repeats every day.",
+            "needs_clarification": false,
+            "assumptions": [
+              "Time interpreted as 7:00 AM (07:00)",
+              "Reminder starts tomorrow (March 2, 2026) as the next occurrence from today"
+            ]
+          },
+          "latency_ms": 2256,
+          "tokens": {
+            "input": 1543,
+            "output": 240
+          },
+          "error": null
+        },
+        {
+          "test_id": 24,
+          "category": "ambiguous",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "explanation": "Weekly recurring reminder starting from the next Wednesday (today is Wednesday, 2026-03-04). Since no specific day was mentioned, the reminder will recur every Wednesday at 09:00 (default time).",
+            "needs_clarification": true,
+            "assumptions": [
+              "No specific day of week was mentioned, so using today's day (Wednesday)",
+              "No time was specified, defaulting to 09:00",
+              "Reminder starts from next week (2026-03-11) to avoid immediate duplicate"
+            ],
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260311T090000\nRRULE:FREQ=WEEKLY",
+            "one_time_datetime": null
+          },
+          "latency_ms": 2408,
+          "tokens": {
+            "input": 1542,
+            "output": 253
+          },
+          "error": null
+        },
+        {
+          "test_id": 25,
+          "category": "ambiguous",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": true,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": true,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": true,
+            "rrule_string": "DTSTART;TZID=Europe/Berlin:20260305T100000\nRRULE:FREQ=MONTHLY;BYMONTHDAY=5,20",
+            "one_time_datetime": null,
+            "explanation": "Recurring reminder on the 5th and 20th of each month at 10:00 AM. Since today is March 1st, the first occurrence will be March 5th, 2026.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 2607,
+          "tokens": {
+            "input": 1558,
+            "output": 212
+          },
+          "error": null
+        },
+        {
+          "test_id": 26,
+          "category": "one_time",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": null,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": false,
+            "rrule_string": null,
+            "one_time_datetime": "2026-03-02T15:00:00",
+            "explanation": "One-time reminder scheduled for tomorrow (March 2, 2026) at 3:00 PM in Europe/Berlin timezone.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1940,
+          "tokens": {
+            "input": 1546,
+            "output": 169
+          },
+          "error": null
+        },
+        {
+          "test_id": 27,
+          "category": "one_time",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": null,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": true,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": false,
+            "rrule_string": null,
+            "one_time_datetime": "2026-03-20T14:00:00",
+            "explanation": "One-time reminder scheduled for March 20, 2026 at 14:00 (2:00 PM) in US/Eastern timezone.",
+            "needs_clarification": false,
+            "assumptions": []
+          },
+          "latency_ms": 1273,
+          "tokens": {
+            "input": 1551,
+            "output": 173
+          },
+          "error": null
+        },
+        {
+          "test_id": 28,
+          "category": "one_time",
+          "score": 1,
+          "validation": {
+            "parseable": true,
+            "recurringCorrect": true,
+            "freqCorrect": null,
+            "intervalCorrect": null,
+            "byDayCorrect": null,
+            "byMonthDayCorrect": null,
+            "bySetPosCorrect": null,
+            "wallClockCorrect": null,
+            "notes": []
+          },
+          "llm_result": {
+            "is_recurring": false,
+            "rrule_string": null,
+            "one_time_datetime": "2026-03-01T14:00:00",
+            "explanation": "One-time reminder set for 2 hours from the reference time (12:00). The reminder is scheduled for 14:00 (2:00 PM) on March 1, 2026 in Europe/Berlin timezone.",
+            "needs_clarification": false,
+            "assumptions": [
+              "Current time assumed to be 12:00 on 2026-03-01 since no specific time was provided"
+            ]
+          },
+          "latency_ms": 1792,
+          "tokens": {
+            "input": 1546,
+            "output": 217
+          },
+          "error": null
+        }
+      ]
+    }
+  }
+}

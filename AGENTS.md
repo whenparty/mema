@@ -104,7 +104,7 @@ mema/
 Milestone: M0 · Spikes & Foundation
 Target: 2026-03-07
 In progress: —
-Completed: TASK-0.1, TASK-0.2, TASK-0.3, TASK-0.3-ext, TASK-0.5, TASK-0.6
+Completed: TASK-0.1, TASK-0.2, TASK-0.3, TASK-0.3-ext, TASK-0.5, TASK-0.6, TASK-0.9
 Blocked: —
 Next: TASK-1.1 (repo init) — critical path, unblocks 6 tasks
 
@@ -125,13 +125,13 @@ Full write-ups: `docs/decisions/NNN-*.md` | Index: `docs/decisions/README.md`
 | TASK-0.6 | ✅ rrule.js v2.8.1 works with TZ=UTC — DST correct for Europe/Berlin and US/Eastern, all complex patterns pass. rrule-temporal blocked by missing Temporal API in Bun | accepted |
 | TASK-0.7 | Per-user serialization | skipped — trivial, Map<userId, Promise> for single instance, resolve during gateway implementation |
 | TASK-0.8 | pg-boss scheduling precision | skipped — verify during EPIC-8 reminder implementation |
-| TASK-0.9 | LLM-generated RRULE | pending — do after TASK-0.6, before EPIC-8 |
+| TASK-0.9 | ✅ Pipeline Haiku→rrule.js validate→mini fallback = 100% (28/28). No single model is 100% alone (DTSTART formatting errors). Fallback triggers ~4%. Avg latency 2.4s. Prompt must enumerate valid FREQ values | accepted |
 | TASK-0.10 | Sentry + Bun | skipped — verify during monitoring setup, fallback to @sentry/node |
 | TASK-0.11 | Webhook vs Long Polling | skipped — long polling for MVP, webhook post-MVP if needed |
 
 Update this table as spikes are completed. Keep entries short — one-line summary + status.
 
-**Spike triage (2026-02-21):** 4 spikes skipped — TASK-0.7 (trivial), TASK-0.8 (verify during impl), TASK-0.10 (verify during impl), TASK-0.11 (long polling for MVP). TASK-0.6 and TASK-0.9 remain — both block EPIC-8 (Reminders), can run in parallel with EPIC-1.
+**Spike triage (2026-02-21):** 4 spikes skipped — TASK-0.7 (trivial), TASK-0.8 (verify during impl), TASK-0.10 (verify during impl), TASK-0.11 (long polling for MVP). TASK-0.6 and TASK-0.9 done — EPIC-8 (Reminders) unblocked.
 
 ---
 

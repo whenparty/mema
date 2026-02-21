@@ -18,6 +18,6 @@ Each decision is a separate markdown file: `NNN-short-name.md`
 | 006 | RRULE library choice for Bun | accepted | 2026-02-21 | TASK-0.6 |
 | 007 | Per-user message serialization approach | pending | — | TASK-0.7 |
 | 008 | pg-boss scheduling precision | pending | — | TASK-0.8 |
-| 009 | LLM-generated RRULE quality | pending | — | TASK-0.9 |
+| 009 | LLM-generated RRULE quality | accepted | 2026-02-21 | TASK-0.9 |
 | 010 | Sentry + Bun integration | pending | — | TASK-0.10 |
 | 011 | Webhook vs Long Polling for Telegram | pending | — | TASK-0.11 |

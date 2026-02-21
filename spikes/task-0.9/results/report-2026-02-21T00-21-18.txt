@@ -1,0 +1,121 @@
+============================================================
+TASK-0.9 SPIKE RESULTS: LLM-Generated RRULE Quality
+============================================================
+Date: 2026-02-21T00:21:18.635Z
+Test cases: 28
+Models: gpt-5-nano, gpt-5-mini, claude-haiku-4-5, haiku→validate→mini
+
+--- gpt-5-nano ---
+Overall score:      97.0%
+Avg latency:        4789ms
+Total tokens:       20982 in / 16479 out
+
+Success Criteria:
+  RRULE parseable:    100.0%  (target: 100% for valid inputs)
+  Recurring correct:  100.0%  (target: 100%)
+  Freq correct:       100.0%  (target ≥90%)
+  Wall clock correct: 88.9%  (target ≥90%)
+  Needs clarification: 0/28
+
+By category:
+  simple: 96.9% avg (7 cases)
+  medium: 100.0% avg (7 cases)
+  complex: 100.0% avg (6 cases)
+  ambiguous: 98.7% avg (5 cases)
+  one_time: 81.8% avg (3 cases)
+
+--- gpt-5-mini ---
+Overall score:      96.2%
+Avg latency:        5744ms
+Total tokens:       20982 in / 9974 out
+
+Success Criteria:
+  RRULE parseable:    92.9%  (target: 100% for valid inputs)
+  Recurring correct:  100.0%  (target: 100%)
+  Freq correct:       100.0%  (target ≥90%)
+  Wall clock correct: 100.0%  (target ≥90%)
+  Needs clarification: 6/28
+
+By category:
+  simple: 100.0% avg (7 cases)
+  medium: 100.0% avg (7 cases)
+  complex: 91.7% avg (6 cases)
+  ambiguous: 88.7% avg (5 cases)
+  one_time: 100.0% avg (3 cases)
+
+--- claude-haiku-4-5 ---
+Overall score:      98.2%
+Avg latency:        2030ms
+Total tokens:       43337 in / 6322 out
+
+Success Criteria:
+  RRULE parseable:    96.4%  (target: 100% for valid inputs)
+  Recurring correct:  100.0%  (target: 100%)
+  Freq correct:       100.0%  (target ≥90%)
+  Wall clock correct: 100.0%  (target ≥90%)
+  Needs clarification: 3/28
+
+By category:
+  simple: 100.0% avg (7 cases)
+  medium: 92.9% avg (7 cases)
+  complex: 100.0% avg (6 cases)
+  ambiguous: 100.0% avg (5 cases)
+  one_time: 100.0% avg (3 cases)
+
+--- haiku→validate→mini ---
+Overall score:      100.0%
+Avg latency:        2400ms
+Total tokens:       44084 in / 6874 out
+
+Success Criteria:
+  RRULE parseable:    100.0%  (target: 100% for valid inputs)
+  Recurring correct:  100.0%  (target: 100%)
+  Freq correct:       100.0%  (target ≥90%)
+  Wall clock correct: 100.0%  (target ≥90%)
+  Needs clarification: 3/28
+
+By category:
+  simple: 100.0% avg (7 cases)
+  medium: 100.0% avg (7 cases)
+  complex: 100.0% avg (6 cases)
+  ambiguous: 100.0% avg (5 cases)
+  one_time: 100.0% avg (3 cases)
+  Fallback used: 1/28
+
+=============================================================================
+COMPARISON TABLE
+=============================================================================
+Model                     Score   Latency   Parse   Recur   Freq    Clock
+gpt-5-nano                97.0%   4789ms    100%    100%    100%    89%
+gpt-5-mini                96.2%   5744ms    93%     100%    100%    100%
+claude-haiku-4-5          98.2%   2030ms    96%     100%    100%    100%
+haiku→validate→mini       100.0%  2400ms    100%    100%    100%    100%
+
+============================================================
+PROBLEMATIC PATTERNS (failed in ≥1 model)
+============================================================
+
+  #7 [simple] "Every year on March 15 at 10:00" — failed in 1/4 models
+    gpt-5-nano: wall_clock_error: RangeError: invalid time zone: US-Eastern
+
+  #22 [ambiguous] "Remind me about rent every month" — failed in 2/4 models
+    gpt-5-nano: byMonthDay: got [], expected [1]
+    gpt-5-mini: byMonthDay: got [], expected [1]
+
+  #26 [one_time] "Remind me tomorrow at 3pm" — failed in 1/4 models
+    gpt-5-nano: wall_clock: got 14:00, expected 15:00
+
+  #27 [one_time] "Remind me on March 20 at 14:00" — failed in 1/4 models
+    gpt-5-nano: wall_clock: got 18:00, expected 14:00
+
+  #16 [complex] "Last Friday of the month at 17:00" — failed in 1/4 models
+    gpt-5-mini: parse_error: Invalid UNTIL value: 20260327T17000000; raw_rrule: "DTSTART;TZID=US/Eastern:20260327T17000000
+RRULE:FREQ=MONTHLY;BYDAY=-1FR"
+
+  #23 [ambiguous] "Every morning at 7" — failed in 1/4 models
+    gpt-5-mini: parse_error: Invalid UNTIL value: 20260302T07000000; raw_rrule: "DTSTART;TZID=Europe/Berlin:20260302T07000000
+RRULE:FREQ=DAILY"
+
+  #10 [medium] "Every 3 days at 8pm" — failed in 1/4 models
+    claude-haiku-4-5: parse_error: Invalid UNTIL value: 20260303T20:00:00; raw_rrule: "DTSTART;TZID=US/Eastern:20260303T20:00:00
+RRULE:FREQ=DAILY;INTERVAL=3"
