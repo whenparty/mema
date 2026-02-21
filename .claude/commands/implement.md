@@ -8,7 +8,7 @@ $ARGUMENTS — task ID in format TASK-X.Y (e.g., TASK-1.1)
 Launch a **general-purpose** subagent (`Task` tool, `subagent_type: general-purpose`).
 Pass it the task ID and instruct it to:
 
-1. Search GitHub issues in `whenparty/mema` for "$ARGUMENTS" in title
+1. Search GitHub issues in `whenparty/mema` for "$ARGUMENTS" in title — note the issue number
 2. Read the issue body — extract description, dependencies, traceability (FR/NFR/US refs)
 3. Read `docs/specification/5_1_Backlog.md` — find the task, extract estimate/deps/traceability/labels
 4. Check dependency issues — report which are open vs closed
@@ -32,6 +32,8 @@ Pass it the task ID and instruct it to:
 The subagent returns a **task brief**:
 ```
 Task: TASK-X.Y — [title]
+Issue: #<number>
+Board Item ID: <PVTI_...>
 Estimate: N h
 Dependencies: all closed | [list of open blockers]
 Acceptance Criteria: [checklist]
@@ -42,6 +44,9 @@ Module Context: [summary from module AGENTS.md, or "new module"]
 
 **Orchestrator actions** (after receiving the brief):
 - If dependencies are open — STOP, ask user for decision
+- Look up the board item ID from auto memory (`github-project.md` "Known Item IDs")
+  using the issue number. If not cached, query the project board via GraphQL and
+  cache the result. Attach the item ID to the task brief.
 - Create a feature branch: `git checkout -b task/TASK-X.Y` (e.g., `task/TASK-1.2`)
 - Move issue to "In Progress" on the project board
 - Add comment: "🚀 Implementation started"
@@ -129,9 +134,12 @@ If validator returns **FAIL**:
 ## Phase 3: Review
 
 1. Move issue to "In Review" on the project board
-2. Launch a **reviewer** subagent (`Task` tool, `subagent_type: reviewer`).
-   Pass it: the plan and the task brief for context.
-   The reviewer returns a verdict: APPROVED / NEEDS_REVISION / FAILED
+2. In parallel:
+   - Launch a **reviewer** subagent (`Task` tool, `subagent_type: reviewer`).
+     Pass it: the plan and the task brief for context.
+     The reviewer returns a verdict: APPROVED / NEEDS_REVISION / FAILED
+   - Run Copilot review: `copilot -p "/review" --allow-all` (background Bash)
+3. Present both verdicts to me
 
 If verdict is **NEEDS_REVISION**:
 - Launch the **implementer** subagent with: the approved plan + review feedback
@@ -148,36 +156,26 @@ If verdict is **APPROVED**:
 
 ## Phase 4: Close Task
 
-Launch a **general-purpose** subagent (`Task` tool, `subagent_type: general-purpose`).
-Pass it: task brief, approved plan, change summary from implementer, review verdict,
-and list of deviations (what changed vs plan). Instruct it to:
+Launch a **finalizer** subagent (`Task` tool, `subagent_type: finalizer`).
+Pass it:
+- Task brief (includes issue number and project board item ID)
+- Approved plan
+- Change summary from implementer
+- Review verdict
+- List of deviations (what changed vs plan)
 
-1. **Update issue with deviations** — edit the GitHub issue description, appending:
-   ```
-   ### Deviations
-   - [what changed vs original plan and why]
-   - [anything discovered during implementation]
-   - [scope added/removed with reason]
-   ```
-   If no deviations — append `### Deviations\nNone.`
-2. Add closing comment: verdict + files changed + test count
-3. Move issue to "Done" on the project board
-4. Update AGENTS.md — "Current Sprint" section:
-   - Move task from "In progress" / "Next" to "Completed"
-   - Update "Next" with the next unblocked task (check dependencies)
-5. **Update module AGENTS.md** — for each module directory touched by this task:
-   - If `AGENTS.md` doesn't exist — create it (see template in root AGENTS.md)
-   - If it exists — update Key Files, Interfaces, Patterns sections to reflect changes
-   - Update the Module Documentation table in root AGENTS.md if a new module was added
-
-The subagent returns a suggested conventional commit message following the project convention
+The subagent updates the issue with deviations, adds a closing comment, updates
+AGENTS.md (sprint + module docs), and returns a suggested conventional commit message
 (e.g., `feat(db): TASK-1.3 — add schema and migrations`).
 
 Present the commit message and the execution summary to me. STOP and wait for me to commit.
 
-**After user commits**, ask for confirmation to merge, then:
-- Merge the feature branch into main: `git checkout main && git merge task/TASK-X.Y`
-- Delete the feature branch: `git branch -d task/TASK-X.Y`
+**After user commits**, ask for confirmation to push and merge, then:
+1. Merge the feature branch into main: `git checkout main && git merge task/TASK-X.Y`
+2. Push to remote: `git push`
+3. Close the issue: `gh issue close <number> --repo whenparty/mema`
+4. Move to Done on the project board (GraphQL mutation with item ID from task brief)
+5. Delete the feature branch: `git branch -d task/TASK-X.Y`
 
 ## Execution Summary
 
@@ -195,7 +193,7 @@ After Phase 4 completes, present this summary:
 | implementer     | N | NK / N calls | [validator FAIL × A, review × B] | No |
 | validator       | N | NK / N calls | [impl fix × A, review fix × B] | No |
 | reviewer        | N | NK / N calls | [revision × (N-1)] | No |
-| close-task      | 1 | NK / N calls | — | Yes — commit |
+| finalizer       | 1 | NK / N calls | — | Yes — commit |
 | **Total**       | **N** | **~NK / N calls** | | **N stops** |
 
 ### Returns to User
@@ -252,7 +250,7 @@ only one is responsible.
 | **implementer** | Write code via TDD | yes | **yes** | `bun test <file>` only | no |
 | **validator** | Run CI + Docker checks (auto-detects e2e) | no | no | `bun test`, `bun run typecheck`, `bun run lint`, `docker compose` + e2e (auto-detected) | no |
 | **reviewer** | Evaluate code quality | yes | no | `git diff`, `git status` only | yes |
-| **close-task** (general-purpose) | Update GitHub + AGENTS.md | no | **yes** (AGENTS.md only) | `gh` | no |
+| **finalizer** | Update GitHub + AGENTS.md | no | **yes** (AGENTS.md only) | `gh` | no |
 
 **Key boundaries:**
 - **validator owns CI** — only it runs tests/typecheck/lint/docker. Auto-detects e2e. Reviewer trusts its report.
@@ -269,7 +267,7 @@ All heavy work runs in subagents to protect the main context window:
 - **implementer** — writes code following TDD with `--reporter=dots` for minimal output
 - **validator** — runs test/typecheck/lint + docker/e2e (auto-detected), returns structured PASS/FAIL report
 - **reviewer** — reads git diff, evaluates correctness/quality/security, returns verdict
-- **general-purpose** (Phase 4) — updates GitHub issue, AGENTS.md, module AGENTS.md; returns commit message
+- **finalizer** (Phase 4) — updates GitHub issue, AGENTS.md, module AGENTS.md; returns commit message
 
 The main orchestrator only sees: task brief, plan, verification result, change summary,
 validation report, review verdict, commit message.
