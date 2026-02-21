@@ -42,6 +42,7 @@ Module Context: [summary from module AGENTS.md, or "new module"]
 
 **Orchestrator actions** (after receiving the brief):
 - If dependencies are open — STOP, ask user for decision
+- Create a feature branch: `git checkout -b task/TASK-X.Y` (e.g., `task/TASK-1.2`)
 - Move issue to "In Progress" on the project board
 - Add comment: "🚀 Implementation started"
 
@@ -49,6 +50,7 @@ Module Context: [summary from module AGENTS.md, or "new module"]
 
 Launch a **planner** subagent (`Task` tool, `subagent_type: planner`). Pass it:
 - The task brief from Phase 0 (includes module context summary and key files)
+- The "Hard Constraints from Spike Decisions" table from AGENTS.md (copy verbatim)
 
 The planner has Read access — it will read module AGENTS.md files and spec docs itself,
 guided by the Key Files and Spec References in the brief.
@@ -72,8 +74,9 @@ If planner flagged clarifications — relay them to me, do NOT proceed.
 
 ## Phase 2: Implement + Validate
 
-After plan approval, launch an **implementer** subagent
-(`Task` tool, `subagent_type: implementer`). Pass it:
+### Step 1: Implementation (unit tests + code)
+
+Launch an **implementer** subagent (`Task` tool, `subagent_type: implementer`). Pass it:
 - The approved plan (full text)
 - Any clarifications or decisions from Phase 1 discussion
 
@@ -81,10 +84,42 @@ The implementer writes code following TDD using `bun test <file> --reporter=dots
 for minimal output. Returns a summary of changes (files created/modified, issues encountered).
 The implementer does NOT run full validation — that's the validator's job.
 
-After implementer completes, launch a **validator** subagent
-(`Task` tool, `subagent_type: validator`).
-It runs `bun test`, `bun run typecheck`, `bun run lint` and returns a structured report:
-result (PASS/FAIL), test count, failure list with file:line (max 10 per section).
+### Step 2: E2E tests (when applicable)
+
+**Trigger:** the task touches Docker files, `src/infra/db/`, `package.json`,
+schema/migration files, API endpoints, or pipeline steps. The orchestrator decides.
+
+Launch an **implementer** subagent with a dedicated prompt to write e2e tests.
+Pass it **only**:
+- The task brief and acceptance criteria
+- The approved plan (for context on what the task delivers)
+- Do NOT pass the implementer's change summary or file list
+
+E2e tests are **black-box**: written from the AC, not from implementation details.
+They verify behavior through the external interface (HTTP endpoints, DB state,
+Docker health) without knowledge of internal code structure.
+
+Files go in `tests/e2e/*.test.ts`. Examples:
+- Health endpoint returns 200 with `{ status: "ok" }`
+- App connects to PostgreSQL and runs a query
+- Migration creates expected tables
+- API endpoint returns expected response given specific input
+
+The implementer verifies they compile with `bun test tests/e2e/<file> --reporter=dots`
+(they may fail without Docker — that's expected and OK).
+
+**Skip this step** for tasks that are purely domain logic (no infra/Docker/API surface).
+
+### Step 3: Validation
+
+Launch a **validator** subagent (`Task` tool, `subagent_type: validator`).
+The validator auto-detects whether Docker + e2e checks are needed
+(based on presence of `tests/e2e/*.test.ts` files).
+
+Returns a structured report: result (PASS/FAIL), test count, failure list with
+file:line (max 10 per section), Docker section (if applicable).
+
+### Failure handling
 
 If validator returns **FAIL**:
 - Launch the **implementer** subagent again with: the approved plan + validator failure output
@@ -98,14 +133,7 @@ If validator returns **FAIL**:
    Pass it: the plan and the task brief for context.
    The reviewer returns a verdict: APPROVED / NEEDS_REVISION / FAILED
 
-If verdict is **NEEDS_REVISION**, classify the issues:
-
-**Trivial fixes** (missing file in commit, add line to .gitignore, fix typo, adjust config value):
-- Apply the fix yourself directly (Edit/Write tool) — do NOT launch implementer
-- Re-run **validator** only (no reviewer re-run needed)
-- If validator passes — proceed to Phase 4, note the fix as a deviation
-
-**Code changes** (logic errors, missing test cases, security issues, wrong patterns):
+If verdict is **NEEDS_REVISION**:
 - Launch the **implementer** subagent with: the approved plan + review feedback
 - Re-run validator
 - Re-run reviewer
@@ -142,10 +170,14 @@ and list of deviations (what changed vs plan). Instruct it to:
    - If it exists — update Key Files, Interfaces, Patterns sections to reflect changes
    - Update the Module Documentation table in root AGENTS.md if a new module was added
 
-The subagent returns a suggested conventional commit message referencing the issue
-(e.g., `feat(db): add schema and migrations closes #42`).
+The subagent returns a suggested conventional commit message following the project convention
+(e.g., `feat(db): TASK-1.3 — add schema and migrations`).
 
 Present the commit message and the execution summary to me. STOP and wait for me to commit.
+
+**After user commits**, ask for confirmation to merge, then:
+- Merge the feature branch into main: `git checkout main && git merge task/TASK-X.Y`
+- Delete the feature branch: `git branch -d task/TASK-X.Y`
 
 ## Execution Summary
 
@@ -200,14 +232,12 @@ Based on observed patterns:
 3. **Reviewer is the heaviest subagent.** It re-reads specs to verify AC coverage.
    Mitigation: pass the AC checklist with spec summaries into the reviewer prompt —
    it should focus on the git diff, not re-research the spec.
-4. **Validator is the most efficient.** 3 commands, minimal context — good model
+4. **Validator is the most efficient.** Minimal context, auto-detects scope — good model
    for what a focused subagent should look like.
 5. **Returns to user are mandatory at two points:** plan approval and commit.
    Both are intentional safety gates — do not try to skip them.
-6. **Trivial reviewer fixes should not re-trigger the full loop.** If the reviewer
-   asks for a minor change (add file to commit, fix config value, add .gitignore entry),
-   apply it directly and re-run validator only. Reserve the implementer→validator→reviewer
-   loop for actual code changes.
+6. **All reviewer revisions go through the full loop.** implementer→validator→reviewer.
+   This keeps responsibility boundaries clean — the orchestrator never writes code.
 
 ## Subagent Responsibility Matrix
 
@@ -220,12 +250,12 @@ only one is responsible.
 | **planner** | Create step-by-step plan | yes | no | none | yes |
 | **plan-verifier** | Check plan correctness | yes | no | none | yes |
 | **implementer** | Write code via TDD | yes | **yes** | `bun test <file>` only | no |
-| **validator** | Run CI checks | no | no | `bun test`, `bun run typecheck`, `bun run lint` | no |
+| **validator** | Run CI + Docker checks (auto-detects e2e) | no | no | `bun test`, `bun run typecheck`, `bun run lint`, `docker compose` + e2e (auto-detected) | no |
 | **reviewer** | Evaluate code quality | yes | no | `git diff`, `git status` only | yes |
 | **close-task** (general-purpose) | Update GitHub + AGENTS.md | no | **yes** (AGENTS.md only) | `gh` | no |
 
 **Key boundaries:**
-- **validator owns CI** — only it runs tests/typecheck/lint. Reviewer trusts its report.
+- **validator owns CI** — only it runs tests/typecheck/lint/docker. Auto-detects e2e. Reviewer trusts its report.
 - **implementer owns TDD** — runs `bun test <file>` per step. Does NOT run full suite.
 - **reviewer owns code quality** — reads diffs and files. Does NOT run any build/test/lint.
 - **planner and plan-verifier are read-only** — no Bash, no writes.
@@ -237,7 +267,7 @@ All heavy work runs in subagents to protect the main context window:
 - **planner** — reads specs + codebase, produces plan with 3-round self-verification
 - **plan-verifier** — checks plan against AC, file paths, TDD order, conventions
 - **implementer** — writes code following TDD with `--reporter=dots` for minimal output
-- **validator** — runs test/typecheck/lint, returns structured PASS/FAIL report
+- **validator** — runs test/typecheck/lint + docker/e2e (auto-detected), returns structured PASS/FAIL report
 - **reviewer** — reads git diff, evaluates correctness/quality/security, returns verdict
 - **general-purpose** (Phase 4) — updates GitHub issue, AGENTS.md, module AGENTS.md; returns commit message
 
@@ -257,6 +287,7 @@ validation report, review verdict, commit message.
   flag it as a follow-up, do not fix it
 - If implementer hits a blocker after 3 attempts at any step, STOP and explain —
   do not loop endlessly
+- Always work in a feature branch (`task/TASK-X.Y`) — never commit directly to main
 - Present commit message at the end. NEVER run git add/commit/push yourself
 - If the task turns out larger than expected mid-implementation, STOP and discuss
   splitting it with me rather than continuing with a bloated PR

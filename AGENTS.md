@@ -26,76 +26,30 @@ and gives users full control over what has been remembered.
 
 ---
 
-## Directory Structure
+## Directory Structure (target)
+
+> This is the target layout. Not all directories exist yet — they are created as tasks are implemented.
 
 ```
 mema/
 ├── .github/workflows/        CI/CD pipeline definitions
-├── docs/specification/        Product specification documents (17 files)
 ├── .claude/skills/            Claude Code skill definitions
+├── docs/specification/        Product specification documents (17 files)
 ├── drizzle/                   Drizzle ORM migration files
 ├── prompts/                   Prompt templates (*.ftl), separated from code (NFR-PORT.1)
-│   ├── extraction/            Fact extraction + entity resolution + conflict detection
-│   ├── generation/            Response generation (Model A, Model B, validator)
-│   ├── evaluation/            LLM-as-judge evaluation prompts
-│   ├── summary/               User summary rebuild prompts
-│   ├── interest/              Interest detection prompts
-│   └── reminder/              RRULE parsing and reminder context prompts
 ├── scripts/                   Utility scripts (DB seed, backup, deployment)
 ├── src/
 │   ├── app.ts                 Application entry point (Elysia server + health check)
 │   ├── domain/                Business logic — pure domain, no infra dependencies
-│   │   ├── memory/
-│   │   │   ├── extraction/    Fact extraction, entity resolution, conflict detection
-│   │   │   ├── retrieval/     Semantic search (pgvector), tiered memory, context formation
-│   │   │   ├── management/    Fact editing, deletion, cascade operations
-│   │   │   └── summary/       User summary rebuild logic
-│   │   ├── reminder/          Reminder creation, RRULE handling, delivery, timezone
-│   │   ├── dialog/
-│   │   │   ├── state-manager.ts   Dialog state machine (IDLE/CONFIRM/AWAIT)
-│   │   │   ├── types.ts           Dialog state types and context discriminators
-│   │   │   └── handlers/          Per-state response handlers (conflict, delete, etc.)
-│   │   ├── interest/          Interest detection from query patterns (FR-MEM.15)
-│   │   ├── generation/        Multi-model response generation and validation
-│   │   └── evaluation/
-│   │       ├── judge.ts       LLM-as-judge evaluation logic
-│   │       └── handlers/      Extraction accuracy and application relevance handlers
-│   ├── infra/                 Infrastructure adapters — external services
-│   │   ├── db/
-│   │   │   ├── client.ts      Database connection setup
-│   │   │   ├── schema.ts      Re-export barrel for all schema modules
-│   │   │   └── schema/        Drizzle table definitions (one file per entity)
-│   │   ├── llm/
-│   │   │   ├── provider.ts    LLMProvider interface definition
-│   │   │   ├── providers/     OpenAI and Anthropic adapter implementations
-│   │   │   ├── prompt-loader.ts  FTL template loader
-│   │   │   └── embedding.ts   Embedding generation via OpenAI
-│   │   ├── jobs/
-│   │   │   ├── registry.ts    pg-boss job registration and configuration
-│   │   │   └── handlers/      Job handlers (summary rebuild, interest detection, etc.)
-│   │   ├── monitoring/        Sentry setup, health check, structured log config
-│   │   └── config.ts          Environment variable loading and validation
-│   ├── gateway/               Delivery channel adapters
-│   │   └── telegram/
-│   │       ├── bot.ts         grammy bot setup and webhook configuration
-│   │       ├── commands/      /start, /help, /stop command handlers
-│   │       ├── middleware/    Per-user serialization, rate limiting, typing indicator
-│   │       └── admin/         /admin_block, /admin_unblock, /admin_approve, /admin_stats
+│   ├── infra/                 Infrastructure adapters (DB, LLM, jobs, monitoring)
+│   ├── gateway/               Delivery channel adapters (Telegram)
 │   ├── pipeline/              Message processing pipeline (12 steps)
-│   │   ├── orchestrator.ts    Sequential step executor with error handling
-│   │   ├── types.ts           Pipeline context and step interface types
-│   │   ├── router.ts          Intent-based routing to domain handlers
-│   │   └── steps/             Individual pipeline step implementations
-│   └── shared/                Cross-cutting utilities
-│       ├── errors.ts          Custom error classes
-│       ├── logger.ts          pino logger configuration
-│       └── types.ts           Shared enums, interfaces, type definitions
+│   └── shared/                Cross-cutting utilities (errors, logger, types)
 ├── tests/eval/                Synthetic "message -> expected facts" test sets
-├── AGENTS.md                  This file — project instructions
-├── CLAUDE.md                  Symlink to AGENTS.md
-├── .env.example               Environment variable template
-└── .gitignore                 Git ignore rules
+└── AGENTS.md                  This file — project instructions
 ```
+
+Each `src/` subdirectory gets its own `AGENTS.md` when first implemented (see Module Documentation below).
 
 ---
 
@@ -226,103 +180,16 @@ Update this table as new spikes produce actionable constraints.
 
 ---
 
-## 12-Step Message Pipeline
+## Domain Quick Reference
 
-Every incoming message flows through a sequential pipeline (@docs/specification/4_4_System_Architecture.md):
+> Full details live in specification docs. Use `/specification-navigator` or read directly.
 
-| Step | Name | Description |
-|------|------|-------------|
-| 1 | User status check | Verify user is `active` (not `paused`, `blocked`, `waitlist`) |
-| 2 | Rate limiting | 100 messages/hour per user (NFR-SEC.2) |
-| 2a | Token quota check | Monthly token limit per user (FR-PLT.4) |
-| 3 | Save message | Persist to DB with `processing_status: received` |
-| 4 | Fact extraction | LLM structured output: facts + injection detector (FR-MEM.12) |
-| 5 | Entity resolution | Link mentions to existing or new entities (FR-MEM.3) |
-| 6 | Conflict detection | Find contradictions with existing facts (FR-MEM.4) |
-| 7 | Fact storage | Persist extracted facts to DB |
-| 8 | Intent + complexity | Classify intent and complexity (`trivial`/`standard`) |
-| 9 | Routing | Route to handler based on intent (4.1 IA) |
-| 10 | Context formation | Build tiered memory context for response generation |
-| 11 | Response generation | Single model (trivial) or multi-model (standard) |
-| 12 | Status update | Set `processing_status: processed` (or `failed`) |
-
-Steps 4-6 and 8 are combined into a single LLM call with structured output for optimization.
-
----
-
-## Tiered Memory (FR-MEM.14)
-
-Context for response generation is formed from three tiers:
-
-| Tier | Source | Behavior |
-|------|--------|----------|
-| Tier 1 | `User.summary` (~2000 tokens) | Always in system prompt. Key facts + pattern-derived insights |
-| Tier 2 | pgvector semantic search | On-demand. Stage 1: cosine similarity (MVP). Stage 2: LLM-driven deep retrieval (post-MVP) |
-| Tier 3 | Short-term context | Last 5 message pairs + semantically relevant message pairs |
-
-Tier 1 ensures the model always "knows" key facts. Tier 2 adds query-specific detail. Tier 3 maintains conversational coherence.
-
----
-
-## Multi-Model Generation (FR-COM.5)
-
-| Complexity | Strategy | LLM Calls |
-|-----------|----------|-----------|
-| Trivial | 1 compact (analysis) + 1 powerful (response) | 2 |
-| Standard | 1 compact (analysis) + 2 powerful in parallel + 1 compact validator | 4 |
-
-For standard requests: Model A (Claude) and Model B (GPT) generate responses in parallel via `Promise.allSettled()`. A compact validator checks both for factual errors and synthesizes the final response.
-
-**Degradation:** if one provider is unavailable, the other's response is sent without validation. If both fail — retry with exponential backoff, then error message to user (NFR-REL.5).
-
-### LLM Models
-
-| Task | Model Class | Configured Via |
-|------|------------|---------------|
-| Analysis, extraction, classification | Compact | `LLM_COMPACT_MODEL` |
-| Response generation (A) | Powerful | `LLM_POWERFUL_MODEL_A` |
-| Response generation (B) | Powerful | `LLM_POWERFUL_MODEL_B` |
-| Response validation | Compact | `LLM_VALIDATOR_MODEL` |
-| Embedding | Embedding | `LLM_EMBEDDING_MODEL` |
-
-Models are read from env on each call — swappable without restart.
-
----
-
-## Dialog States
-
-| State | context.type | Trigger | Expected Response |
-|-------|-------------|---------|-------------------|
-| IDLE | -- | Default | Any message -> intent classification |
-| CONFIRM | conflict | Implicit contradiction detected | Confirm change / deny / clarify |
-| CONFIRM | delete | Fact or entity deletion requested | Confirm / cancel |
-| CONFIRM | account_delete | Account deletion requested | Confirm irreversible deletion / cancel |
-| CONFIRM | interest | Promoted interest candidate matches topic | Confirm save as preference / dismiss |
-| AWAIT | missing_data | Missing city, date, timezone, etc. | Provide missing information |
-
-Reset: 30-min timeout or off-topic message. On timeout, the user receives a notification.
-
----
-
-## Data Entities
-
-User, UserAuth, Entity, FactEntity, Fact, Reminder, Message,
-DialogState, Evaluation, InterestScan, InterestCandidate, TokenUsage
-
-Full schema: @docs/specification/4_3_Data_Model.md
-
----
-
-## Intent Taxonomy
-
-| Category | Intents | Description |
-|----------|---------|-------------|
-| memory | save, view, edit, delete, delete_entity, explain | Memory operations |
-| reminder | create, list, cancel, edit | Reminder management |
-| chat | (single intent) | Everything else — pipeline decides memory relevance |
-| system | delete_account, pause, resume | Account management |
-
-Full routing logic: @docs/specification/4_1_Information_Architecture.md
+- **12-step pipeline** — status check → rate limit → save → extract facts → resolve entities → detect conflicts → store facts → classify intent → route → form context → generate response → update status. Steps 4-6+8 combined into one LLM call. Full spec: `4_4_System_Architecture.md`
+- **Tiered memory** — Tier 1: `User.summary` (always in prompt), Tier 2: pgvector semantic search, Tier 3: last 5 message pairs + relevant pairs. Spec: `4_4`
+- **Multi-model generation** — trivial: 2 LLM calls, standard: 4 (2 powerful in parallel + validator). Models configured via env vars (`LLM_COMPACT_MODEL`, `LLM_POWERFUL_MODEL_A/B`, `LLM_VALIDATOR_MODEL`, `LLM_EMBEDDING_MODEL`). Spec: `4_4`
+- **Dialog states** — IDLE / CONFIRM (conflict, delete, account_delete, interest) / AWAIT (missing_data, entity_disambiguation). Reset: 30-min timeout or off-topic. Spec: `4_1_Information_Architecture.md`
+- **Intents** — memory (save, view, edit, delete, delete_entity, explain), reminder (create, list, cancel, edit), chat, system (delete_account, pause, resume). Spec: `4_1`
+- **Data entities** — User, UserAuth, Entity, FactEntity, Fact, Reminder, Message, DialogState, Evaluation, InterestScan, InterestCandidate, TokenUsage. Spec: `4_3_Data_Model.md`
 
 ---
 
@@ -351,28 +218,6 @@ Full routing logic: @docs/specification/4_1_Information_Architecture.md
 - Always include the task ID (e.g., `TASK-1.2`) in the commit message when working on a tracked task
 - Atomic commits — one logical change per commit
 - Run tests before committing
-
----
-
-## Commands
-
-```bash
-bun install              # Install dependencies
-bun run dev              # Start development server
-bun run build            # Build for production
-bun run start            # Start production server
-bun run db:generate      # Generate Drizzle migrations
-bun run db:migrate       # Run migrations
-bun run db:studio        # Open Drizzle Studio
-bun test                 # Run tests
-bun run lint             # Run linter
-bun run typecheck        # Run TypeScript type checking
-bun run format           # Format code
-```
-
-> Commands will be functional after `package.json` setup.
-
-- /project:status — show current sprint status from GitHub issues
 
 ---
 
