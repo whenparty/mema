@@ -135,6 +135,42 @@ Update this table as spikes are completed. Keep entries short — one-line summa
 
 ---
 
+## Module Documentation
+
+Each module has its own `AGENTS.md` colocated with the code. These files describe
+the module's purpose, key files, interfaces, patterns, and decisions — so subagents
+can understand a module without reading every source file.
+
+| Module | File | Status |
+|--------|------|--------|
+| (created during implementation as modules are built) | | |
+
+**Structure of a module AGENTS.md:**
+```
+# Module Name
+
+## Purpose
+One paragraph: what this module does, which FR it implements.
+
+## Key Files
+- `file.ts` — what it does (1 line)
+
+## Interfaces
+- `InterfaceName` — exported from where, used by whom
+
+## Patterns & Decisions
+- [pattern or convention specific to this module]
+
+## Dependencies
+- imports from: [other modules]
+- imported by: [other modules]
+```
+
+Module AGENTS.md files are created when a module is first implemented
+and updated when subsequent tasks modify the module.
+
+---
+
 ## Architecture
 
 ### Clean Architecture Layers

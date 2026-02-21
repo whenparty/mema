@@ -8,6 +8,7 @@
       "Edit(docs/**)",
       "Edit(scripts/**)",
       "Edit(drizzle/**)",
+      "Edit(AGENTS.md)",
       "Write(src/**)",
       "Write(tests/**)",
       "Write(prompts/**)",
@@ -22,6 +23,7 @@
       "Bash(git diff*)",
       "Bash(git status*)",
       "Bash(git log*)",
+      "Bash(gh *)",
       "Bash(python3:*)"
     ],
     "deny": [
@@ -29,7 +31,8 @@
       "Bash(rm -rf*)",
       "Edit(.github/**)",
       "Edit(CLAUDE.md)",
-      "Write(.claude/**)",
+      "Write(.claude/settings.json)",
+      "Write(.claude/settings.local.json)",
       "Write(.github/**)",
       "Write(CLAUDE.md)"
     ]
