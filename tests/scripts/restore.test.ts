@@ -44,14 +44,18 @@ describe("scripts/restore.sh", () => {
 	});
 
 	it("downloads from S3-compatible endpoint", () => {
-		expect(content).toMatch(/aws s3 cp/);
+		expect(content).toMatch(/aws_cli s3 cp/);
 		expect(content).toMatch(/--endpoint-url/);
 	});
 
-	it("checks for required commands (aws, docker compose)", () => {
+	it("checks for required commands (docker compose)", () => {
 		expect(content).toContain("command -v");
-		expect(content).toMatch(/\baws\b/);
 		expect(content).toMatch(/docker compose version/);
+	});
+
+	it("uses aws CLI via Docker container", () => {
+		expect(content).toMatch(/amazon\/aws-cli/);
+		expect(content).toMatch(/aws_cli\(\)/);
 	});
 
 	it("uses pg_restore with clean, if-exists, and verbose flags", () => {
@@ -62,7 +66,7 @@ describe("scripts/restore.sh", () => {
 	});
 
 	it("lists available backups when no argument provided", () => {
-		expect(content).toMatch(/aws s3 ls/);
+		expect(content).toMatch(/aws_cli s3 ls/);
 	});
 
 	it("is executable", () => {

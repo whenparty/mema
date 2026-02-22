@@ -48,7 +48,7 @@ describe("scripts/backup.sh", () => {
 	});
 
 	it("uploads to S3-compatible endpoint", () => {
-		expect(content).toMatch(/aws s3 cp/);
+		expect(content).toMatch(/aws_cli s3 cp/);
 		expect(content).toMatch(/--endpoint-url/);
 	});
 
@@ -56,10 +56,14 @@ describe("scripts/backup.sh", () => {
 		expect(content).toMatch(/rm\s.*-f/);
 	});
 
-	it("checks for required commands (aws, docker compose)", () => {
+	it("checks for required commands (docker compose)", () => {
 		expect(content).toContain("command -v");
-		expect(content).toMatch(/\baws\b/);
 		expect(content).toMatch(/docker compose version/);
+	});
+
+	it("uses aws CLI via Docker container", () => {
+		expect(content).toMatch(/amazon\/aws-cli/);
+		expect(content).toMatch(/aws_cli\(\)/);
 	});
 
 	it("includes 7-day retention cleanup", () => {
