@@ -58,9 +58,9 @@ Each `src/` subdirectory gets its own `AGENTS.md` when first implemented (see Mo
 Milestone: M0 · Spikes & Foundation
 Target: 2026-03-07
 In progress: —
-Completed: TASK-0.1, TASK-0.2, TASK-0.3, TASK-0.3-ext, TASK-0.5, TASK-0.6, TASK-0.9, TASK-1.1, TASK-1.2, TASK-1.3, TASK-1.4, TASK-1.5
+Completed: TASK-0.1, TASK-0.2, TASK-0.3, TASK-0.3-ext, TASK-0.5, TASK-0.6, TASK-0.9, TASK-1.1, TASK-1.2, TASK-1.3, TASK-1.4, TASK-1.5, TASK-1.6
 Blocked: —
-Next: TASK-1.6, TASK-1.7
+Next: TASK-1.7
 
 ---
 
@@ -97,6 +97,7 @@ can understand a module without reading every source file.
 
 | Module | File | Status |
 |--------|------|--------|
+| shared | src/shared/AGENTS.md | created |
 | infra/db | src/infra/db/AGENTS.md | created |
 | scripts | scripts/AGENTS.md | created |
 
