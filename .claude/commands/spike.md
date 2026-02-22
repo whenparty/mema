@@ -7,13 +7,13 @@ $ARGUMENTS — task ID in format TASK-0.X (e.g., TASK-0.1)
 
 1. Search GitHub issues in `whenparty/mema` for "$ARGUMENTS" in title
 2. Read the issue body
-3. Move issue to "In Progress" on the project board
-4. Add comment: "🔬 Spike investigation started"
-5. Read `docs/specification/5_3_Tech_Spikes.md` — find the spike matching this task
-6. Extract: question, context, success criteria, research plan, impact on backlog
-7. Read any related specification docs referenced in the spike
-8. Check dependency issues — if any are open, STOP, move issue back to Backlog, 
-   add comment listing blockers
+3. Use `.claude/skills/github-issue-manager/SKILL.md` to move the issue to In Progress
+   and add the start comment
+4. Read `docs/specification/5_3_Tech_Spikes.md` — find the spike matching this task
+5. Extract: question, context, success criteria, research plan, impact on backlog
+6. Read any related specification docs referenced in the spike
+7. Check dependency issues — if any are open, STOP, move issue back to Backlog, 
+   add comment listing blockers (see `.claude/skills/github-issue-manager/SKILL.md`)
 
 ## Phase 1: Prepare Environment
 
@@ -50,9 +50,9 @@ For each test:
    Decision: docs/decisions/NNN-name.md
    Impact on backlog: [any changes needed]
 ```
-2. Move issue to "Done" on the project board
-3. Close the issue
-4. Update AGENTS.md "Current Sprint" section — move task to Completed
+2. Move issue to Done and close it using
+   `.claude/skills/github-issue-manager/SKILL.md`
+3. Update AGENTS.md "Current Sprint" section — move task to Completed
 
 Present suggested commit message. STOP and wait for user to commit.
 

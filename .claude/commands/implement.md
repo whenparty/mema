@@ -8,26 +8,8 @@ $ARGUMENTS — task ID in format TASK-X.Y (e.g., TASK-1.1)
 Launch a **general-purpose** subagent (`Task` tool, `subagent_type: general-purpose`).
 Pass it the task ID and instruct it to:
 
-1. Search GitHub issues in `whenparty/mema` for "$ARGUMENTS" in title — note the issue number
-2. Read the issue body — extract description, dependencies, traceability (FR/NFR/US refs)
-3. Read `docs/specification/5_1_Backlog.md` — find the task, extract estimate/deps/traceability/labels
-4. Check dependency issues — report which are open vs closed
-5. Read `.claude/skills/specification-navigator/SKILL.md` first, then follow its reading
-   strategy to find and read specification docs referenced in traceability.
-   Summarize relevant requirements — do NOT return full doc text
-6. Enrich the GitHub issue body by appending:
-   ```
-   ### Acceptance Criteria
-   - [ ] [derived from FR/US/AC in spec docs]
-   - [ ] [tests pass, typecheck clean, lint clean]
-
-   ### Key Files
-   - `src/path/to/file.ts` — [what it does]
-
-   ### Spec References
-   - [FR-MEM.1](docs/specification/3_1_Functional_Requirements.md) — [short description]
-   ```
-7. Read module AGENTS.md files for affected modules (if they exist)
+Follow `.claude/skills/task-brief/SKILL.md` for the full task brief and
+issue enrichment steps.
 
 The subagent returns a **task brief**:
 ```
@@ -48,8 +30,8 @@ Module Context: [summary from module AGENTS.md, or "new module"]
   using the issue number. If not cached, query the project board via GraphQL and
   cache the result. Attach the item ID to the task brief.
 - Create a feature branch: `git checkout -b task/TASK-X.Y` (e.g., `task/TASK-1.2`)
-- Move issue to "In Progress" on the project board
-- Add comment: "🚀 Implementation started"
+- Use `.claude/skills/github-issue-manager/SKILL.md` to move the issue to In Progress
+  and add the start comment
 
 ## Phase 1: Plan
 
@@ -133,15 +115,13 @@ If validator returns **FAIL**:
 
 ## Phase 3: Review
 
-1. Move issue to "In Review" on the project board
+1. Use `.claude/skills/github-issue-manager/SKILL.md` to move the issue to In Review
 2. In parallel:
    - Launch a **reviewer** subagent (`Task` tool, `subagent_type: reviewer`).
      Pass it: the plan and the task brief for context.
      The reviewer returns a verdict: APPROVED / NEEDS_REVISION / FAILED
-   - Run Copilot review via background Bash: `copilot -p "<prompt>" --allow-all`.
-     Pass the SAME detailed context as the reviewer subagent (task brief, AC,
-     plan summary, validation result) — not just a bare `/review` command.
-     Copilot needs the full context to give meaningful feedback.
+   - Run Copilot review using the instructions in
+     `.claude/skills/copilot-reviewer/SKILL.md`.
 3. Present both verdicts to me
 
 If verdict is **NEEDS_REVISION**:
@@ -179,46 +159,14 @@ Present the execution summary to the user.
 Then ask for confirmation to push and merge. **After user confirms**:
 1. Merge the feature branch into main: `git checkout main && git merge task/TASK-X.Y`
 2. Push to remote: `git push`
-3. Close the issue: `gh issue close <number> --repo whenparty/mema`
-4. Move to Done on the project board (GraphQL mutation with item ID from task brief)
-5. Delete the feature branch: `git branch -d task/TASK-X.Y`
+3. Close the issue and move it to Done using
+   `.claude/skills/github-issue-manager/SKILL.md`
+4. Delete the feature branch: `git branch -d task/TASK-X.Y`
 
 ## Execution Summary
 
-After Phase 4 completes, present this summary:
-
-```
-## Execution Summary: TASK-X.Y
-
-### Subagent Invocations
-| Subagent | Invocations | Context (tokens / tool calls) | Reason for re-runs | Return to user |
-|----------|:-----------:|:-----------------------------:|---------------------|----------------|
-| context-loader  | 1 | NK / N calls | — | No |
-| planner         | N | NK / N calls | [verifier FAIL × (N-1)] | No |
-| plan-verifier   | N | NK / N calls | [planner revisions × (N-1)] | Yes — plan approval |
-| implementer     | N | NK / N calls | [validator FAIL × A, review × B] | No |
-| validator       | N | NK / N calls | [impl fix × A, review fix × B] | No |
-| reviewer        | N | NK / N calls | [revision × (N-1)] | No |
-| finalizer       | 1 | NK / N calls | — | Yes — commit |
-| **Total**       | **N** | **~NK / N calls** | | **N stops** |
-
-### Returns to User
-| # | Phase | Reason | Was it necessary? |
-|---|-------|--------|-------------------|
-| N | After Phase Na | [reason] | [Yes/No — assessment] |
-
-### Context Efficiency
-| Subagent | Assessment |
-|----------|------------|
-| [name] | [Efficient/Heavy — reason, e.g. "re-read files already loaded by context-loader"] |
-
-### Tool Issues
-- [tool name] — [what failed and why] (or "None")
-
-### Stops
-- Plan approval: [user approved / user modified plan / N clarification rounds]
-- Failures: [none / list of phases where STOP was triggered]
-```
+After Phase 4 completes, present the execution summary using
+`.claude/skills/execution-summary/SKILL.md`.
 
 Track these counters throughout execution. Increment each time a subagent is launched.
 If a subagent reports a tool permission denial or unavailable tool, record it.
