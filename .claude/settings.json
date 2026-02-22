@@ -24,7 +24,7 @@
       "Write(drizzle/**)",
       "Write(.claude/skills/**)",
       "Bash(bun install*)",
-      "Bash(bun test*)",
+      "Bash(bun run test*)",
       "Bash(bun run typecheck)",
       "Bash(bun run lint*)",
       "Bash(bun run format*)",
@@ -47,7 +47,8 @@
       "Bash(git log*)",
       "Bash(gh *)",
       "Bash(copilot *)",
-      "Bash(python3 *)"
+      "Bash(python3 *)",
+      "Task(*)"
     ],
     "deny": [
       "Bash(rm -rf*)",

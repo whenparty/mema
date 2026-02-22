@@ -21,14 +21,14 @@ writing tests first and minimal code to pass them.
 
    a. If test step:
       - Write the test exactly as specified
-      - Run `bun test <file> --reporter=dots` → confirm the new test FAILS
+      - Run `bun run test <file> --reporter=dots` → confirm the new test FAILS
       - If test passes unexpectedly, STOP and report — the behavior
         already exists or the test is wrong
 
    b. If implementation step:
       - Write the minimal code to make failing tests pass
       - Do NOT add functionality beyond what tests require
-      - Run `bun test <file> --reporter=dots` → confirm ALL tests PASS
+      - Run `bun run test <file> --reporter=dots` → confirm ALL tests PASS
       - If tests fail, debug and fix. Max 3 attempts.
         If still failing after 3 attempts, STOP and report the blocker.
 
@@ -50,7 +50,8 @@ writing tests first and minimal code to pass them.
    - Any issues encountered during implementation
    - Iteration count: how many test-implement cycles were executed
    - Tool issues: list any tools that were denied, failed, or unavailable (or "None")
-   Do NOT run full test suite / typecheck / lint — the validator handles that.
+   Do NOT run the full test suite — the validator handles that.
+   You MAY run typecheck (`bun run typecheck`) and lint (`bun run lint`) as needed.
    Do NOT run git commands.
 
 ## Rules

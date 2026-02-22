@@ -5,13 +5,17 @@ $ARGUMENTS — task ID in format TASK-X.Y (e.g., TASK-1.1)
 
 ## Phase 0: Pick Up Task
 
+Launch **two subagents in parallel**:
+
+### 0a: Task Brief
+
 Launch a **general-purpose** subagent (`Task` tool, `subagent_type: general-purpose`).
 Pass it the task ID and instruct it to:
 
 Follow `.claude/skills/task-brief/SKILL.md` for the full task brief and
 issue enrichment steps.
 
-The subagent returns a **task brief**:
+The subagent returns a **task brief** containing full spec context:
 ```
 Task: TASK-X.Y — [title]
 Issue: #<number>
@@ -19,12 +23,26 @@ Board Item ID: <PVTI_...>
 Estimate: N h
 Dependencies: all closed | [list of open blockers]
 Acceptance Criteria: [checklist]
-Spec Summary: [key requirements in 5-10 lines]
+
+Full Spec Context:
+[full text of every FR, NFR, US, and AC relevant to this task]
+
+Spec Document Map:
+[full document map from specification-navigator]
+
 Key Files: [existing files to modify + new files to create]
 Module Context: [summary from module AGENTS.md, or "new module"]
 ```
 
-**Orchestrator actions** (after receiving the brief):
+### 0b: Project Config Summary
+
+Launch an **Explore** subagent (`Task` tool, `subagent_type: Explore`, `model: haiku`).
+Instruct it to follow `.claude/skills/config-summary/SKILL.md`.
+
+This summary replaces raw config file reads by subsequent subagents.
+Pass it to planner, implementer, and reviewer alongside their other context.
+
+**Orchestrator actions** (after receiving both outputs):
 - If dependencies are open — STOP, ask user for decision
 - Look up the board item ID from auto memory (`github-project.md` "Known Item IDs")
   using the issue number. If not cached, query the project board via GraphQL and
@@ -36,53 +54,71 @@ Module Context: [summary from module AGENTS.md, or "new module"]
 ## Phase 1: Plan
 
 Launch a **planner** subagent (`Task` tool, `subagent_type: planner`). Pass it:
-- The task brief from Phase 0 (includes module context summary and key files)
+- The task brief from Phase 0 (includes full spec context, document map, module context, key files)
+- The project config summary from Phase 0
 - The "Hard Constraints from Spike Decisions" table from AGENTS.md (copy verbatim)
+- If returning from Phase 2 FAIL: the current plan + combined issues from both verifiers
 
-The planner has Read access — it will read module AGENTS.md files and spec docs itself,
-guided by the Key Files and Spec References in the brief.
+The planner receives the full spec context from the brief. It determines what
+**additional** spec documents (if any) are needed beyond what's already in the brief,
+using the document map to locate them.
 Runs 3 rounds of self-verification (structure → scope → codebase fit)
 and returns a step-by-step plan.
 
-## Phase 1a: Verify Plan
+## Phase 2: Verify Plan
 
 Launch a **plan-verifier** subagent (`Task` tool, `subagent_type: plan-verifier`). Pass it:
 - The plan from Phase 1
+- Full spec context and document map from the task brief
 - Task description and acceptance criteria from the brief
+- Project config summary from Phase 0
 
-The verifier checks: AC coverage, file path validity, TDD order, scope, conventions.
-Returns PASS or FAIL with specific issues.
+The plan-verifier:
+1. Reads AGENTS.md (conventions, architecture, testing)
+2. Checks AC coverage — for each AC, finds the corresponding test step in the plan
+3. Checks scope — unnecessary abstractions, files outside scope, over-engineering, missing steps
+4. Checks conventions — named exports, interface > type, architecture rules
+5. Runs Copilot CLI with the same context and checklist (following `.claude/skills/copilot-reviewer/SKILL.md`)
+6. Returns both verdicts: its own + Copilot's
 
-If **FAIL**: launch a new **planner** subagent with the original brief + current plan +
-verifier issues. Planner revises the plan, then re-run plan-verifier. Max 2 cycles.
+### Evaluate verdicts
 
-After PASS: present the plan to me and **STOP — wait for my approval**.
+If **either** returns FAIL:
+- Return to **Phase 1** with: the current plan + combined issues from both verifiers.
+  The planner revises the plan, then Phase 2 runs again.
+- If the planner cannot satisfy the verifier's issues — ask the user for a decision.
+  If the user approves despite issues, note the override and proceed.
+
+After both PASS: present the plan to me and **STOP — wait for my approval**.
 If planner flagged clarifications — relay them to me, do NOT proceed.
 
-## Phase 2: Implement + Validate
+## Phase 3: Implement + Validate
 
 ### Step 1: Implementation (unit tests + code)
 
 Launch an **implementer** subagent (`Task` tool, `subagent_type: implementer`). Pass it:
 - The approved plan (full text)
-- Any clarifications or decisions from Phase 1 discussion
+- The project config summary from Phase 0
+- Any clarifications or decisions from Phase 2 discussion
 
-The implementer writes code following TDD using `bun test <file> --reporter=dots`
+The implementer writes code following TDD using `bun run test <file> --reporter=dots`
 for minimal output. Returns a summary of changes (files created/modified, issues encountered).
-The implementer does NOT run full validation — that's the validator's job.
+The implementer does NOT run the full test suite — that's the validator's job.
+The implementer MAY run typecheck and lint as needed during implementation.
 
 ### Step 2: E2E tests (when applicable)
 
 **Trigger:** the task touches Docker files, `src/infra/db/`, `package.json`,
 schema/migration files, API endpoints, or pipeline steps. The orchestrator decides.
 
-Launch an **implementer** subagent with a dedicated prompt to write e2e tests.
+Launch a **separate implementer** subagent with a dedicated prompt to write e2e tests.
 Pass it **only**:
 - The task brief and acceptance criteria
 - The approved plan (for context on what the task delivers)
 - Do NOT pass the implementer's change summary or file list
 
 E2e tests are **black-box**: written from the AC, not from implementation details.
+This is a separate implementer that does not know what the first implementer wrote.
 They verify behavior through the external interface (HTTP endpoints, DB state,
 Docker health) without knowledge of internal code structure.
 
@@ -92,7 +128,7 @@ Files go in `tests/e2e/*.test.ts`. Examples:
 - Migration creates expected tables
 - API endpoint returns expected response given specific input
 
-The implementer verifies they compile with `bun test tests/e2e/<file> --reporter=dots`
+The implementer verifies they compile with `bun run test tests/e2e/<file> --reporter=dots`
 (they may fail without Docker — that's expected and OK).
 
 **Skip this step** for tasks that are purely domain logic (no infra/Docker/API surface).
@@ -111,33 +147,49 @@ file:line (max 10 per section), Docker section (if applicable).
 If validator returns **FAIL**:
 - Launch the **implementer** subagent again with: the approved plan + validator failure output
 - Re-run validator after fixes
-- Maximum 3 fix cycles. If still failing, STOP and present failures to me
+- If still failing, STOP and present failures to me
 
-## Phase 3: Review
+## Phase 4: Review
 
-1. Use `.claude/skills/github-issue-manager/SKILL.md` to move the issue to In Review
-2. In parallel:
-   - Launch a **reviewer** subagent (`Task` tool, `subagent_type: reviewer`).
-     Pass it: the plan and the task brief for context.
-     The reviewer returns a verdict: APPROVED / NEEDS_REVISION / FAILED
-   - Run Copilot review using the instructions in
-     `.claude/skills/copilot-reviewer/SKILL.md`.
-3. Present both verdicts to me
+### Step 0: Prepare
 
-If verdict is **NEEDS_REVISION**:
-- Launch the **implementer** subagent with: the approved plan + review feedback
-- Re-run validator
-- Re-run reviewer
-- Maximum 3 revision cycles. If still not APPROVED, STOP
-  and present all unresolved issues to me
+Use `.claude/skills/github-issue-manager/SKILL.md` to move the issue to In Review.
 
-If verdict is **FAILED**:
+### Step 1: Run reviewer subagent
+
+Launch a **reviewer** subagent (`Task` tool, `subagent_type: reviewer`). Pass it:
+- Full spec context (FR/NFR/US) and document map from the task brief
+- AGENTS.md (architecture, conventions)
+- The approved plan
+- The task brief (AC, key files)
+- The project config summary from Phase 0
+
+The reviewer:
+1. Gathers context: plan, spec documents, AGENTS.md
+2. Reviews via `git diff` and `git status`
+3. Checks: correctness (plan, AC, traceability), tests (meaningful, behavior vs implementation,
+   edge cases), code quality (naming, readability, duplication, error handling, type safety),
+   conventions (codebase patterns, AGENTS.md), security (input validation, injection, data isolation)
+4. Forms its verdict: APPROVED / NEEDS_REVISION / FAILED
+5. Launches Copilot CLI with the same context and checklist
+   (following `.claude/skills/copilot-reviewer/SKILL.md`)
+6. Waits for Copilot result
+7. Returns both verdicts: its own + Copilot's
+
+### Step 2: Evaluate verdicts
+
+If either verdict is **NEEDS_REVISION**:
+- Launch the **implementer** subagent with: the approved plan + combined review feedback
+- Re-run validator (Phase 3 Step 3)
+- Re-run Phase 4 (Step 1)
+
+If either verdict is **FAILED**:
 - STOP and present the failure to me
 
-If verdict is **APPROVED**:
-- Proceed to Phase 4
+If both verdicts are **APPROVED**:
+- Proceed to Phase 5
 
-## Phase 4: Close Task
+## Phase 5: Finalize
 
 Launch a **finalizer** subagent (`Task` tool, `subagent_type: finalizer`).
 Pass it:
@@ -165,71 +217,14 @@ Then ask for confirmation to push and merge. **After user confirms**:
 
 ## Execution Summary
 
-After Phase 4 completes, present the execution summary using
+After Phase 5 completes, present the execution summary using
 `.claude/skills/execution-summary/SKILL.md`.
 
 Track these counters throughout execution. Increment each time a subagent is launched.
 If a subagent reports a tool permission denial or unavailable tool, record it.
 
-### Recommendations for Context Optimization
-
-Based on observed patterns:
-
-1. **Planner re-reads context-loader files.** Subagents don't share context —
-   this is unavoidable. To minimize: pass spec summaries (not just references)
-   from context-loader into the planner prompt so it reads fewer files itself.
-2. **Plan-verifier re-reads planner files.** Same issue. Mitigation: include
-   relevant file snippets (not just paths) in the plan text itself so the
-   verifier can check without re-reading everything.
-3. **Reviewer is the heaviest subagent.** It re-reads specs to verify AC coverage.
-   Mitigation: pass the AC checklist with spec summaries into the reviewer prompt —
-   it should focus on the git diff, not re-research the spec.
-4. **Validator is the most efficient.** Minimal context, auto-detects scope — good model
-   for what a focused subagent should look like.
-5. **Returns to user are mandatory at two points:** plan approval and commit.
-   Both are intentional safety gates — do not try to skip them.
-6. **All reviewer revisions go through the full loop.** implementer→validator→reviewer.
-   This keeps responsibility boundaries clean — the orchestrator never writes code.
-
-## Subagent Responsibility Matrix
-
-Each subagent has a strict scope. No overlaps — if two agents could do the same thing,
-only one is responsible.
-
-| Subagent | Role | Reads code | Writes code | Allowed commands | Reads specs |
-|----------|------|:----------:|:-----------:|------------------|:-----------:|
-| **context-loader** (general-purpose) | Gather task context from GitHub + specs | no | no | `gh` | yes |
-| **planner** | Create step-by-step plan | yes | no | none | yes |
-| **plan-verifier** | Check plan correctness | yes | no | none | yes |
-| **implementer** | Write code via TDD | yes | **yes** | `bun test <file>` only | no |
-| **validator** | Run CI + Docker checks (auto-detects e2e) | no | no | `bun test`, `bun run typecheck`, `bun run lint`, `docker compose` + e2e (auto-detected) | no |
-| **reviewer** | Evaluate code quality | yes | no | `git diff`, `git status` only | yes |
-| **finalizer** | Update GitHub + AGENTS.md | no | **yes** (AGENTS.md only) | `gh` | no |
-
-**Key boundaries:**
-- **validator owns CI** — only it runs tests/typecheck/lint/docker. Auto-detects e2e. Reviewer trusts its report.
-- **implementer owns TDD** — runs `bun test <file>` per step. Does NOT run full suite.
-- **reviewer owns code quality** — reads diffs and files. Does NOT run any build/test/lint.
-- **planner and plan-verifier are read-only** — no Bash, no writes.
-
-## Context Management
-
-All heavy work runs in subagents to protect the main context window:
-- **general-purpose** (Phase 0) — reads issue, backlog, specs; enriches issue; returns task brief
-- **planner** — reads specs + codebase, produces plan with 3-round self-verification
-- **plan-verifier** — checks plan against AC, file paths, TDD order, conventions
-- **implementer** — writes code following TDD with `--reporter=dots` for minimal output
-- **validator** — runs test/typecheck/lint + docker/e2e (auto-detected), returns structured PASS/FAIL report
-- **reviewer** — reads git diff, evaluates correctness/quality/security, returns verdict
-- **finalizer** (Phase 4) — updates GitHub issue, AGENTS.md, module AGENTS.md; returns commit message
-
-The main orchestrator only sees: task brief, plan, verification result, change summary,
-validation report, review verdict, commit message.
-
-**Rules for subagent context:**
-- Pass full context INTO subagents explicitly — they do not inherit conversation history
-- Always pass the approved plan to implementer (including in revision loops)
-- In loops, pass only the LATEST failure/review output — not the full history
+See `implement-reference.md` for the subagent responsibility matrix,
+context management rules, and context optimization recommendations.
 
 ## Rules
 
@@ -237,8 +232,6 @@ validation report, review verdict, commit message.
 - Follow TDD strictly: test first, then implementation, then verification
 - Do NOT modify files outside the plan scope — if you discover adjacent work needed,
   flag it as a follow-up, do not fix it
-- If implementer hits a blocker after 3 attempts at any step, STOP and explain —
-  do not loop endlessly
 - Always work in a feature branch (`task/TASK-X.Y`) — never commit directly to main
 - Commit to the feature branch automatically after review is APPROVED — do not ask the user
 - NEVER push to remote or merge to main without user confirmation

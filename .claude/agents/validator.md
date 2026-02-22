@@ -16,7 +16,7 @@ a structured report. You do not fix code — you report results.
 
 Run these commands in order. Capture output from each:
 
-1. `bun test` — unit tests
+1. `bun run test` — unit tests
 2. `bun run typecheck` — TypeScript type checking
 3. `bun run lint` — linting
 
@@ -32,7 +32,7 @@ Docker checks:
 1. `docker compose build` — image builds successfully
 2. `docker compose up -d` — start app + db
 3. Wait for health checks, then `docker compose ps` — all services healthy
-4. `bun test tests/e2e/ --reporter=dots` — e2e tests run from the host against
+4. `bun run test tests/e2e/ --reporter=dots` — e2e tests run from the host against
    the Docker stack (HTTP requests to `localhost:3000`, DB queries to `localhost:5432`)
 5. `docker compose down -v` — clean shutdown
 

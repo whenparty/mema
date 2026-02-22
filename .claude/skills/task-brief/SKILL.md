@@ -18,8 +18,10 @@ Collect task context and normalize the issue body with acceptance criteria and r
 2. Read the issue body; extract description, dependencies, traceability (FR/NFR/US)
 3. Read docs/specification/5_1_Backlog.md; find task entry and extract estimate, deps, traceability, labels
 4. Check dependency issues; report open vs closed
-5. Read .claude/skills/specification-navigator/SKILL.md and follow its strategy
-6. Read relevant spec docs referenced by traceability; summarize key requirements
+5. Read .claude/skills/specification-navigator/SKILL.md — extract the **full document map**
+   (the table of all spec files with descriptions and "read when you need" hints)
+6. Read ALL spec docs referenced by traceability (FR/NFR/US) and extract the **full text**
+   of every relevant requirement, user story, and acceptance criterion — not summaries or links
 7. Enrich the GitHub issue body by appending:
 
 ```
@@ -46,7 +48,13 @@ Board Item ID: <PVTI_...>
 Estimate: N h
 Dependencies: all closed | [list of open blockers]
 Acceptance Criteria: [checklist]
-Spec Summary: [key requirements in 5-10 lines]
+
+Full Spec Context:
+[full text of every FR, NFR, US, and AC relevant to this task — copy verbatim from spec docs]
+
+Spec Document Map:
+[full document map from specification-navigator — all files with descriptions and reading hints]
+
 Key Files: [existing files to modify + new files to create]
 Module Context: [summary from module AGENTS.md, or "new module"]
 ```
@@ -54,4 +62,6 @@ Module Context: [summary from module AGENTS.md, or "new module"]
 ## Rules
 - Do not guess missing requirements
 - Always include the quality-gate AC (tests/typecheck/lint)
-- Keep summaries short and actionable
+- Include the FULL TEXT of relevant spec sections — downstream subagents rely on this
+  as their primary spec context and should not need to re-read spec docs for core requirements
+- Include the full document map so downstream subagents can locate additional docs if needed
