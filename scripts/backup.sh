@@ -14,17 +14,24 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 log() { echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] $*"; }
 
 # --- Check required commands ---
-for CMD in aws docker; do
-  if ! command -v "$CMD" &>/dev/null; then
-    log "ERROR: Required command '$CMD' is not installed."
-    exit 1
-  fi
-done
+if ! command -v docker &>/dev/null; then
+  log "ERROR: Required command 'docker' is not installed."
+  exit 1
+fi
 
 if ! docker compose version &>/dev/null; then
   log "ERROR: 'docker compose' plugin is not available."
   exit 1
 fi
+
+# --- AWS CLI via Docker (no host install needed) ---
+aws_cli() {
+  docker run --rm \
+    -e AWS_ACCESS_KEY_ID="$B2_APPLICATION_KEY_ID" \
+    -e AWS_SECRET_ACCESS_KEY="$B2_APPLICATION_KEY" \
+    -v /tmp:/tmp \
+    amazon/aws-cli "$@"
+}
 
 # --- Validate required environment variables ---
 REQUIRED_VARS=(
@@ -59,14 +66,11 @@ docker compose exec -T -e PGPASSWORD="$POSTGRES_PASSWORD" db \
 
 log "Database dump complete. Size: $(du -h "/tmp/$BACKUP_FILE" | cut -f1)"
 
-# --- Configure AWS credentials for B2 ---
-export AWS_ACCESS_KEY_ID="$B2_APPLICATION_KEY_ID"
-export AWS_SECRET_ACCESS_KEY="$B2_APPLICATION_KEY"
 B2_ENDPOINT_URL="${B2_ENDPOINT_URL:-https://s3.us-west-004.backblazeb2.com}"
 
 # --- Upload to B2 ---
 log "Uploading to s3://$B2_BUCKET_NAME/$BACKUP_FILE"
-aws s3 cp "/tmp/$BACKUP_FILE" "s3://$B2_BUCKET_NAME/$BACKUP_FILE" \
+aws_cli s3 cp "/tmp/$BACKUP_FILE" "s3://$B2_BUCKET_NAME/$BACKUP_FILE" \
   --endpoint-url "$B2_ENDPOINT_URL"
 
 log "Upload complete."
@@ -87,10 +91,10 @@ else
       FILE_DATE="${FILE_DATE%%T*}"
       if [[ "$FILE_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ && "$FILE_DATE" < "$CUTOFF_DATE" ]]; then
         log "Deleting old backup: $FILENAME"
-        aws s3 rm "s3://$B2_BUCKET_NAME/$FILENAME" --endpoint-url "$B2_ENDPOINT_URL"
+        aws_cli s3 rm "s3://$B2_BUCKET_NAME/$FILENAME" --endpoint-url "$B2_ENDPOINT_URL"
       fi
     fi
-  done < <(aws s3 ls "s3://$B2_BUCKET_NAME/" --endpoint-url "$B2_ENDPOINT_URL")
+  done < <(aws_cli s3 ls "s3://$B2_BUCKET_NAME/" --endpoint-url "$B2_ENDPOINT_URL")
 fi
 
 log "Backup process complete."

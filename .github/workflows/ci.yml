@@ -99,7 +99,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: docker-compose.yml
+          source: "docker-compose.yml,scripts/"
           target: ${{ secrets.VPS_DEPLOY_PATH }}
 
       - name: Deploy to VPS

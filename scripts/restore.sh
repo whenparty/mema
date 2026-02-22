@@ -14,17 +14,24 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 log() { echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] $*"; }
 
 # --- Check required commands ---
-for CMD in aws docker; do
-  if ! command -v "$CMD" &>/dev/null; then
-    log "ERROR: Required command '$CMD' is not installed."
-    exit 1
-  fi
-done
+if ! command -v docker &>/dev/null; then
+  log "ERROR: Required command 'docker' is not installed."
+  exit 1
+fi
 
 if ! docker compose version &>/dev/null; then
   log "ERROR: 'docker compose' plugin is not available."
   exit 1
 fi
+
+# --- AWS CLI via Docker (no host install needed) ---
+aws_cli() {
+  docker run --rm \
+    -e AWS_ACCESS_KEY_ID="$B2_APPLICATION_KEY_ID" \
+    -e AWS_SECRET_ACCESS_KEY="$B2_APPLICATION_KEY" \
+    -v /tmp:/tmp \
+    amazon/aws-cli "$@"
+}
 
 # --- Usage / list backups when no argument provided ---
 if [[ -z "${1:-}" ]]; then
@@ -33,11 +40,9 @@ if [[ -z "${1:-}" ]]; then
   echo ""
 
   if [[ -n "${B2_APPLICATION_KEY_ID:-}" ]]; then
-    export AWS_ACCESS_KEY_ID="$B2_APPLICATION_KEY_ID"
-    export AWS_SECRET_ACCESS_KEY="$B2_APPLICATION_KEY"
     B2_ENDPOINT_URL="${B2_ENDPOINT_URL:-https://s3.us-west-004.backblazeb2.com}"
     echo "Available backups:"
-    aws s3 ls "s3://$B2_BUCKET_NAME/" --endpoint-url "$B2_ENDPOINT_URL"
+    aws_cli s3 ls "s3://$B2_BUCKET_NAME/" --endpoint-url "$B2_ENDPOINT_URL"
   fi
 
   exit 1
@@ -62,9 +67,6 @@ for VAR in "${REQUIRED_VARS[@]}"; do
   fi
 done
 
-# --- Configure AWS credentials for B2 ---
-export AWS_ACCESS_KEY_ID="$B2_APPLICATION_KEY_ID"
-export AWS_SECRET_ACCESS_KEY="$B2_APPLICATION_KEY"
 B2_ENDPOINT_URL="${B2_ENDPOINT_URL:-https://s3.us-west-004.backblazeb2.com}"
 
 # --- Cleanup trap ---
@@ -73,7 +75,7 @@ trap cleanup EXIT
 
 # --- Download backup from B2 ---
 log "Downloading s3://$B2_BUCKET_NAME/$BACKUP_FILE"
-aws s3 cp "s3://$B2_BUCKET_NAME/$BACKUP_FILE" "/tmp/$BACKUP_FILE" \
+aws_cli s3 cp "s3://$B2_BUCKET_NAME/$BACKUP_FILE" "/tmp/$BACKUP_FILE" \
   --endpoint-url "$B2_ENDPOINT_URL"
 
 log "Download complete. Size: $(du -h "/tmp/$BACKUP_FILE" | cut -f1)"

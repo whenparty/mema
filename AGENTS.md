@@ -98,6 +98,7 @@ can understand a module without reading every source file.
 | Module | File | Status |
 |--------|------|--------|
 | infra/db | src/infra/db/AGENTS.md | created |
+| scripts | scripts/AGENTS.md | created |
 
 **Structure of a module AGENTS.md:**
 ```

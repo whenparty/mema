@@ -11,7 +11,7 @@ running PostgreSQL container. Run it without arguments to list available backups
 
 ## Prerequisites
 
-- **AWS CLI v2** -- installed and available on `PATH` (used for S3-compatible API)
+- **Docker** -- the scripts run `amazon/aws-cli` via `docker run` (no host AWS CLI install needed)
 - **Backblaze B2 bucket** -- created with an application key that has read/write access
 - **Docker Compose** -- the `db` service must be running (`docker compose up -d db`)
 
@@ -35,11 +35,29 @@ project root automatically if it exists.
 Schedule daily backups at 03:00 UTC:
 
 ```
-0 3 * * * cd /path/to/mema && ./scripts/backup.sh >> /var/log/mema-backup.log 2>&1
+0 3 * * * cd /path/to/mema && mkdir -p logs && ./scripts/backup.sh >> logs/backup.log 2>&1
 ```
 
 Scripts must run from the project root because they source `.env` and use
 `docker compose` to connect to the database container.
+
+## Log Rotation
+
+Configure logrotate for the backup log (run as root once):
+
+```bash
+cat > /etc/logrotate.d/mema-backup << 'EOF'
+/path/to/mema/logs/backup.log {
+    weekly
+    rotate 4
+    compress
+    missingok
+    notifempty
+}
+EOF
+```
+
+Replace `/path/to/mema` with the actual deploy path.
 
 ## Manual Restore
 
@@ -74,8 +92,10 @@ Scripts must run from the project root because they source `.env` and use
 
 ## Monitoring
 
-- Check the log file (`/var/log/mema-backup.log`) for errors.
+- Check the log file (`logs/backup.log`) for errors.
 - Consider alerting on non-zero exit codes from the cron job (e.g., via a
   monitoring tool or a simple wrapper script that sends notifications on failure).
 - All scripts connect to PostgreSQL via `docker compose exec` -- no host-level
   `pg_dump` or `pg_restore` installation is needed.
+- AWS CLI runs inside `amazon/aws-cli` Docker container -- no host-level `aws`
+  installation is needed.
