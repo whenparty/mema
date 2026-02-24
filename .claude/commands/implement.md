@@ -1,239 +1,642 @@
-# Implement Task
+# /implement — Task Implementation Workflow v2.4
 
 ## Input
-$ARGUMENTS — task ID in format TASK-X.Y (e.g., TASK-1.1)
 
-## Phase 0: Pick Up Task
+$ARGUMENTS — task ID in format TASK-X.Y (e.g., TASK-1.7)
 
-Launch **two subagents in parallel**:
+## Principles
 
-### 0a: Task Brief
+1. **Orchestrator = pure router.** You (the orchestrator) must NOT use Bash, Read, Grep, Glob, Write, Edit, or any tool except Task and AskUserQuestion. Only Task calls, merge structured outputs, decisions, routing, STOP.
+2. **Validate = self-check** (planner checks own plan, implementer checks own code). **Verify = external check** (reviewer checks someone else's work).
+3. **Ensemble verification.** Each external verification = two parallel subagents on different models. Both receive **identical input data** and **identical Read permissions**.
+4. **Unified process** for all tasks — no triage by complexity.
+5. **Subagents return structured results**, orchestrator routes to next phase.
+6. **Separation of concerns.** Each subagent does one thing. GitHub/git — only github-agent. Specs — only context-builder. Code — only implementer. Review — only reviewer.
 
-Launch a **general-purpose** subagent (`Task` tool, `subagent_type: general-purpose`).
-Pass it the task ID and instruct it to:
+## Agent Files
 
-Follow `.claude/skills/task-brief/SKILL.md` for the full task brief and
-issue enrichment steps.
+Subagent definitions live in `.claude/skills/implement/agents/`. Each subagent reads
+its own file as first action. The orchestrator references them via
+"Follow `.claude/skills/implement/agents/<name>.md`" in the Task prompt.
 
-The subagent returns a **task brief** containing full spec context:
+| Agent | File | subagent_type | model | max_turns |
+|-------|------|--------------|-------|-----------|
+| context-builder | `skills/implement/agents/context-builder.md` | Explore | opus | 20 |
+| config-summary | `skills/implement/agents/config-summary.md` | Explore | haiku | 10 |
+| github-agent | `skills/implement/agents/github-agent.md` | Bash | haiku | — |
+| planner | `skills/implement/agents/planner.md` | Plan | opus | 30 |
+| plan-reviewer | `skills/implement/agents/plan-reviewer.md` | Explore | opus | 15 |
+| copilot-plan-reviewer | `skills/implement/agents/copilot-plan-reviewer.md` | Explore | haiku | 10 |
+| implementer | `skills/implement/agents/implementer.md` | general-purpose | opus | 50 |
+| e2e-implementer | `skills/implement/agents/e2e-implementer.md` | general-purpose | opus | 25 |
+| ci-runner | `skills/implement/agents/ci-runner.md` | Bash | haiku | 10 |
+| code-reviewer | `skills/implement/agents/code-reviewer.md` | Explore | opus | 20 |
+| copilot-code-reviewer | `skills/implement/agents/copilot-code-reviewer.md` | Explore | haiku | 10 |
+| finalizer | `skills/implement/agents/finalizer.md` | general-purpose | haiku | 15 |
+
+## Orchestrator State
+
+Track across all phases (accumulate, never discard):
+
+| Variable | Source | Phase |
+|----------|--------|-------|
+| `issue_number` | github-agent | 1.1 |
+| `issue_body` | github-agent | 1.1 |
+| `deps_status` | github-agent | 1.1 |
+| `brief` | context-builder (enriched with board_item_id in 1.3) | 1.2 |
+| `config` | config-summary | 1.2 |
+| `board_item_id` | github-agent | 1.3 |
+| `branch_name` | github-agent | 1.3 |
+| `plan` | planner | 2 |
+| `plan_verdicts` | plan-reviewer + copilot-plan-reviewer | 3 |
+| `changes` | implementer | 4.1 |
+| `e2e_changes` | e2e-implementer (if triggered) | 4.2 |
+| `ci_report` | ci-runner | 4.3 |
+| `diff` | github-agent | 5.0 |
+| `changed_files` | github-agent | 5.0 |
+| `review_verdicts` | code-reviewer + copilot-code-reviewer | 5.1 |
+| `deviations` | orchestrator computes | 6.0 |
+| `commit_msg` | finalizer | 6.1 |
+| `pr_url` | github-agent | 6.2 |
+
+Also track counters: `re_plan_count` (init 0), `ci_run_count` (init 0), `revision_count` (init 0).
+
+---
+
+## Phase 1: Pick Up
+
+### Step 1: Read Issue
+
+Launch **github-agent** (Bash, haiku):
+
 ```
-Task: TASK-X.Y — [title]
-Issue: #<number>
-Board Item ID: <PVTI_...>
-Estimate: N h
-Dependencies: all closed | [list of open blockers]
-Acceptance Criteria: [checklist]
+description: "Read issue and check deps"
+prompt:
+  Read and follow .claude/skills/implement/agents/github-agent.md
 
-Full Spec Context:
-[full text of every FR, NFR, US, and AC relevant to this task]
+  Task: Find and read the GitHub issue for {task_id}.
+  1. Search: gh issue list --repo whenparty/mema --search "{task_id}" --json number,title,body --limit 5
+  2. Read: gh issue view <number> --repo whenparty/mema
+  3. Check deps: for each dependency mentioned, check if the issue is open or closed.
 
-Spec Document Map:
-[full document map from specification-navigator]
-
-Key Files: [existing files to modify + new files to create]
-Module Context: [summary from module AGENTS.md, or "new module"]
+  Return:
+    Issue: #<number>
+    Title: <title>
+    Body: <full issue body>
+    Dependencies: TASK-X.Y (#N): open|closed (or "None")
+    Status: ALL_CLOSED | HAS_OPEN_DEPS
 ```
 
-### 0b: Project Config Summary
+**Orchestrator:** parse `issue_number`, `issue_body`, `deps_status`.
+If `HAS_OPEN_DEPS` → **STOP**: tell user which deps are open, ask for decision.
 
-Launch an **Explore** subagent (`Task` tool, `subagent_type: Explore`, `model: haiku`).
-Instruct it to follow `.claude/skills/config-summary/SKILL.md`.
+### Step 2: Collect Context (parallel)
 
-This summary replaces raw config file reads by subsequent subagents.
-Pass it to planner, implementer, and reviewer alongside their other context.
+Launch **two** subagents in a single message:
 
-**Orchestrator actions** (after receiving both outputs):
-- If dependencies are open — STOP, ask user for decision
-- Look up the board item ID from auto memory (`github-project.md` "Known Item IDs")
-  using the issue number. If not cached, query the project board via GraphQL and
-  cache the result. Attach the item ID to the task brief.
-- Create a feature branch: `git checkout -b task/TASK-X.Y` (e.g., `task/TASK-1.2`)
-- Use `.claude/skills/github-issue-manager/SKILL.md` to move the issue to In Progress
-  and add the start comment
+**context-builder** (Explore, opus, max_turns: 20):
 
-## Phase 1: Plan
+```
+description: "Build task brief from specs"
+prompt:
+  Follow .claude/skills/implement/agents/context-builder.md
 
-Launch a **planner** subagent (`Task` tool, `subagent_type: planner`). Pass it:
-- The task brief from Phase 0 (includes full spec context, document map, module context, key files)
-- The project config summary from Phase 0
-- The "Hard Constraints from Spike Decisions" table from AGENTS.md (copy verbatim)
-- If returning from Phase 2 FAIL: the current plan + combined issues from both verifiers
+  Task ID: {task_id}
+  Issue body:
+  ---
+  {issue_body}
+  ---
+```
 
-The planner receives the full spec context from the brief. It determines what
-**additional** spec documents (if any) are needed beyond what's already in the brief,
-using the document map to locate them.
-Runs 3 rounds of self-verification (structure → scope → codebase fit)
-and returns a step-by-step plan.
+**config-summary** (Explore, haiku, max_turns: 10):
 
-## Phase 2: Verify Plan
+```
+description: "Summarize project config"
+prompt:
+  Follow .claude/skills/implement/agents/config-summary.md
+```
 
-Launch a **plan-verifier** subagent (`Task` tool, `subagent_type: plan-verifier`). Pass it:
-- The plan from Phase 1
-- Full spec context and document map from the task brief
-- Task description and acceptance criteria from the brief
-- Project config summary from Phase 0
+### Step 3: Enrich Issue + Create Branch
 
-The plan-verifier:
-1. Reads AGENTS.md (conventions, architecture, testing)
-2. Checks AC coverage — for each AC, finds the corresponding test step in the plan
-3. Checks scope — unnecessary abstractions, files outside scope, over-engineering, missing steps
-4. Checks conventions — named exports, interface > type, architecture rules
-5. Runs Copilot CLI with the same context and checklist (following `.claude/skills/copilot-reviewer/SKILL.md`)
-6. Returns both verdicts: its own + Copilot's
+Launch **github-agent** (Bash, haiku):
 
-### Evaluate verdicts
+```
+description: "Enrich issue and create branch"
+prompt:
+  Read and follow .claude/skills/implement/agents/github-agent.md
 
-If **either** returns FAIL:
-- Return to **Phase 1** with: the current plan + combined issues from both verifiers.
-  The planner revises the plan, then Phase 2 runs again.
-- If the planner cannot satisfy the verifier's issues — ask the user for a decision.
-  If the user approves despite issues, note the override and proceed.
+  Task: Enrich issue #{issue_number} and create a feature branch.
+  1. Edit issue — append AC, key files, spec refs (do not replace existing body):
+     gh issue edit {issue_number} --repo whenparty/mema --body "..."
+     Enrichment to append:
+     ---
+     {brief — AC, Key Files, and spec reference sections only}
+     ---
+  2. Find board item ID (check known cache in agent file, else GraphQL).
+  3. Create branch: git checkout -b task/{task_id}
 
-After both PASS: present the plan to me and **STOP — wait for my approval**.
-If planner flagged clarifications — relay them to me, do NOT proceed.
+  Return:
+    Board Item ID: PVTI_...
+    Branch: task/{task_id}
+```
 
-## Phase 3: Implement + Validate
+**Orchestrator after all Phase 1 outputs:**
+- Append `Board Item ID: {board_item_id}` to `brief`
+- Store: `brief`, `config`, `board_item_id`, `branch_name`, `issue_number`
+- Proceed to Phase 2
 
-### Step 1: Implementation (unit tests + code)
+---
 
-Launch an **implementer** subagent (`Task` tool, `subagent_type: implementer`). Pass it:
-- The approved plan (full text)
-- The project config summary from Phase 0
-- Any clarifications or decisions from Phase 2 discussion
+## Phase 2: Plan
 
-The implementer writes code following TDD using `bun run test <file> --reporter=dots`
-for minimal output. Returns a summary of changes (files created/modified, issues encountered).
-The implementer does NOT run the full test suite — that's the validator's job.
-The implementer MAY run typecheck and lint as needed during implementation.
+Launch **planner** (Plan, opus, max_turns: 30):
 
-### Step 2: E2E tests (when applicable)
+```
+description: "Create implementation plan"
+prompt:
+  Follow .claude/skills/implement/agents/planner.md
 
-**Trigger:** the task touches Docker files, `src/infra/db/`, `package.json`,
-schema/migration files, API endpoints, or pipeline steps. The orchestrator decides.
+  Task Brief:
+  ---
+  {brief}
+  ---
 
-Launch a **separate implementer** subagent with a dedicated prompt to write e2e tests.
-Pass it **only**:
-- The task brief and acceptance criteria
-- The approved plan (for context on what the task delivers)
-- Do NOT pass the implementer's change summary or file list
+  Project Config:
+  ---
+  {config}
+  ---
+```
 
-E2e tests are **black-box**: written from the AC, not from implementation details.
-This is a separate implementer that does not know what the first implementer wrote.
-They verify behavior through the external interface (HTTP endpoints, DB state,
-Docker health) without knowledge of internal code structure.
+When returning from Phase 3 FAIL, add to the prompt:
 
-Files go in `tests/e2e/*.test.ts`. Examples:
-- Health endpoint returns 200 with `{ status: "ok" }`
-- App connects to PostgreSQL and runs a query
-- Migration creates expected tables
-- API endpoint returns expected response given specific input
+```
+  Previous Plan (rejected):
+  ---
+  {previous_plan}
+  ---
 
-The implementer verifies they compile with `bun run test tests/e2e/<file> --reporter=dots`
-(they may fail without Docker — that's expected and OK).
+  Blocking Issues from reviewers:
+  ---
+  {blocking_issues}
+  ---
+```
 
-**Skip this step** for tasks that are purely domain logic (no infra/Docker/API surface).
+**Orchestrator:** store `plan`, proceed to Phase 3.
 
-### Step 3: Validation
+---
 
-Launch a **validator** subagent (`Task` tool, `subagent_type: validator`).
-The validator auto-detects whether Docker + e2e checks are needed
-(based on presence of `tests/e2e/*.test.ts` files).
+## Phase 3: Review Plan
 
-Returns a structured report: result (PASS/FAIL), test count, failure list with
-file:line (max 10 per section), Docker section (if applicable).
+Launch **two** subagents in parallel (identical inputs):
 
-### Failure handling
+**plan-reviewer** (Explore, opus, max_turns: 15):
 
-If validator returns **FAIL**:
-- Launch the **implementer** subagent again with: the approved plan + validator failure output
-- Re-run validator after fixes
-- If still failing, STOP and present failures to me
+```
+description: "Review implementation plan"
+prompt:
+  Follow .claude/skills/implement/agents/plan-reviewer.md
 
-## Phase 4: Review
+  Plan:
+  ---
+  {plan}
+  ---
 
-### Step 0: Prepare
+  Task Brief:
+  ---
+  {brief}
+  ---
 
-Use `.claude/skills/github-issue-manager/SKILL.md` to move the issue to In Review.
+  Project Config:
+  ---
+  {config}
+  ---
+```
 
-### Step 1: Run reviewer subagent
+**copilot-plan-reviewer** (Explore, haiku, max_turns: 10):
 
-Launch a **reviewer** subagent (`Task` tool, `subagent_type: reviewer`). Pass it:
-- Full spec context (FR/NFR/US) and document map from the task brief
-- AGENTS.md (architecture, conventions)
-- The approved plan
-- The task brief (AC, key files)
-- The project config summary from Phase 0
+```
+description: "Copilot review of plan"
+prompt:
+  Follow .claude/skills/implement/agents/copilot-plan-reviewer.md
 
-The reviewer:
-1. Gathers context: plan, spec documents, AGENTS.md
-2. Reviews via `git diff` and `git status`
-3. Checks: correctness (plan, AC, traceability), tests (meaningful, behavior vs implementation,
-   edge cases), code quality (naming, readability, duplication, error handling, type safety),
-   conventions (codebase patterns, AGENTS.md), security (input validation, injection, data isolation)
-4. Forms its verdict: APPROVED / NEEDS_REVISION / FAILED
-5. Launches Copilot CLI with the same context and checklist
-   (following `.claude/skills/copilot-reviewer/SKILL.md`)
-6. Waits for Copilot result
-7. Returns both verdicts: its own + Copilot's
+  Plan:
+  ---
+  {plan}
+  ---
 
-### Step 2: Evaluate verdicts
+  Task Brief:
+  ---
+  {brief}
+  ---
 
-If either verdict is **NEEDS_REVISION**:
-- Launch the **implementer** subagent with: the approved plan + combined review feedback
-- Re-run validator (Phase 3 Step 3)
-- Re-run Phase 4 (Step 1)
+  Project Config:
+  ---
+  {config}
+  ---
+```
 
-If either verdict is **FAILED**:
-- STOP and present the failure to me
+### Verdict routing
 
-If both verdicts are **APPROVED**:
-- Proceed to Phase 5
+Parse both verdicts (look for `Verdict: PASS` or `Verdict: FAIL`):
 
-## Phase 5: Finalize
+- **Both PASS** → present plan to user. **STOP — wait for user approval.**
+- **Any FAIL** → increment `re_plan_count`
+  - If `re_plan_count <= 2` → back to Phase 2 with previous plan + blocking issues
+  - If `re_plan_count > 2` → **STOP**: show plan, blocking issues, AC coverage
 
-Launch a **finalizer** subagent (`Task` tool, `subagent_type: finalizer`).
-Pass it:
-- Task brief (includes issue number and project board item ID)
-- Approved plan
-- Change summary from implementer
-- Review verdict
-- List of deviations (what changed vs plan)
+**STOP artifacts (plan approval):** plan in full, AC coverage from reviewers.
+**STOP artifacts (re-plan exhausted):** latest plan, blocking issues, AC coverage.
 
-The subagent updates the issue with deviations, adds a closing comment, updates
-AGENTS.md (sprint + module docs), and returns a suggested conventional commit message
-(e.g., `feat(db): TASK-1.3 — add schema and migrations`).
+---
 
-Commit to the feature branch automatically using the suggested commit message:
-`git add <files> && git commit -m "<message>"`
+## Phase 4: Implement + Validate
 
-Present the execution summary to the user.
+### Step 0: Issue → In Progress
 
-Then ask for confirmation to push and merge. **After user confirms**:
-1. Merge the feature branch into main: `git checkout main && git merge task/TASK-X.Y`
-2. Push to remote: `git push`
-3. Close the issue and move it to Done using
-   `.claude/skills/github-issue-manager/SKILL.md`
-4. Delete the feature branch: `git branch -d task/TASK-X.Y`
+Launch **github-agent** (Bash, haiku):
 
-## Execution Summary
+```
+description: "Move issue to In Progress"
+prompt:
+  Read and follow .claude/skills/implement/agents/github-agent.md
 
-After Phase 5 completes, present the execution summary using
-`.claude/skills/execution-summary/SKILL.md`.
+  Task: Move issue #{issue_number} to "In Progress".
+  1. GraphQL mutation: move board item {board_item_id} to In Progress (494cf029).
+  2. Add comment: gh issue comment {issue_number} --repo whenparty/mema --body "Implementation started"
 
-Track these counters throughout execution. Increment each time a subagent is launched.
-If a subagent reports a tool permission denial or unavailable tool, record it.
+  Return: "Done"
+```
 
-See `implement-reference.md` for the subagent responsibility matrix,
-context management rules, and context optimization recommendations.
+### Step 1: implementer (TDD)
+
+Launch **implementer** (general-purpose, opus, max_turns: 50):
+
+```
+description: "Implement task with TDD"
+prompt:
+  Follow .claude/skills/implement/agents/implementer.md
+
+  Approved Plan:
+  ---
+  {plan}
+  ---
+
+  Task Brief:
+  ---
+  {brief}
+  ---
+
+  Project Config:
+  ---
+  {config}
+  ---
+```
+
+When retrying after CI failure or review revision, add:
+
+```
+  Additional Notes (fix these issues):
+  ---
+  {implementer_notes — CI failures or review feedback}
+  ---
+```
+
+### Step 2: e2e-implementer (conditional)
+
+**Trigger:** orchestrator checks plan's Files section. Launch if ANY path matches:
+- `Dockerfile`, `docker-compose*`
+- `src/infra/db/**`, `drizzle/**`
+- `package.json`, `bun.lock*`
+- `src/gateway/**`, `src/pipeline/**`
+- `.github/workflows/**`
+
+Or if any AC explicitly requires e2e verification. **Skip** otherwise.
+
+Launch **e2e-implementer** (general-purpose, opus, max_turns: 25):
+
+```
+description: "Write e2e tests"
+prompt:
+  Follow .claude/skills/implement/agents/e2e-implementer.md
+
+  Task Brief (AC only):
+  ---
+  {brief — AC section only}
+  ---
+
+  Plan (for context):
+  ---
+  {plan}
+  ---
+```
+
+### Step 3: ci-runner
+
+Launch **ci-runner** (Bash, haiku, max_turns: 10):
+
+```
+description: "Run full CI suite"
+prompt:
+  Follow .claude/skills/implement/agents/ci-runner.md
+```
+
+### CI retry loop
+
+- ci-runner `FAIL` → increment `ci_run_count`
+  - If `ci_run_count <= 3` → launch implementer with CI failures as notes → re-run ci-runner
+  - If `ci_run_count > 3` → **STOP**: show CI report, failing tests, changes
+
+---
+
+## Phase 5: Review Code
+
+### Step 0: Issue → In Review + Prepare Diff
+
+Launch **github-agent** (Bash, haiku):
+
+```
+description: "Move to In Review and get diff"
+prompt:
+  Read and follow .claude/skills/implement/agents/github-agent.md
+
+  Task: Move issue #{issue_number} to "In Review" and collect diff.
+  1. GraphQL mutation: move board item {board_item_id} to In Review (34dc5401).
+  2. Run: git diff main
+  3. Run: git status
+
+  Return:
+    DIFF: [full git diff output]
+    CHANGED FILES: [list from git status]
+```
+
+### Step 1: Review (parallel)
+
+Launch **two** subagents in parallel (identical inputs):
+
+**code-reviewer** (Explore, opus, max_turns: 20):
+
+```
+description: "Review code changes"
+prompt:
+  Follow .claude/skills/implement/agents/code-reviewer.md
+
+  Task Brief:
+  ---
+  {brief}
+  ---
+
+  Approved Plan:
+  ---
+  {plan}
+  ---
+
+  Project Config:
+  ---
+  {config}
+  ---
+
+  Diff:
+  ---
+  {diff}
+  ---
+
+  Changed Files:
+  ---
+  {changed_files}
+  ---
+```
+
+**copilot-code-reviewer** (Explore, haiku, max_turns: 10):
+
+```
+description: "Copilot review of code"
+prompt:
+  Follow .claude/skills/implement/agents/copilot-code-reviewer.md
+
+  Task Brief:
+  ---
+  {brief}
+  ---
+
+  Approved Plan:
+  ---
+  {plan}
+  ---
+
+  Project Config:
+  ---
+  {config}
+  ---
+
+  Diff:
+  ---
+  {diff}
+  ---
+
+  Changed Files:
+  ---
+  {changed_files}
+  ---
+```
+
+### Verdict routing
+
+- **Both APPROVED** → Phase 6
+- **Any NEEDS_REVISION** → increment `revision_count`
+  - If `revision_count <= 2`:
+    1. Launch implementer with combined must-fix + notes as `implementer_notes`
+    2. Run ci-runner
+    3. Re-run Phase 5 Step 1
+  - If `revision_count > 2` → **STOP**: show verdicts, must-fix, CI report
+- **Any FAILED** → **STOP**: show failure to user
+
+---
+
+## Phase 6: Finalize
+
+### Step 0: Compute Deviations
+
+Orchestrator compares `plan` vs `changes` + `review_verdicts`:
+
+```
+Deviations:
+  - From plan: [what changed]
+    Reason: [why]
+    Impact: [risk/none]
+    AC impact: [none | affects ACx]
+```
+
+If plan was followed exactly: `Deviations: None`
+
+### Step 1: Prepare Commit
+
+Launch **finalizer** (general-purpose, haiku, max_turns: 15):
+
+```
+description: "Prepare commit and update docs"
+prompt:
+  Follow .claude/skills/implement/agents/finalizer.md
+
+  Task Brief:
+  ---
+  {brief}
+  ---
+
+  Approved Plan:
+  ---
+  {plan}
+  ---
+
+  Changes:
+  ---
+  {changes}
+  ---
+
+  Review Verdict:
+  ---
+  {review_verdicts}
+  ---
+
+  Deviations:
+  ---
+  {deviations}
+  ---
+```
+
+**STOP: Present to user for commit confirmation.**
+Show: commit message, changes summary, deviations.
+
+### Step 2: Commit + Push + Create PR
+
+After user confirms. Launch **github-agent** (Bash, haiku):
+
+```
+description: "Commit, push, and create PR"
+prompt:
+  Read and follow .claude/skills/implement/agents/github-agent.md
+
+  Task: Commit, push, and create PR.
+  Branch: {branch_name}
+  Issue: #{issue_number}
+
+  1. git add -A
+  2. git commit using heredoc:
+     git commit -m "$(cat <<'EOF'
+     {commit_msg}
+     EOF
+     )"
+  3. git push -u origin {branch_name}
+  4. gh pr create --repo whenparty/mema \
+       --title "{task_id} — [short title]" \
+       --body "$(cat <<'EOF'
+     ## Summary
+     {changes — summary section}
+
+     ## Acceptance Criteria
+     {brief — AC section as checklist}
+
+     ## Deviations from Plan
+     {deviations}
+
+     ## Review Summary
+     Both code-reviewer and copilot-code-reviewer: APPROVED
+
+     Closes #{issue_number}
+
+     Generated with [Claude Code](https://claude.com/claude-code)
+     EOF
+     )"
+  5. Add comment to issue with PR link and deviations:
+     gh issue comment {issue_number} --repo whenparty/mema \
+       --body "PR: <pr_url>\n\nDeviations from plan: {deviations}"
+
+  Return:
+    PR: [url]
+```
+
+**STOP: Present PR URL to user. Ask for merge confirmation.**
+
+### Step 3: Merge PR + Close
+
+After user confirms. Launch **github-agent** (Bash, haiku):
+
+```
+description: "Merge PR and close issue"
+prompt:
+  Read and follow .claude/skills/implement/agents/github-agent.md
+
+  Task: Merge PR and clean up.
+  PR URL: {pr_url}
+  Issue: #{issue_number}
+  Board Item ID: {board_item_id}
+  Branch: {branch_name}
+
+  1. gh pr merge {pr_url} --squash --repo whenparty/mema
+  2. gh issue comment {issue_number} --repo whenparty/mema --body "Implemented and merged. PR: {pr_url}"
+  3. gh issue close {issue_number} --repo whenparty/mema
+  4. GraphQL mutation: move board item {board_item_id} to Done (b3c332a7).
+  5. git checkout main && git pull
+  6. git branch -d {branch_name}
+
+  Return: "Done — PR merged, issue closed, branch cleaned up"
+```
+
+---
+
+## E2E Trigger Rules
+
+Orchestrator checks the plan's Files section. Launch e2e-implementer if **any** path matches:
+
+```
+Dockerfile
+docker-compose*
+src/infra/db/**
+drizzle/**
+package.json
+bun.lock*
+src/gateway/**
+src/pipeline/**
+.github/workflows/**
+```
+
+Or if any AC explicitly mentions e2e, integration, or Docker testing.
+
+---
+
+## Retry Loops Summary
+
+| Loop | Phases | Max cycles | On exhaust |
+|------|--------|-----------|------------|
+| Plan re-plan | 2 ↔ 3 | 2 cycles | STOP: plan + blocking issues + AC coverage |
+| CI fix | 4 (implementer ↔ ci-runner) | 3 total runs | STOP: CI report + failures + changes |
+| Code revision | 4 ↔ 5 (implementer → ci → reviewers) | 2 cycles | STOP: verdicts + must-fix + CI report |
+
+---
+
+## STOP Points Summary
+
+| # | Phase | Reason | Show to user |
+|---|-------|--------|-------------|
+| 1 | 1 | Dependencies open | issue body, deps list |
+| 2 | 3 | Plan ready — user approval needed | plan, AC coverage |
+| 3 | 3 | 2 re-plan cycles exhausted | plan, blocking issues, AC coverage |
+| 4 | 4 | 3 CI runs exhausted | CI report, failing tests, changes |
+| 5 | 5 | FAILED from any reviewer | review verdicts, must-fix list, CI report |
+| 6 | 5 | 2 revision cycles exhausted | review verdicts, must-fix list, CI report |
+| 7 | 6 | User confirms commit | commit message, changes summary, deviations |
+| 8 | 6 | User confirms merge | PR url, review summary |
+
+---
 
 ## Rules
 
 - ALWAYS check dependencies before starting — never implement against open blockers
 - Follow TDD strictly: test first, then implementation, then verification
-- Do NOT modify files outside the plan scope — if you discover adjacent work needed,
-  flag it as a follow-up, do not fix it
-- Always work in a feature branch (`task/TASK-X.Y`) — never commit directly to main
-- Commit to the feature branch automatically after review is APPROVED — do not ask the user
-- NEVER push to remote or merge to main without user confirmation
-- If the task turns out larger than expected mid-implementation, STOP and discuss
-  splitting it with me rather than continuing with a bloated PR
+- Do NOT modify files outside the plan scope — flag as follow-up, do not fix
+- Always work in a feature branch (`task/TASK-X.Y`) — never commit to main directly
+- NEVER push to remote or merge without user confirmation
+- If the task grows beyond expected scope — STOP and discuss splitting
+- Orchestrator uses ONLY Task and AskUserQuestion tools — no Bash, no Read, no Write, no git, no gh
+- Subagent prompts include ALL needed context — subagents do NOT see auto memory or conversation history
+- GitHub project board IDs are hardcoded in skills/implement/agents/github-agent.md
+- All ensemble reviews use identical input data and identical Read permissions — only the model differs
