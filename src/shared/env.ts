@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const pinoLevels = ["fatal", "error", "warn", "info", "debug", "trace"] as const;
+export type PinoLevel = (typeof pinoLevels)[number];
 
 const SENSITIVE_KEYS = new Set([
 	"DATABASE_URL",
@@ -44,7 +45,7 @@ export interface AppEnv {
 	adminUserId: string;
 	nodeEnv: "development" | "production" | "test";
 	port: number;
-	logLevel: string;
+	logLevel: PinoLevel;
 	rateLimitPerHour: number;
 	tokenQuotaMonthly: number;
 	sentryDsn: string | undefined;
@@ -95,19 +96,36 @@ export function validateEnv(envRecord: Record<string, string | undefined> = proc
 	}
 
 	if (envRecord.TZ !== "UTC") {
-		console.warn("[env] WARNING: TZ is not set to 'UTC'. rrule.js may produce incorrect results.");
+		const msg = "TZ is not set to 'UTC'. rrule.js may produce incorrect results.";
+		if (result.data.NODE_ENV === "production") {
+			throw new Error(`[env] ${msg}`);
+		}
+		console.warn(`[env] WARNING: ${msg}`);
 	}
 
 	return buildAppEnv(result.data);
 }
 
 export function getLlmModels(): LlmModels {
+	const keys = {
+		compact: "LLM_COMPACT_MODEL",
+		powerfulA: "LLM_POWERFUL_MODEL_A",
+		powerfulB: "LLM_POWERFUL_MODEL_B",
+		validator: "LLM_VALIDATOR_MODEL",
+		embedding: "LLM_EMBEDDING_MODEL",
+	} as const;
+
+	const missing = Object.values(keys).filter((k) => !process.env[k]);
+	if (missing.length > 0) {
+		throw new Error(`Missing LLM model env vars: ${missing.join(", ")}`);
+	}
+
 	return {
-		compact: process.env.LLM_COMPACT_MODEL ?? "",
-		powerfulA: process.env.LLM_POWERFUL_MODEL_A ?? "",
-		powerfulB: process.env.LLM_POWERFUL_MODEL_B ?? "",
-		validator: process.env.LLM_VALIDATOR_MODEL ?? "",
-		embedding: process.env.LLM_EMBEDDING_MODEL ?? "",
+		compact: process.env[keys.compact] as string,
+		powerfulA: process.env[keys.powerfulA] as string,
+		powerfulB: process.env[keys.powerfulB] as string,
+		validator: process.env[keys.validator] as string,
+		embedding: process.env[keys.embedding] as string,
 	};
 }
 

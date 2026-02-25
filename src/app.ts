@@ -9,6 +9,7 @@ export const app = new Elysia()
 
 if (import.meta.main) {
 	const env = initEnv();
+	logger.level = env.logLevel;
 
 	logger.info("Running database migrations");
 	await runMigrations(env.databaseUrl);

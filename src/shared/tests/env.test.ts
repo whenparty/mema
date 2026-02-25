@@ -127,7 +127,7 @@ describe("validateEnv", () => {
 		}
 	});
 
-	it("warns when TZ is not UTC", async () => {
+	it("warns when TZ is not UTC in development", async () => {
 		const { validateEnv } = await import("@/shared/env");
 		const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -137,7 +137,7 @@ describe("validateEnv", () => {
 		warnSpy.mockRestore();
 	});
 
-	it("warns when TZ is missing", async () => {
+	it("warns when TZ is missing in development", async () => {
 		const { validateEnv } = await import("@/shared/env");
 		const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -148,6 +148,14 @@ describe("validateEnv", () => {
 
 		expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("TZ is not set to 'UTC'"));
 		warnSpy.mockRestore();
+	});
+
+	it("throws when TZ is not UTC in production", async () => {
+		const { validateEnv } = await import("@/shared/env");
+
+		expect(() => validateEnv(makeEnv({ NODE_ENV: "production", TZ: "America/New_York" }))).toThrow(
+			"TZ is not set to 'UTC'",
+		);
 	});
 
 	it("does not expose sensitive var values in error messages", async () => {
@@ -205,6 +213,17 @@ describe("getLlmModels", () => {
 		process.env.LLM_COMPACT_MODEL = "model-changed";
 		const second = getLlmModels();
 		expect(second.compact).toBe("model-changed");
+	});
+
+	it("throws when LLM model vars are missing", async () => {
+		const { getLlmModels } = await import("@/shared/env");
+
+		// biome-ignore lint/performance/noDelete: only way to truly unset env vars
+		delete process.env.LLM_COMPACT_MODEL;
+		// biome-ignore lint/performance/noDelete: only way to truly unset env vars
+		delete process.env.LLM_POWERFUL_MODEL_A;
+
+		expect(() => getLlmModels()).toThrow("Missing LLM model env vars");
 	});
 
 	it("returns all five model fields", async () => {
