@@ -12,6 +12,7 @@ NFR-PORT.2 (Telegram-specific logic isolated from business logic).
 - `bot.ts` — Factory `createTelegramBot(config)` that wires middleware, commands, text handler, and error handler. Returns `{ start, stop }`.
 - `types.ts` — Gateway interfaces: `TelegramMessageInput`, `MessageHandler`, `TelegramBotConfig`, `TelegramBotInstance`.
 - `middleware/private-only.ts` — Drops non-private chat updates (groups, channels).
+- `middleware/user-serializer.ts` — Per-user message serialization middleware (FR-PLT.6). Ensures at most one message per user is processed at a time using promise chaining.
 - `commands/start.ts` — `/start` command handler (stub).
 - `commands/help.ts` — `/help` command handler (stub).
 - `commands/stop.ts` — `/stop` command handler (stub).
@@ -22,12 +23,14 @@ NFR-PORT.2 (Telegram-specific logic isolated from business logic).
 - `MessageHandler` — Exported from `types.ts`. Callback `(input: TelegramMessageInput) => Promise<string>`. The gateway calls this for every text message; the return value is sent as the reply.
 - `TelegramBotConfig` — Exported from `types.ts`. Configuration for `createTelegramBot`: `{ token, onMessage }`.
 - `TelegramBotInstance` — Exported from `types.ts`. Returned by `createTelegramBot`: `{ start(), stop() }`.
+- `UserSerializer` — Exported from `middleware/user-serializer.ts`. `{ middleware, pendingCount }` returned by `createUserSerializer()`.
 
 ## Patterns & Decisions
 
 - **Long polling only** (TASK-0.11 decision): `bot.start()` is fire-and-forget (never-resolving promise); `.catch()` logs polling crashes.
 - **Factory + DI**: `createTelegramBot` takes a config with the message handler callback. The gateway never imports infra — the caller (app.ts) wires dependencies.
 - **Private-only middleware**: Registered first via `bot.use()`, silently drops group/supergroup/channel updates.
+- **Per-user serialization middleware**: Registered after private-only via `bot.use()`. Uses a `Map<string, Promise<void>>` to chain messages per user — each new message from the same user awaits the previous one's completion before calling `next()`. Messages from different users run in parallel. Lock is released in a `finally` block, ensuring chain recovery on errors. Cleanup removes the map entry when the last message completes. Full parallelism across users would require `@grammyjs/runner` (future enhancement for production scale).
 - **Error handler**: `bot.catch()` logs errors via child logger; does not crash the process.
 - **Commands are stubs**: `/start`, `/help`, `/stop` send static placeholder text. Real logic in later tasks.
 - **`telegramUserId` is a string**: Telegram user IDs are numbers, but stored as strings (matches `external_id` in UserAuth). Explicit `.toString()` conversion in the text handler.

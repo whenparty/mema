@@ -294,4 +294,121 @@ describe("telegram bot integration", () => {
 			expect(captured).toHaveLength(0);
 		});
 	});
+
+	describe("per-user serialization", () => {
+		it("processes messages from the same user sequentially", async () => {
+			const executionOrder: string[] = [];
+			let firstResolve = (): void => {};
+			const firstBlocked = new Promise<void>((resolve) => {
+				firstResolve = resolve;
+			});
+
+			let callCount = 0;
+			onMessage.mockImplementation(async () => {
+				callCount++;
+				const label = callCount === 1 ? "first" : "second";
+				executionOrder.push(`${label}-start`);
+				if (label === "first") {
+					await firstBlocked;
+				}
+				executionOrder.push(`${label}-end`);
+				return `${label} reply`;
+			});
+
+			const update1 = makePrivateTextUpdate(10, "Message one", { userId: 42 });
+			const update2 = makePrivateTextUpdate(11, "Message two", { userId: 42 });
+
+			const promise1 = instance.bot.handleUpdate(update1);
+			const promise2 = instance.bot.handleUpdate(update2);
+
+			// Let microtasks settle - only first should be running
+			await new Promise((resolve) => setTimeout(resolve, 10));
+			expect(executionOrder).toEqual(["first-start"]);
+
+			// Release first
+			firstResolve();
+			await Promise.all([promise1, promise2]);
+
+			expect(executionOrder).toEqual(["first-start", "first-end", "second-start", "second-end"]);
+		});
+
+		it("processes messages from different users in parallel", async () => {
+			const executionOrder: string[] = [];
+			let user1Resolve = (): void => {};
+			let user2Resolve = (): void => {};
+			const user1Blocked = new Promise<void>((resolve) => {
+				user1Resolve = resolve;
+			});
+			const user2Blocked = new Promise<void>((resolve) => {
+				user2Resolve = resolve;
+			});
+
+			onMessage.mockImplementation(async (input: { telegramUserId: string }) => {
+				const label = input.telegramUserId === "42" ? "user1" : "user2";
+				executionOrder.push(`${label}-start`);
+				if (label === "user1") {
+					await user1Blocked;
+				} else {
+					await user2Blocked;
+				}
+				executionOrder.push(`${label}-end`);
+				return `${label} reply`;
+			});
+
+			const update1 = makePrivateTextUpdate(20, "From user 1", {
+				userId: 42,
+				firstName: "Alice",
+				username: "alice",
+			});
+			const update2 = makePrivateTextUpdate(21, "From user 2", {
+				userId: 99,
+				firstName: "Bob",
+				username: "bob",
+			});
+
+			const promise1 = instance.bot.handleUpdate(update1);
+			const promise2 = instance.bot.handleUpdate(update2);
+
+			// Let microtasks settle - both should be running
+			await new Promise((resolve) => setTimeout(resolve, 10));
+			expect(executionOrder).toContain("user1-start");
+			expect(executionOrder).toContain("user2-start");
+
+			user1Resolve();
+			user2Resolve();
+			await Promise.all([promise1, promise2]);
+		});
+
+		it("continues processing after an error in a previous message", async () => {
+			const executionOrder: string[] = [];
+			let callCount = 0;
+
+			onMessage.mockImplementation(async () => {
+				callCount++;
+				if (callCount === 1) {
+					executionOrder.push("failing-start");
+					throw new Error("handler error");
+				}
+				executionOrder.push("second-start");
+				executionOrder.push("second-end");
+				return "recovery reply";
+			});
+
+			const update1 = makePrivateTextUpdate(30, "Will fail", { userId: 42 });
+			const update2 = makePrivateTextUpdate(31, "Should succeed", { userId: 42 });
+
+			// handleUpdate() throws BotError directly (bot.catch is only used
+			// during the polling loop via handleUpdates). Queue both, then
+			// let the first error propagate and verify the second still runs.
+			const promise1 = instance.bot.handleUpdate(update1).catch(() => {
+				// Expected: first message handler throws
+			});
+			const promise2 = instance.bot.handleUpdate(update2);
+
+			await Promise.all([promise1, promise2]);
+
+			expect(executionOrder).toContain("second-start");
+			expect(executionOrder).toContain("second-end");
+		});
+	});
 });
