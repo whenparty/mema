@@ -17,9 +17,11 @@
 		"db:studio": "drizzle-kit studio"
 	},
 	"dependencies": {
+		"@anthropic-ai/sdk": "^0.78.0",
 		"drizzle-orm": "^0.45.1",
 		"elysia": "^1.4.25",
 		"grammy": "^1.40.0",
+		"openai": "^6.25.0",
 		"pg-boss": "^12.12.0",
 		"pino": "^9.6.0",
 		"postgres": "^3.4.8",
