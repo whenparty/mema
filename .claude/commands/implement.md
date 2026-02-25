@@ -51,7 +51,6 @@ its own file as first action. The orchestrator references them via
 | ci-runner | `skills/implement/agents/ci-runner.md` | general-purpose | haiku | 10 |
 | code-reviewer | `skills/implement/agents/code-reviewer.md` | Explore | opus | 20 |
 | copilot-code-reviewer | `skills/implement/agents/copilot-code-reviewer.md` | general-purpose | haiku | 10 |
-| copilot-pr-reviewer | `skills/implement/agents/copilot-pr-reviewer.md` | general-purpose | haiku | 15 |
 | finalizer | `skills/implement/agents/finalizer.md` | general-purpose | haiku | 15 |
 
 ## Orchestrator State
@@ -79,9 +78,8 @@ Track across all phases (accumulate, never discard):
 | `commit_msg` | finalizer | 6.1 |
 | `pr_url` | github-agent | 6.2 |
 | `pr_number` | github-agent | 6.2 |
-| `copilot_pr_review` | copilot-pr-reviewer | 6.3 |
 
-Also track counters: `re_plan_count` (init 0), `ci_run_count` (init 0), `revision_count` (init 0), `copilot_pr_fix_count` (init 0).
+Also track counters: `re_plan_count` (init 0), `ci_run_count` (init 0), `revision_count` (init 0).
 
 ---
 
@@ -463,7 +461,11 @@ prompt:
 
 ### Verdict routing
 
-- **Both APPROVED** → Phase 6
+- **Both APPROVED, no notes** → Phase 6
+- **Both APPROVED, has notes** (non-blocking suggestions from either reviewer) →
+  1. Launch implementer with combined notes as `implementer_notes`
+  2. Run ci-runner
+  3. Proceed to Phase 6 (no re-review needed — changes are minor fixes)
 - **Any NEEDS_REVISION** → increment `revision_count`
   - If `revision_count <= 2`:
     1. Launch implementer with combined must-fix + notes as `implementer_notes`
@@ -577,38 +579,12 @@ prompt:
     PR Number: [number]
 ```
 
-**Orchestrator:** store `pr_url`, `pr_number`. Proceed to Step 3.
+**Orchestrator:** store `pr_url`, `pr_number`.
 
-### Step 3: Copilot PR Review
+**STOP: Present PR URL and ask user for merge confirmation.**
+Show: PR url, changes summary, deviations.
 
-Launch **copilot-pr-reviewer** (general-purpose, haiku, max_turns: 15):
-
-```
-description: "Request and wait for Copilot PR review"
-prompt:
-  Follow .claude/skills/implement/agents/copilot-pr-reviewer.md
-
-  PR Number: {pr_number}
-```
-
-**Orchestrator:** store `copilot_pr_review`. Route based on result:
-
-- **No comments** or **unavailable/timeout** → present PR to user, ask for merge confirmation
-- **Has comments** → present each comment to user with recommendation (fix / ignore)
-
-**STOP: Present PR URL, Copilot review summary, and ask user what to do.**
-Show: PR url, copilot comments (condensed), deviations.
-Ask: "Fix these comments? Ignore and merge? Or pick specific ones to fix?"
-
-**Routing after user decision:**
-- **User says merge** → Step 4
-- **User says fix** →
-  1. Launch implementer with copilot feedback (Raw Comments section) as `implementer_notes`
-  2. Run ci-runner
-  3. Launch github-agent: `git add -A && git commit --amend --no-edit && git push --force-with-lease`
-  4. Back to Step 3 (max 1 retry — if Copilot still has comments after fix, STOP and ask user)
-
-### Step 4: Merge PR + Close
+### Step 3: Merge PR + Close
 
 After user confirms. Launch **github-agent** (general-purpose, haiku):
 
@@ -662,7 +638,6 @@ Or if any AC explicitly mentions e2e, integration, or Docker testing.
 | Plan re-plan | 2 ↔ 3 | 2 cycles | STOP: plan + blocking issues + AC coverage |
 | CI fix | 4 (implementer ↔ ci-runner) | 3 total runs | STOP: CI report + failures + changes |
 | Code revision | 4 ↔ 5 (implementer → ci → reviewers) | 2 cycles | STOP: verdicts + must-fix + CI report |
-| Copilot PR fix | 6 (implementer → ci → amend → copilot-pr-reviewer) | 1 retry | STOP: ask user |
 
 ---
 
@@ -677,8 +652,7 @@ Or if any AC explicitly mentions e2e, integration, or Docker testing.
 | 5 | 5 | FAILED from any reviewer | review verdicts, must-fix list, CI report |
 | 6 | 5 | 2 revision cycles exhausted | review verdicts, must-fix list, CI report |
 | 7 | 6 | User confirms commit | commit message, changes summary, deviations |
-| 8 | 6 | Copilot PR review ready — user decides | PR url, copilot comments, recommendations |
-| 9 | 6 | User confirms merge | PR url, review summary |
+| 8 | 6 | User confirms merge | PR url, changes summary |
 
 ---
 
