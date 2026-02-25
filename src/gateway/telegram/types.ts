@@ -1,6 +1,8 @@
 import type { UserFromGetMe } from "@grammyjs/types";
 import type { Bot } from "grammy";
 
+export type DuplicateChecker = (telegramUserId: string, updateId: number) => Promise<boolean>;
+
 export interface TelegramMessageInput {
 	chatId: number;
 	text: string;
@@ -18,6 +20,8 @@ export interface TelegramBotConfig {
 	onMessage: MessageHandler;
 	/** Pre-initialized bot info to skip the getMe() API call. Useful for testing. */
 	botInfo?: UserFromGetMe;
+	/** Checks if a Telegram update has already been processed. Used for idempotency. */
+	isDuplicate?: DuplicateChecker;
 }
 
 export interface TelegramBotInstance {

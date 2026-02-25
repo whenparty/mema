@@ -20,7 +20,9 @@ using Drizzle ORM with PostgreSQL and pgvector for semantic vector search.
 - `schema/token-usages.ts` — `token_usages` table
 - `client.ts` — `createDbClient(connectionUrl)` factory, `DbClient` type
 - `migrate.ts` — `runMigrations(connectionUrl)` runs `CREATE EXTENSION vector` then Drizzle migrations
+- `queries/check-duplicate-update.ts` — `createDuplicateChecker(db)` factory: returns a `DuplicateChecker` that looks up user via `user_auths` then checks `messages` for existing `telegram_update_id`
 - `tests/` — unit tests for client, migrate, schema barrel, drizzle config
+- `queries/tests/` — unit tests for query functions
 - `schema/tests/` — unit tests for individual schema files
 
 ## Interfaces

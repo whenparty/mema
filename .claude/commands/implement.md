@@ -232,7 +232,7 @@ prompt:
   ---
 ```
 
-**copilot-plan-reviewer** (Explore, haiku, max_turns: 10):
+**copilot-plan-reviewer** (general-purpose, haiku, max_turns: 10):
 
 ```
 description: "Copilot review of plan"
@@ -426,7 +426,7 @@ prompt:
   ---
 ```
 
-**copilot-code-reviewer** (Explore, haiku, max_turns: 10):
+**copilot-code-reviewer** (general-purpose, haiku, max_turns: 10):
 
 ```
 description: "Copilot review of code"

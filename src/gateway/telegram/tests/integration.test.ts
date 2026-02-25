@@ -1,7 +1,7 @@
 import type { ApiResponse, UserFromGetMe } from "@grammyjs/types";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createTelegramBot } from "../bot";
-import type { TelegramBotConfig, TelegramBotInstance } from "../types";
+import type { DuplicateChecker, TelegramBotConfig, TelegramBotInstance } from "../types";
 
 // Mock logger to avoid noisy output during tests
 vi.mock("@/shared/logger", () => {
@@ -37,7 +37,10 @@ interface CapturedCall {
 	payload: Record<string, unknown>;
 }
 
-function createTestBot(onMessage: TelegramBotConfig["onMessage"]): {
+function createTestBot(
+	onMessage: TelegramBotConfig["onMessage"],
+	options?: { isDuplicate?: DuplicateChecker },
+): {
 	instance: TelegramBotInstance;
 	captured: CapturedCall[];
 } {
@@ -47,6 +50,7 @@ function createTestBot(onMessage: TelegramBotConfig["onMessage"]): {
 		token: "fake-token-for-integration-test",
 		onMessage,
 		botInfo: TEST_BOT_INFO,
+		isDuplicate: options?.isDuplicate,
 	};
 
 	const instance = createTelegramBot(config);
@@ -409,6 +413,94 @@ describe("telegram bot integration", () => {
 
 			expect(executionOrder).toContain("second-start");
 			expect(executionOrder).toContain("second-end");
+		});
+	});
+
+	describe("dedup guard (idempotent processing)", () => {
+		it("processes a first-time update when isDuplicate returns false", async () => {
+			const isDuplicate = vi.fn().mockResolvedValue(false);
+			const dedupOnMessage = vi.fn().mockResolvedValue("echo reply");
+			const result = createTestBot(dedupOnMessage, { isDuplicate });
+
+			const update = makePrivateTextUpdate(40, "First time message");
+			await result.instance.bot.handleUpdate(update);
+
+			expect(isDuplicate).toHaveBeenCalledWith("42", 40);
+			expect(dedupOnMessage).toHaveBeenCalledOnce();
+			expect(result.captured).toHaveLength(1);
+			expect(result.captured[0].method).toBe("sendMessage");
+		});
+
+		it("skips a duplicate update when isDuplicate returns true", async () => {
+			const isDuplicate = vi.fn().mockResolvedValue(true);
+			const dedupOnMessage = vi.fn().mockResolvedValue("echo reply");
+			const result = createTestBot(dedupOnMessage, { isDuplicate });
+
+			const update = makePrivateTextUpdate(41, "Duplicate message");
+			await result.instance.bot.handleUpdate(update);
+
+			expect(isDuplicate).toHaveBeenCalledWith("42", 41);
+			expect(dedupOnMessage).not.toHaveBeenCalled();
+			expect(result.captured).toHaveLength(0);
+		});
+
+		it("processes updates from different users independently", async () => {
+			const isDuplicate = vi.fn().mockResolvedValue(false);
+			const dedupOnMessage = vi.fn().mockResolvedValue("reply");
+			const result = createTestBot(dedupOnMessage, { isDuplicate });
+
+			const update1 = makePrivateTextUpdate(42, "From Alice", {
+				userId: 42,
+				firstName: "Alice",
+				username: "alice",
+			});
+			const update2 = makePrivateTextUpdate(42, "From Bob", {
+				userId: 99,
+				firstName: "Bob",
+				username: "bob",
+			});
+
+			await result.instance.bot.handleUpdate(update1);
+			await result.instance.bot.handleUpdate(update2);
+
+			// Same update_id=42 but different users — both should be checked and processed
+			expect(isDuplicate).toHaveBeenCalledWith("42", 42);
+			expect(isDuplicate).toHaveBeenCalledWith("99", 42);
+			expect(dedupOnMessage).toHaveBeenCalledTimes(2);
+		});
+
+		it("concurrent duplicate is blocked by user-serializer + dedup guard", async () => {
+			// First call: not a duplicate. Second call (same update): duplicate.
+			const isDuplicate = vi.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+
+			let handlerResolve = (): void => {};
+			const handlerBlocked = new Promise<void>((resolve) => {
+				handlerResolve = resolve;
+			});
+
+			const dedupOnMessage = vi.fn().mockImplementation(async () => {
+				await handlerBlocked;
+				return "reply";
+			});
+
+			const result = createTestBot(dedupOnMessage, { isDuplicate });
+
+			const update = makePrivateTextUpdate(43, "Concurrent message", { userId: 42 });
+
+			// Send the same update twice concurrently
+			const promise1 = result.instance.bot.handleUpdate(update);
+			const promise2 = result.instance.bot.handleUpdate(update);
+
+			// Let microtasks settle — first is blocked in handler, second is queued by serializer
+			await new Promise((resolve) => setTimeout(resolve, 10));
+
+			// Release the first handler
+			handlerResolve();
+			await Promise.all([promise1, promise2]);
+
+			// First processed, second blocked as duplicate
+			expect(dedupOnMessage).toHaveBeenCalledOnce();
+			expect(result.captured).toHaveLength(1);
 		});
 	});
 });

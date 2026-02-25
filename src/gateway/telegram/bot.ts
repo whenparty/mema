@@ -3,6 +3,7 @@ import { Bot, type BotError } from "grammy";
 import { handleHelp } from "./commands/help";
 import { handleStart } from "./commands/start";
 import { handleStop } from "./commands/stop";
+import { createDedupGuard } from "./middleware/dedup-guard";
 import { privateOnly } from "./middleware/private-only";
 import { createUserSerializer } from "./middleware/user-serializer";
 import type { TelegramBotConfig, TelegramBotInstance, TelegramMessageInput } from "./types";
@@ -20,6 +21,11 @@ export function createTelegramBot(config: TelegramBotConfig): TelegramBotInstanc
 	// Middleware: per-user message serialization (FR-PLT.6)
 	const userSerializer = createUserSerializer();
 	bot.use(userSerializer.middleware);
+
+	// Middleware: idempotent processing — skip already-processed updates (NFR-REL.3)
+	const isDuplicate = config.isDuplicate ?? (async () => false);
+	const dedupGuard = createDedupGuard(isDuplicate);
+	bot.use(dedupGuard.middleware);
 
 	// Command handlers (stubs)
 	bot.command("start", handleStart);
