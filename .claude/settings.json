@@ -9,7 +9,8 @@
       "Bash(bun run lint)",
       "Bash(docker *)",
       "Bash(copilot *)",
-      "Task(*)"
+      "Task(*)",
+      "Bash(bun run lint:fix)"
     ],
     "deny": [
       "Bash(git push --force *)",
