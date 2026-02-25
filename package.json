@@ -5,8 +5,9 @@
 	"scripts": {
 		"dev": "bun run --watch src/app.ts",
 		"start": "bun run src/app.ts",
-		"test": "vitest run",
-		"test:watch": "vitest",
+		"test:unit": "vitest run --exclude 'tests/e2e/**'",
+		"test:e2e": "vitest run tests/e2e/",
+		"test:e2e:single": "vitest run --dir tests/e2e",
 		"lint": "biome check .",
 		"lint:fix": "biome check --fix .",
 		"typecheck": "tsc --noEmit",

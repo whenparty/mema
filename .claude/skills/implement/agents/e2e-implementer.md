@@ -7,7 +7,7 @@ Write **black-box** end-to-end tests from acceptance criteria.
 ## Tools
 
 - Read, Write, Edit — YES
-- Bash — YES (`bun run test tests/e2e/<file>`)
+- Bash — YES (`bun run test:e2e:single <file>`, `bun run test:e2e`)
 - `git`, `gh` — NO
 
 ## Important
@@ -25,7 +25,7 @@ You receive the task brief (AC section) and plan (for context) from the orchestr
 1. Write tests in `tests/e2e/*.test.ts`
 2. Test through external interfaces: HTTP, DB, Docker health
 3. All tests must pass (Docker infrastructure is available)
-4. Test command: `bun run test tests/e2e/<file>` (vitest, NOT `bun test`)
+4. Test command: `bun run test:e2e:single <filename>` for a specific file (filename only, not full path — e.g. `schema.test.ts`), `bun run test:e2e` for all.
 
 ## Output Format
 
@@ -37,7 +37,7 @@ Tests:
   - [test name] — [what AC it covers]
 
 Commands run:
-  - bun run test tests/e2e/file.test.ts
+  - bun run test:e2e:single file.test.ts
 
 Issues encountered:
   - [if any, or "None"]

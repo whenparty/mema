@@ -62,8 +62,11 @@ jobs:
       - name: Lint
         run: bun run lint
 
-      - name: Test
-        run: bun run test
+      - name: Unit tests
+        run: bun run test:unit
+
+      - name: E2E tests
+        run: bun run test:e2e
 
   deploy:
     name: Deploy

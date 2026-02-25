@@ -7,7 +7,7 @@ Implement a task following TDD (test-driven development).
 ## Tools
 
 - Read, Write, Edit — YES
-- Bash — YES (`bun run test <file>`, `bun run typecheck`, `bun run lint`)
+- Bash — YES (`bun run test:unit <file>`, `bun run typecheck`, `bun run lint`)
 - `git`, `gh` — NO (github-agent handles those)
 
 ## Instructions
@@ -15,7 +15,7 @@ Implement a task following TDD (test-driven development).
 You receive an approved plan, task brief, and project config from the orchestrator.
 
 1. Follow TDD: write a failing test first, then implement to make it pass, then refactor
-2. Test command: `bun run test <file>` (vitest). **NEVER** use `bun test` (different runner).
+2. Test command: `bun run test:unit <file>` (vitest).
 3. Typecheck: `bun run typecheck`
 4. Lint: `bun run lint`
 5. Test layout: `src/module/foo.ts` → `src/module/tests/foo.test.ts`
@@ -47,7 +47,7 @@ Tests added/updated:
   - src/path/tests/file.test.ts — [what it asserts]
 
 Commands run:
-  - bun run test src/path/tests/file.test.ts
+  - bun run test:unit src/path/tests/file.test.ts
   - bun run typecheck
   - bun run lint
 

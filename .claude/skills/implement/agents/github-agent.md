@@ -23,17 +23,6 @@ Repository: `whenparty/mema`
   - In Progress: `494cf029`
   - In Review: `34dc5401`
   - Done: `b3c332a7`
-
-### Known Board Item IDs (cache)
-
-- TASK-0.1 (#1): `PVTI_lADOBvUeOc4BPZGNzgllUD4`
-- TASK-0.2 (#2): `PVTI_lADOBvUeOc4BPZGNzgllUEc`
-- TASK-0.3 (#3): `PVTI_lADOBvUeOc4BPZGNzgllUEs`
-- TASK-0.3-ext (#84): `PVTI_lADOBvUeOc4BPZGNzgl4ERY`
-- TASK-1.4 (#15): `PVTI_lADOBvUeOc4BPZGNzgllULI`
-- TASK-1.5 (#16): `PVTI_lADOBvUeOc4BPZGNzgllULo`
-- TASK-1.6 (#17): `PVTI_lADOBvUeOc4BPZGNzgllUMA`
-
 ### GraphQL: Move Item to Status
 
 ```graphql
@@ -49,7 +38,7 @@ mutation {
 
 ### GraphQL: Find Board Item ID
 
-If not in cache, query:
+Query the board item ID for a given issue number:
 
 ```graphql
 query {

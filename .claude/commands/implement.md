@@ -13,6 +13,25 @@ $ARGUMENTS — task ID in format TASK-X.Y (e.g., TASK-1.7)
 5. **Subagents return structured results**, orchestrator routes to next phase.
 6. **Separation of concerns.** Each subagent does one thing. GitHub/git — only github-agent. Specs — only context-builder. Code — only implementer. Review — only reviewer.
 
+## GitHub Context
+
+The orchestrator MUST use these IDs when passing GitHub context to subagents.
+**Never hallucinate or guess IDs — always use the values below.**
+
+```
+Project ID:       PVT_kwDOBvUeOc4BPZGN
+Status Field ID:  PVTSSF_lADOBvUeOc4BPZGNzg90FRk
+Status Options:
+  Backlog:        474037f0
+  In Progress:    494cf029
+  In Review:      34dc5401
+  Done:           b3c332a7
+```
+
+Board item IDs are queried via GraphQL each time (not cached).
+When the github-agent returns a board item ID, the orchestrator stores it in `board_item_id`
+and passes it explicitly in all subsequent prompts that need it.
+
 ## Agent Files
 
 Subagent definitions live in `.claude/skills/implement/agents/`. Each subagent reads
@@ -23,15 +42,15 @@ its own file as first action. The orchestrator references them via
 |-------|------|--------------|-------|-----------|
 | context-builder | `skills/implement/agents/context-builder.md` | Explore | opus | 20 |
 | config-summary | `skills/implement/agents/config-summary.md` | Explore | haiku | 10 |
-| github-agent | `skills/implement/agents/github-agent.md` | Bash | haiku | — |
+| github-agent | `skills/implement/agents/github-agent.md` | general-purpose | haiku | — |
 | planner | `skills/implement/agents/planner.md` | Plan | opus | 30 |
 | plan-reviewer | `skills/implement/agents/plan-reviewer.md` | Explore | opus | 15 |
-| copilot-plan-reviewer | `skills/implement/agents/copilot-plan-reviewer.md` | Explore | haiku | 10 |
+| copilot-plan-reviewer | `skills/implement/agents/copilot-plan-reviewer.md` | general-purpose | haiku | 10 |
 | implementer | `skills/implement/agents/implementer.md` | general-purpose | opus | 50 |
 | e2e-implementer | `skills/implement/agents/e2e-implementer.md` | general-purpose | opus | 25 |
-| ci-runner | `skills/implement/agents/ci-runner.md` | Bash | haiku | 10 |
+| ci-runner | `skills/implement/agents/ci-runner.md` | general-purpose | haiku | 10 |
 | code-reviewer | `skills/implement/agents/code-reviewer.md` | Explore | opus | 20 |
-| copilot-code-reviewer | `skills/implement/agents/copilot-code-reviewer.md` | Explore | haiku | 10 |
+| copilot-code-reviewer | `skills/implement/agents/copilot-code-reviewer.md` | general-purpose | haiku | 10 |
 | finalizer | `skills/implement/agents/finalizer.md` | general-purpose | haiku | 15 |
 
 ## Orchestrator State
@@ -638,5 +657,6 @@ Or if any AC explicitly mentions e2e, integration, or Docker testing.
 - If the task grows beyond expected scope — STOP and discuss splitting
 - Orchestrator uses ONLY Task and AskUserQuestion tools — no Bash, no Read, no Write, no git, no gh
 - Subagent prompts include ALL needed context — subagents do NOT see auto memory or conversation history
-- GitHub project board IDs are hardcoded in skills/implement/agents/github-agent.md
+- GitHub project/board IDs: ALWAYS use values from the "GitHub Context" section — NEVER guess or hallucinate IDs
+- Copilot agents (copilot-plan-reviewer, copilot-code-reviewer) use `subagent_type: "general-purpose"` — they invoke `copilot` CLI via Bash
 - All ensemble reviews use identical input data and identical Read permissions — only the model differs
