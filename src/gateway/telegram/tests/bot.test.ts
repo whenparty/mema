@@ -109,7 +109,7 @@ describe("createTelegramBot", () => {
 		expect(mockBotUse).toHaveBeenCalled();
 	});
 
-	it("registers user-serializer middleware after private-only", async () => {
+	it("registers private-only, user-serializer, and dedup-guard middleware in order", async () => {
 		const { createTelegramBot } = await import("../bot");
 		const config: TelegramBotConfig = {
 			token: "test-token",
@@ -118,10 +118,11 @@ describe("createTelegramBot", () => {
 
 		createTelegramBot(config);
 
-		// private-only is the first use(), user-serializer is the second
-		expect(mockBotUse).toHaveBeenCalledTimes(2);
+		// private-only (1st), user-serializer (2nd), dedup-guard (3rd)
+		expect(mockBotUse).toHaveBeenCalledTimes(3);
 		expect(typeof mockBotUse.mock.calls[0][0]).toBe("function");
 		expect(typeof mockBotUse.mock.calls[1][0]).toBe("function");
+		expect(typeof mockBotUse.mock.calls[2][0]).toBe("function");
 	});
 
 	it("registers /start, /help, and /stop commands", async () => {

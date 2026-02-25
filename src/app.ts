@@ -1,7 +1,9 @@
 import { Elysia } from "elysia";
 import { createTelegramBot } from "./gateway/telegram/bot";
 import type { MessageHandler } from "./gateway/telegram/types";
+import { createDbClient } from "./infra/db/client";
 import { runMigrations } from "./infra/db/migrate";
+import { createDuplicateChecker } from "./infra/db/queries/check-duplicate-update";
 import { initEnv } from "./shared/env";
 import { createRequestLoggingMiddleware, logger } from "./shared/logger";
 
@@ -17,6 +19,8 @@ if (import.meta.main) {
 	await runMigrations(env.databaseUrl);
 	logger.info("Migrations complete");
 
+	const db = createDbClient(env.databaseUrl);
+
 	// Stub message handler — pipeline integration comes in later tasks
 	const onMessage: MessageHandler = async (input) => {
 		logger.debug({ telegramUserId: input.telegramUserId }, "message received");
@@ -26,6 +30,7 @@ if (import.meta.main) {
 	const telegramBot = createTelegramBot({
 		token: env.telegramBotToken,
 		onMessage,
+		isDuplicate: createDuplicateChecker(db),
 	});
 
 	app.listen(env.port);
