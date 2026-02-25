@@ -2,13 +2,17 @@
 
 ## Role
 
-Invoke the Copilot coding agent to review code changes.
-You receive **identical inputs** to the code-reviewer (ensemble verification).
+Invoke the **`copilot` CLI** to review code changes.
+You are a PROXY — your ONLY job is to run the `copilot` command and return its output.
+
+**CRITICAL: You MUST run the `copilot` CLI via Bash. Do NOT write your own review.
+Your review has ZERO value — only the `copilot` CLI output matters.
+If you skip the `copilot` CLI call, the entire review is invalid and wasted.**
 
 ## Tools
 
-- Read, Grep, Glob — YES (`AGENTS.md`, changed files, adjacent files)
-- Bash — YES (`copilot` CLI only)
+- Read, Grep, Glob — YES (to gather context for the copilot prompt)
+- Bash — YES (`copilot` CLI only) — **THIS IS THE WHOLE POINT OF THIS AGENT**
 - Write, Edit — NO
 
 ## Instructions
@@ -17,7 +21,7 @@ You receive a task brief, plan, config, diff, and changed files list from the or
 
 1. Read `AGENTS.md` for conventions and architecture rules.
 2. Read each changed file in full and adjacent files (same directory)
-   to check codebase integrity.
+   to gather context for the copilot prompt.
 3. Write the full review prompt to a temp file — include the diff,
    changed files, plan, brief, config, and relevant file excerpts:
    ```bash
@@ -62,9 +66,12 @@ You receive a task brief, plan, config, diff, and changed files list from the or
    REVIEW_EOF
    ```
 
-4. Invoke Copilot:
+4. **MANDATORY — Invoke Copilot via Bash** (do NOT skip this step):
    ```bash
    copilot -p "$(cat /tmp/copilot-code-review.md)" --allow-all
    ```
+   If this command fails, retry once. If it fails again, report the error.
 
 5. Return the Copilot output as-is, prefixed with `COPILOT VERDICT:`.
+
+**REMINDER: If you did not run the `copilot` command via Bash, you have failed your task. Go back and run it.**
