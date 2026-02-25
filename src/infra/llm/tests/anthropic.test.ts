@@ -205,6 +205,58 @@ describe("createAnthropicProvider", () => {
 			expect(mockMessagesCreate).toHaveBeenCalledWith(expect.any(Object), undefined);
 		});
 
+		it("collects all system messages into one system param", async () => {
+			mockMessagesCreate.mockResolvedValue({
+				content: [{ type: "text", text: "response" }],
+				usage: { input_tokens: 10, output_tokens: 5 },
+				model: "claude-haiku-4-5-20250315",
+			});
+
+			const provider = createAnthropicProvider("test-api-key");
+			const messages: ChatMessage[] = [
+				{ role: "system", content: "You are helpful" },
+				{ role: "user", content: "Hello" },
+				{ role: "system", content: "Be concise" },
+			];
+
+			await provider.chat(messages, { model: "claude-haiku-4-5-20250315" });
+
+			expect(mockMessagesCreate).toHaveBeenCalledWith(
+				expect.objectContaining({
+					system: "You are helpful\n\nBe concise",
+					messages: [{ role: "user", content: "Hello" }],
+				}),
+				undefined,
+			);
+		});
+
+		it("throws non-retryable LlmApiError when tool_use block is missing in structured output", async () => {
+			mockMessagesCreate.mockResolvedValue({
+				content: [{ type: "text", text: "I cannot extract facts" }],
+				usage: { input_tokens: 20, output_tokens: 15 },
+				model: "claude-haiku-4-5-20250315",
+			});
+
+			const provider = createAnthropicProvider("test-api-key");
+
+			try {
+				await provider.chat([{ role: "user", content: "Extract facts" }], {
+					model: "claude-haiku-4-5-20250315",
+					jsonSchema: {
+						name: "extraction",
+						schema: { type: "object" },
+					},
+				});
+				expect.fail("Should have thrown");
+			} catch (error) {
+				expect(error).toBeInstanceOf(LlmApiError);
+				const llmError = error as LlmApiError;
+				expect(llmError.message).toBe("Missing tool_use block in structured output response");
+				expect(llmError.provider).toBe("anthropic");
+				expect(llmError.isRetryable).toBe(false);
+			}
+		});
+
 		it("wraps 429 rate limit as retryable LlmApiError", async () => {
 			const sdkError = new Error("Rate limit exceeded");
 			Object.assign(sdkError, { status: 429 });

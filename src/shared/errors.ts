@@ -6,7 +6,7 @@ export class LlmApiError extends Error {
 		public readonly isRetryable: boolean = true,
 		public readonly cause?: unknown,
 	) {
-		super(message);
+		super(message, { cause });
 		this.name = "LlmApiError";
 	}
 }

@@ -35,6 +35,13 @@ export async function withRetry<T>(
 	options?: Partial<RetryOptions>,
 ): Promise<T> {
 	const resolved: RetryOptions = { ...DEFAULT_OPTIONS, ...options };
+
+	if (!Number.isInteger(resolved.maxAttempts) || resolved.maxAttempts <= 0) {
+		throw new Error(
+			`Invalid retry options: maxAttempts must be a positive integer (got ${String(resolved.maxAttempts)})`,
+		);
+	}
+
 	let lastError: unknown;
 
 	for (let attempt = 1; attempt <= resolved.maxAttempts; attempt++) {

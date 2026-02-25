@@ -88,8 +88,12 @@ function parseContent(
 ): { content: string; parsed?: unknown } {
 	const content = rawContent ?? "";
 
-	if (!hasJsonSchema || content === "") {
+	if (!hasJsonSchema) {
 		return { content };
+	}
+
+	if (content === "") {
+		throw new LlmApiError("Missing structured output JSON from model", "openai", undefined, false);
 	}
 
 	try {

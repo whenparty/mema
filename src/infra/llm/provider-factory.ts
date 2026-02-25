@@ -4,7 +4,7 @@ import { createOpenAiProvider } from "./providers/openai";
 import type { LLMProvider } from "./types";
 
 function isAnthropicModel(model: string): boolean {
-	return model.startsWith("claude-") || model.includes("claude");
+	return model.startsWith("claude-");
 }
 
 function isOpenAiModel(model: string): boolean {

@@ -334,6 +334,32 @@ describe("createOpenAiProvider", () => {
 			}
 		});
 
+		it("throws non-retryable LlmApiError when structured output content is empty", async () => {
+			mockCreate.mockResolvedValue({
+				choices: [{ message: { content: null } }],
+				usage: { prompt_tokens: 10, completion_tokens: 0 },
+				model: "gpt-5-mini",
+			});
+
+			const provider = createOpenAiProvider("test-api-key");
+
+			try {
+				await provider.chat([{ role: "user", content: "Extract" }], {
+					model: "gpt-5-mini",
+					jsonSchema: {
+						name: "extraction",
+						schema: { type: "object" },
+					},
+				});
+				expect.fail("Should have thrown");
+			} catch (error) {
+				expect(error).toBeInstanceOf(LlmApiError);
+				const llmError = error as LlmApiError;
+				expect(llmError.message).toBe("Missing structured output JSON from model");
+				expect(llmError.isRetryable).toBe(false);
+			}
+		});
+
 		it("handles empty content response", async () => {
 			mockCreate.mockResolvedValue({
 				choices: [{ message: { content: null } }],

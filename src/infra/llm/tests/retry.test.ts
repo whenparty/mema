@@ -126,6 +126,20 @@ describe("withRetry", () => {
 		expect(result).toBe("success");
 	});
 
+	it("throws when maxAttempts is zero", async () => {
+		const operation = vi.fn().mockResolvedValue("success");
+		await expect(withRetry(operation, { maxAttempts: 0 })).rejects.toThrow(
+			/maxAttempts must be a positive integer/,
+		);
+	});
+
+	it("throws when maxAttempts is negative", async () => {
+		const operation = vi.fn().mockResolvedValue("success");
+		await expect(withRetry(operation, { maxAttempts: -1 })).rejects.toThrow(
+			/maxAttempts must be a positive integer/,
+		);
+	});
+
 	it("retries generic errors (non-LlmApiError)", async () => {
 		const operation = vi
 			.fn()

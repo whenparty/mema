@@ -55,13 +55,19 @@ function extractSystemMessage(messages: ChatMessage[]): {
 	system: string | undefined;
 	userMessages: ChatMessage[];
 } {
-	if (messages.length > 0 && messages[0].role === "system") {
-		return {
-			system: messages[0].content,
-			userMessages: messages.slice(1),
-		};
+	const systemParts: string[] = [];
+	const userMessages: ChatMessage[] = [];
+
+	for (const message of messages) {
+		if (message.role === "system") {
+			systemParts.push(message.content);
+		} else {
+			userMessages.push(message);
+		}
 	}
-	return { system: undefined, userMessages: messages };
+
+	const system = systemParts.length > 0 ? systemParts.join("\n\n") : undefined;
+	return { system, userMessages };
 }
 
 function extractContent(
@@ -78,6 +84,12 @@ function extractContent(
 				parsed: toolBlock.input,
 			};
 		}
+		throw new LlmApiError(
+			"Missing tool_use block in structured output response",
+			"anthropic",
+			undefined,
+			false,
+		);
 	}
 
 	const textBlocks = contentBlocks.filter(
