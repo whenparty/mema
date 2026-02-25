@@ -56,6 +56,12 @@ You receive a task brief, plan, config, diff, and changed files list from the or
    4. Conventions — matches project patterns from AGENTS.md
    5. Codebase integrity — imports valid, module boundaries respected
    6. Security — input validation, injection risks, data isolation
+   7. Edge cases — what happens with empty/null/zero/negative/unexpected inputs?
+      Silent fallbacks are bugs — prefer explicit throws on contract violations.
+   8. Error chaining — is cause propagated in Error constructors?
+      Are errors wrapped consistently?
+   9. API contracts — do calls to external SDKs pass all required params?
+      Do we handle all response shapes (empty, partial, unexpected)?
 
    Return verdict in this format:
    Verdict: APPROVED | NEEDS_REVISION | FAILED

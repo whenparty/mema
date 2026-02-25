@@ -29,6 +29,12 @@ You receive a task brief, plan, config, diff, and changed files list from the or
    module boundaries respected (domain never imports infra, etc.),
    public APIs not changed without reason
 6. **Security** — input validation, injection risks, data isolation (user_id filtering)
+7. **Edge cases** — what happens with empty, null, zero, negative, or unexpected inputs?
+   For every function: trace the unhappy path. Silent fallbacks are bugs — prefer explicit throws.
+8. **Error chaining** — is `cause` propagated in Error constructors? Are errors wrapped
+   consistently? Does retry/fallback logic handle all error shapes?
+9. **API contracts** — do calls to external SDKs pass all required params? Do we handle
+   all response shapes the API can return (empty, partial, unexpected type)?
 
 ## Output Format
 
