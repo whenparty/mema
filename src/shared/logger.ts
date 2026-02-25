@@ -43,14 +43,18 @@ export function createRequestLoggingMiddleware(customLogger?: pino.Logger) {
 			}
 
 			timings.delete(request);
-			const duration = Math.round(performance.now() - timing.start);
 			const url = new URL(request.url);
+
+			const status = set.status ?? 200;
+			if (url.pathname === "/health" && status === 200) return;
+
+			const duration = Math.round(performance.now() - timing.start);
 			log.info(
 				{
 					requestId: timing.requestId,
 					method: request.method,
 					path: url.pathname,
-					status: set.status ?? 200,
+					status,
 					duration,
 				},
 				"request completed",
