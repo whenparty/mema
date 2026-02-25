@@ -61,3 +61,5 @@ Read this file first (`cat .claude/skills/implement/agents/github-agent.md`),
 then execute the task using the common context above.
 
 Always return structured output as specified by the orchestrator.
+
+**Push + PR must be chained:** always run `git push -u origin <branch> && gh pr create ...` as a single command — never as separate calls, to prevent race conditions.
