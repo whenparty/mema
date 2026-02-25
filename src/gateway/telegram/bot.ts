@@ -4,6 +4,7 @@ import { handleHelp } from "./commands/help";
 import { handleStart } from "./commands/start";
 import { handleStop } from "./commands/stop";
 import { privateOnly } from "./middleware/private-only";
+import { createUserSerializer } from "./middleware/user-serializer";
 import type { TelegramBotConfig, TelegramBotInstance, TelegramMessageInput } from "./types";
 
 const log = createChildLogger({ module: "telegram" });
@@ -15,6 +16,10 @@ export function createTelegramBot(config: TelegramBotConfig): TelegramBotInstanc
 
 	// Middleware: only allow private (1:1) chats
 	bot.use(privateOnly);
+
+	// Middleware: per-user message serialization (FR-PLT.6)
+	const userSerializer = createUserSerializer();
+	bot.use(userSerializer.middleware);
 
 	// Command handlers (stubs)
 	bot.command("start", handleStart);
