@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "token_usages_user_period_idx" ON "token_usages" USING btree ("user_id","period_start");
