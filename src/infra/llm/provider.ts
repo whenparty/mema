@@ -8,6 +8,6 @@ export type {
 export { getProviderForModel } from "./provider-factory";
 export { withRetry } from "./retry";
 export type { RetryOptions } from "./retry";
-export { createTokenTracker, getCurrentPeriodStart } from "./token-tracker";
+export { createTokenTracker } from "./token-tracker";
 export type { TokenTracker, TokenQuotaResult, TokenUsageRecord } from "./token-tracker";
 export { createTrackedLlmProvider } from "./tracked-provider";

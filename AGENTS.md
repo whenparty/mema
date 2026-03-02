@@ -226,6 +226,39 @@ Update this table as new spikes produce actionable constraints.
 
 ---
 
+## Cursor Agent Workflow
+
+Project-level Cursor setup lives in `.cursor/` and complements this file.
+
+### Required agents
+
+- `planner`
+- `implementer`
+- `e2e-implementer` (mandatory)
+- `docker-e2e-runner` (mandatory local Docker e2e gate)
+- `github-agent` (mandatory for issue/status/PR lifecycle)
+- `verifier-model-a` and `verifier-model-b` (mandatory ensemble verify)
+- `reviewer-model-a` and `reviewer-model-b` (mandatory ensemble review)
+
+### Required execution gates
+
+- **Ensemble verify/review is mandatory**:
+  - A/B agents get identical inputs and permissions
+  - A/B must run on different models
+- **E2E gate is mandatory**:
+  - e2e scenarios are created from acceptance criteria
+  - local Docker-based e2e run must pass before completion
+- **GitHub lifecycle is mandatory**:
+  - read issue, update status, open PR, and finalize via `github-agent`
+
+### Source of truth split
+
+- `AGENTS.md` (this file): architecture, constraints, conventions
+- `.cursor/rules/*.mdc`: scoped execution rules
+- `.cursor/agents/*.md`: role prompts and structured outputs
+
+---
+
 ## Specification Reference
 
 > **Note:** Specs are NOT auto-loaded into context. Use the `/specification-navigator` skill or read files directly when needed.

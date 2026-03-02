@@ -9,7 +9,10 @@ interface UpsertTokenUsageParams {
 	quotaLimit: number;
 }
 
-export async function upsertTokenUsage(db: DbClient, params: UpsertTokenUsageParams) {
+export async function upsertTokenUsage(
+	db: DbClient,
+	params: UpsertTokenUsageParams,
+): Promise<typeof tokenUsages.$inferSelect> {
 	const { userId, tokensToAdd, periodStart, quotaLimit } = params;
 
 	const rows = await db
@@ -29,7 +32,12 @@ export async function upsertTokenUsage(db: DbClient, params: UpsertTokenUsagePar
 		})
 		.returning();
 
-	return rows[0];
+	const row = rows[0];
+	if (!row) {
+		throw new Error(`upsertTokenUsage: expected a row to be returned for user ${userId}`);
+	}
+
+	return row;
 }
 
 export async function getTokenUsage(db: DbClient, userId: string, periodStart: Date) {
