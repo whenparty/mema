@@ -21,6 +21,7 @@ using Drizzle ORM with PostgreSQL and pgvector for semantic vector search.
 - `client.ts` — `createDbClient(connectionUrl)` factory, `DbClient` type
 - `migrate.ts` — `runMigrations(connectionUrl)` runs `CREATE EXTENSION vector` then Drizzle migrations
 - `queries/check-duplicate-update.ts` — `createDuplicateChecker(db)` factory: returns a `DuplicateChecker` that looks up user via `user_auths` then checks `messages` for existing `telegram_update_id`
+- `queries/fact-search.ts` — `searchFactsByEmbedding(db, params)`: semantic similarity search over facts table using pgvector cosineDistance, filters by userId/status/factTypes/threshold
 - `tests/` — unit tests for client, migrate, schema barrel, drizzle config
 - `queries/tests/` — unit tests for query functions
 - `schema/tests/` — unit tests for individual schema files
@@ -32,6 +33,9 @@ using Drizzle ORM with PostgreSQL and pgvector for semantic vector search.
 - `createDbClient(connectionUrl: string)` — returns Drizzle instance with schema
 - `DbClient` — return type of `createDbClient`
 - `runMigrations(connectionUrl: string)` — enables pgvector extension and runs migrations
+- `searchFactsByEmbedding(db, params)` — semantic search, exported from `queries/fact-search.ts`
+- `FactSearchParams` — `{ userId, queryVector, limit, factTypes?, similarityThreshold? }`, exported from `queries/fact-search.ts`
+- `FactSearchResult` — `{ id, content, factType, eventDate, similarity }`, exported from `queries/fact-search.ts`
 
 ## Patterns & Decisions
 

@@ -17,6 +17,7 @@ Implements the LLM Abstraction Layer described in Section 4.4 of the System Arch
 - `token-tracker.ts` -- Token counting service: records usage, checks quotas, gets current period usage
 - `tracked-provider.ts` -- LLMProvider decorator that wraps chat() calls with automatic token recording
 - `prompt-loader.ts` -- Template loader: reads .ftl files from prompts/ dir, interpolates ${variables}, caches in production
+- `embedding.ts` -- EmbeddingService factory: single/batch embedding via LLMProvider.embed(), input validation, vector validation, typed error codes, sequential batch, per-call model resolution
 
 ## Interfaces
 
@@ -33,6 +34,9 @@ Implements the LLM Abstraction Layer described in Section 4.4 of the System Arch
 - `createTrackedLlmProvider(provider, tracker, userId)` -- decorator factory, exported from `tracked-provider.ts`
 - `PromptLoader` -- `{ render(templateName, variables) }`, exported from `prompt-loader.ts`
 - `createPromptLoader(config)` -- factory, exported from `prompt-loader.ts`
+- `EmbeddingService` -- `{ embedText(text), embedBatch(texts) }`, exported from `embedding.ts`
+- `EmbeddingServiceOptions` -- `{ getModels?, retryOptions? }`, exported from `embedding.ts`
+- `createEmbeddingService(env, options?)` -- factory, exported from `embedding.ts`
 
 ## Patterns & Decisions
 
@@ -50,10 +54,15 @@ Implements the LLM Abstraction Layer described in Section 4.4 of the System Arch
 - **Prompt templates:** .ftl files in prompts/ dir, FreeMarker-style ${variable} interpolation, cached in production only (hot-reload in dev/test)
 - **Path traversal guard:** Template names are resolved and checked to stay within promptsDir
 - **Missing variables throw:** All ${var} placeholders must be present in the variables map or PromptLoadError is thrown
+- **Embedding batch:** Sequential processing (for...of) — stops on first failure, predictable error reporting with inputIndex
+- **Embedding model resolution:** Per-call via `getModels()` (defaults to `getLlmModels().embedding`) — supports runtime model changes without service recreation
+- **Embedding input validation:** Trims whitespace, rejects empty text with typed EmbeddingServiceError codes
+- **Embedding vector validation:** Checks provider response is non-empty array of finite numbers
+- **Embedding error wrapping:** All provider errors wrapped in EmbeddingServiceError with typed codes (EMPTY_INPUT, EMPTY_BATCH, BATCH_ITEM_EMPTY, PROVIDER_FAILURE, INVALID_RESPONSE)
 
 ## Dependencies
 
-- imports from: `@/shared/errors` (LlmApiError, PromptLoadError), `@/shared/logger` (child logger for retry, token-tracker, tracked-provider, prompt-loader), `@/shared/env` (AppEnv type)
+- imports from: `@/shared/errors` (LlmApiError, PromptLoadError, EmbeddingServiceError), `@/shared/logger` (child logger for retry, token-tracker, tracked-provider, prompt-loader, embedding), `@/shared/env` (AppEnv, LlmModels types)
 - imports from: `@/infra/db/client` (DbClient type), `@/infra/db/queries/token-usage` (upsertTokenUsage, getTokenUsage)
 - imports from: `openai` (third-party), `@anthropic-ai/sdk` (third-party)
 - imported by: pipeline, gateway (via dependency injection)
