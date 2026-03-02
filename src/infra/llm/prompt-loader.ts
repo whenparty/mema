@@ -14,16 +14,44 @@ interface PromptLoaderConfig {
 
 const VARIABLE_PATTERN = /\$\{(\w+)\}/g;
 
+function normalizeTemplateName(templateName: string): string {
+	if (!templateName || templateName === "." || templateName === "..") {
+		throw new PromptLoadError(
+			`Invalid template name: "${templateName}" — must be a non-empty relative path`,
+			templateName,
+		);
+	}
+
+	if (path.isAbsolute(templateName)) {
+		throw new PromptLoadError(
+			`Invalid template name: "${templateName}" — absolute paths are not allowed, use a relative path like "extraction/combined.ftl"`,
+			templateName,
+		);
+	}
+
+	const ext = path.extname(templateName);
+	if (ext && ext !== ".ftl") {
+		throw new PromptLoadError(
+			`Invalid template name: "${templateName}" — only .ftl templates are supported, got "${ext}"`,
+			templateName,
+		);
+	}
+
+	return ext === ".ftl" ? templateName : `${templateName}.ftl`;
+}
+
 export function createPromptLoader(config: PromptLoaderConfig): PromptLoader {
 	const log = createChildLogger({ module: "prompt-loader" });
 	const cache = new Map<string, string>();
 	const useCache = config.nodeEnv === "production";
 
-	async function loadTemplate(templateName: string): Promise<string> {
+	async function loadTemplate(rawName: string): Promise<{ content: string; resolved: string }> {
+		const templateName = normalizeTemplateName(rawName);
+
 		if (useCache) {
 			const cached = cache.get(templateName);
 			if (cached !== undefined) {
-				return cached;
+				return { content: cached, resolved: templateName };
 			}
 		}
 
@@ -32,8 +60,8 @@ export function createPromptLoader(config: PromptLoaderConfig): PromptLoader {
 
 		if (!fullPath.startsWith(`${normalizedBase}${path.sep}`) && fullPath !== normalizedBase) {
 			throw new PromptLoadError(
-				`Refused to load template: path traversal detected for "${templateName}"`,
-				templateName,
+				`Refused to load template: path traversal detected for "${rawName}"`,
+				rawName,
 			);
 		}
 
@@ -53,7 +81,7 @@ export function createPromptLoader(config: PromptLoaderConfig): PromptLoader {
 			log.debug({ templateName }, "template cached");
 		}
 
-		return rawTemplate;
+		return { content: rawTemplate, resolved: templateName };
 	}
 
 	function interpolate(
@@ -76,8 +104,8 @@ export function createPromptLoader(config: PromptLoaderConfig): PromptLoader {
 	return {
 		async render(templateName: string, variables: Record<string, string>): Promise<string> {
 			log.debug({ templateName }, "rendering template");
-			const rawTemplate = await loadTemplate(templateName);
-			return interpolate(rawTemplate, variables, templateName);
+			const { content, resolved } = await loadTemplate(templateName);
+			return interpolate(content, variables, resolved);
 		},
 	};
 }

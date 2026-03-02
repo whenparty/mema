@@ -200,4 +200,66 @@ describe("createPromptLoader", () => {
 
 		expect(result).toBe("Extract facts from: I like cats");
 	});
+
+	it("auto-appends .ftl when extension is omitted", async () => {
+		const loader = createPromptLoader({ promptsDir: tmpDir, nodeEnv: "test" });
+
+		const result = await loader.render("simple", { name: "Alice" });
+
+		expect(result).toBe("Hello, Alice!");
+	});
+
+	it("auto-appends .ftl for subdirectory templates without extension", async () => {
+		const loader = createPromptLoader({ promptsDir: tmpDir, nodeEnv: "test" });
+
+		const result = await loader.render("extraction/facts", { message: "I like cats" });
+
+		expect(result).toBe("Extract facts from: I like cats");
+	});
+
+	it("rejects non-.ftl file extensions", async () => {
+		const loader = createPromptLoader({ promptsDir: tmpDir, nodeEnv: "test" });
+
+		await expect(loader.render("foo.json", {})).rejects.toThrow(PromptLoadError);
+
+		try {
+			await loader.render("foo.json", {});
+		} catch (error) {
+			expect(error).toBeInstanceOf(PromptLoadError);
+			expect((error as PromptLoadError).message).toContain("only .ftl templates are supported");
+		}
+	});
+
+	it("rejects empty template name", async () => {
+		const loader = createPromptLoader({ promptsDir: tmpDir, nodeEnv: "test" });
+
+		await expect(loader.render("", {})).rejects.toThrow(PromptLoadError);
+
+		try {
+			await loader.render("", {});
+		} catch (error) {
+			expect(error).toBeInstanceOf(PromptLoadError);
+			expect((error as PromptLoadError).message).toContain("Invalid template name");
+		}
+	});
+
+	it("rejects '.' and '..' as template names", async () => {
+		const loader = createPromptLoader({ promptsDir: tmpDir, nodeEnv: "test" });
+
+		await expect(loader.render(".", {})).rejects.toThrow(PromptLoadError);
+		await expect(loader.render("..", {})).rejects.toThrow(PromptLoadError);
+	});
+
+	it("rejects absolute paths", async () => {
+		const loader = createPromptLoader({ promptsDir: tmpDir, nodeEnv: "test" });
+
+		await expect(loader.render("/etc/passwd", {})).rejects.toThrow(PromptLoadError);
+
+		try {
+			await loader.render("/etc/passwd", {});
+		} catch (error) {
+			expect(error).toBeInstanceOf(PromptLoadError);
+			expect((error as PromptLoadError).message).toContain("absolute paths are not allowed");
+		}
+	});
 });
