@@ -10,3 +10,14 @@ export class LlmApiError extends Error {
 		this.name = "LlmApiError";
 	}
 }
+
+export class PromptLoadError extends Error {
+	constructor(
+		message: string,
+		public readonly templateName: string,
+		public readonly cause?: unknown,
+	) {
+		super(message, { cause });
+		this.name = "PromptLoadError";
+	}
+}
