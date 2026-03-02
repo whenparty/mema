@@ -1,5 +1,4 @@
-import { and, desc, eq, gt, inArray, isNotNull, sql } from "drizzle-orm";
-import { cosineDistance } from "drizzle-orm/sql/functions/vector";
+import { and, cosineDistance, desc, eq, gt, inArray, isNotNull, sql } from "drizzle-orm";
 import type { DbClient } from "../client";
 import { type FactType, facts } from "../schema/facts";
 
