@@ -1,159 +1,226 @@
+import type { AppEnv } from "@/shared/env";
+import { EmbeddingServiceError, LlmApiError } from "@/shared/errors";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createEmbeddingService } from "../embedding";
-import type { LLMProvider } from "../types";
 
-vi.mock("@/shared/logger", () => {
-	const childLogger = {
+const { mockGetProviderForModel, mockEmbed } = vi.hoisted(() => ({
+	mockGetProviderForModel: vi.fn(),
+	mockEmbed: vi.fn(),
+}));
+
+vi.mock("../provider-factory", () => ({
+	getProviderForModel: mockGetProviderForModel,
+}));
+
+vi.mock("@/shared/logger", () => ({
+	createChildLogger: vi.fn(() => ({
 		info: vi.fn(),
 		warn: vi.fn(),
 		error: vi.fn(),
 		debug: vi.fn(),
-	};
-	return {
-		createChildLogger: vi.fn(() => childLogger),
-	};
-});
-
-vi.mock("@/shared/env", () => ({
-	getLlmModels: vi.fn(() => ({
-		compact: "claude-haiku-4.5-20250315",
-		powerfulA: "claude-sonnet-4-20250514",
-		powerfulB: "gpt-5-mini",
-		validator: "gpt-5-mini",
-		embedding: "text-embedding-3-small",
 	})),
 }));
 
-const mockProvider = vi.hoisted(() => ({
-	chat: vi.fn(),
-	embed: vi.fn(),
-})) satisfies LLMProvider;
+import { createEmbeddingService } from "../embedding";
 
-vi.mock("../provider-factory", () => ({
-	getProviderForModel: vi.fn(() => mockProvider),
-}));
-
-vi.mock("../retry", () => ({
-	withRetry: vi.fn((operation: () => Promise<unknown>) => operation()),
-}));
-
-import { withRetry } from "../retry";
-
-function createFakeEnv() {
+function makeEnv(overrides?: Partial<AppEnv>): AppEnv {
 	return {
 		databaseUrl: "postgres://localhost/test",
 		telegramBotToken: "test-token",
 		openaiApiKey: "test-openai-key",
 		anthropicApiKey: "test-anthropic-key",
 		adminUserId: "admin-1",
-		nodeEnv: "test" as const,
+		nodeEnv: "test",
 		port: 3000,
-		logLevel: "info" as const,
+		logLevel: "info",
 		rateLimitPerHour: 100,
 		tokenQuotaMonthly: 0,
 		sentryDsn: undefined,
 		telegramWebhookUrl: undefined,
+		...overrides,
 	};
+}
+
+const TEST_MODELS = {
+	compact: "gpt-5-nano",
+	powerfulA: "claude-opus-4-6-20250501",
+	powerfulB: "gpt-5.2",
+	validator: "gpt-5-mini",
+	embedding: "text-embedding-3-small",
+};
+
+function createService(overrides?: {
+	retryOptions?: { maxAttempts: number; initialDelayMs: number; backoffMultiplier: number };
+}) {
+	return createEmbeddingService(makeEnv(), {
+		getModels: () => TEST_MODELS,
+		retryOptions: { maxAttempts: 1, initialDelayMs: 1, backoffMultiplier: 1 },
+		...overrides,
+	});
 }
 
 describe("createEmbeddingService", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		// Restore default withRetry behavior: pass through to the operation
-		vi.mocked(withRetry).mockImplementation((op: () => Promise<unknown>) => op() as Promise<never>);
+		mockGetProviderForModel.mockReturnValue({
+			chat: vi.fn(),
+			embed: mockEmbed,
+		});
 	});
 
 	describe("embedText", () => {
 		it("returns embedding vector for a single text", async () => {
-			const embedding = [0.1, 0.2, 0.3, 0.4];
-			vi.mocked(mockProvider.embed).mockResolvedValue(embedding);
-
-			const service = createEmbeddingService({ env: createFakeEnv() });
+			mockEmbed.mockResolvedValue([0.1, 0.2, 0.3]);
+			const service = createService();
 			const result = await service.embedText("Hello world");
 
-			expect(result).toEqual(embedding);
-			expect(mockProvider.embed).toHaveBeenCalledWith("Hello world", "text-embedding-3-small");
+			expect(result).toEqual([0.1, 0.2, 0.3]);
+			expect(mockEmbed).toHaveBeenCalledWith("Hello world", "text-embedding-3-small");
 		});
 
-		it("wraps the embed call with withRetry for transient error recovery", async () => {
-			const embedding = [0.5, 0.6];
-			vi.mocked(mockProvider.embed).mockResolvedValue(embedding);
+		it("trims whitespace from input text", async () => {
+			mockEmbed.mockResolvedValue([0.1, 0.2]);
+			const service = createService();
+			await service.embedText("   hello world   ");
 
-			const service = createEmbeddingService({ env: createFakeEnv() });
-			await service.embedText("test");
-
-			expect(withRetry).toHaveBeenCalledTimes(1);
-			expect(withRetry).toHaveBeenCalledWith(expect.any(Function));
+			expect(mockEmbed).toHaveBeenCalledWith("hello world", "text-embedding-3-small");
 		});
 
-		it("propagates non-retryable errors from the provider", async () => {
-			const error = new Error("Invalid API key");
-			Object.assign(error, { isRetryable: false });
-			vi.mocked(withRetry).mockRejectedValue(error);
+		it("throws EmbeddingServiceError for empty text", async () => {
+			const service = createService();
 
-			const service = createEmbeddingService({ env: createFakeEnv() });
-
-			await expect(service.embedText("test")).rejects.toThrow("Invalid API key");
-		});
-
-		it("uses custom model when provided", async () => {
-			const embedding = [0.1];
-			vi.mocked(mockProvider.embed).mockResolvedValue(embedding);
-
-			const service = createEmbeddingService({
-				env: createFakeEnv(),
-				model: "text-embedding-3-large",
+			await expect(service.embedText("   ")).rejects.toMatchObject({
+				name: "EmbeddingServiceError",
+				code: "EMBEDDING_EMPTY_INPUT",
+				isRetryable: false,
+				model: "text-embedding-3-small",
 			});
-			await service.embedText("test");
+		});
 
-			expect(mockProvider.embed).toHaveBeenCalledWith("test", "text-embedding-3-large");
+		it("resolves model per call via getModels()", async () => {
+			let callCount = 0;
+			const service = createEmbeddingService(makeEnv(), {
+				getModels: () => ({
+					...TEST_MODELS,
+					embedding: callCount++ === 0 ? "model-a" : "model-b",
+				}),
+				retryOptions: { maxAttempts: 1, initialDelayMs: 1, backoffMultiplier: 1 },
+			});
+			mockEmbed.mockResolvedValue([0.1]);
+
+			await service.embedText("first");
+			await service.embedText("second");
+
+			expect(mockGetProviderForModel).toHaveBeenNthCalledWith(1, "model-a", expect.any(Object));
+			expect(mockGetProviderForModel).toHaveBeenNthCalledWith(2, "model-b", expect.any(Object));
+		});
+
+		it("wraps provider errors in EmbeddingServiceError", async () => {
+			mockEmbed.mockRejectedValue(new Error("Network timeout"));
+			const service = createService();
+
+			const error = await service.embedText("test").catch((e: unknown) => e);
+			expect(error).toBeInstanceOf(EmbeddingServiceError);
+			expect((error as EmbeddingServiceError).code).toBe("EMBEDDING_PROVIDER_FAILURE");
+			expect((error as EmbeddingServiceError).isRetryable).toBe(true);
+		});
+
+		it("preserves isRetryable=false from LlmApiError", async () => {
+			mockEmbed.mockRejectedValue(new LlmApiError("Invalid key", "openai", 401, false));
+			const service = createService();
+
+			const error = await service.embedText("test").catch((e: unknown) => e);
+			expect(error).toBeInstanceOf(EmbeddingServiceError);
+			expect((error as EmbeddingServiceError).isRetryable).toBe(false);
+		});
+
+		it("throws EMBEDDING_INVALID_RESPONSE for empty vector", async () => {
+			mockEmbed.mockResolvedValue([]);
+			const service = createService();
+
+			await expect(service.embedText("test")).rejects.toMatchObject({
+				code: "EMBEDDING_INVALID_RESPONSE",
+				isRetryable: false,
+			});
+		});
+
+		it("throws EMBEDDING_INVALID_RESPONSE for non-finite values", async () => {
+			mockEmbed.mockResolvedValue([0.1, Number.NaN, 0.3]);
+			const service = createService();
+
+			await expect(service.embedText("test")).rejects.toMatchObject({
+				code: "EMBEDDING_INVALID_RESPONSE",
+			});
 		});
 	});
 
 	describe("embedBatch", () => {
-		it("returns embeddings for multiple texts", async () => {
-			const embeddings = [
+		it("returns embeddings sequentially for multiple texts", async () => {
+			const order: number[] = [];
+			mockEmbed
+				.mockImplementationOnce(async () => {
+					order.push(1);
+					return [0.1, 0.2];
+				})
+				.mockImplementationOnce(async () => {
+					order.push(2);
+					return [0.3, 0.4];
+				})
+				.mockImplementationOnce(async () => {
+					order.push(3);
+					return [0.5, 0.6];
+				});
+
+			const service = createService();
+			const result = await service.embedBatch(["a", "b", "c"]);
+
+			expect(result).toEqual([
 				[0.1, 0.2],
 				[0.3, 0.4],
 				[0.5, 0.6],
-			];
-			vi.mocked(mockProvider.embed)
-				.mockResolvedValueOnce(embeddings[0])
-				.mockResolvedValueOnce(embeddings[1])
-				.mockResolvedValueOnce(embeddings[2]);
-
-			const service = createEmbeddingService({ env: createFakeEnv() });
-			const result = await service.embedBatch(["text1", "text2", "text3"]);
-
-			expect(result).toEqual(embeddings);
+			]);
+			expect(order).toEqual([1, 2, 3]);
 		});
 
-		it("returns empty array for empty input", async () => {
-			const service = createEmbeddingService({ env: createFakeEnv() });
-			const result = await service.embedBatch([]);
+		it("throws EmbeddingServiceError for empty batch", async () => {
+			const service = createService();
 
-			expect(result).toEqual([]);
-			expect(mockProvider.embed).not.toHaveBeenCalled();
+			await expect(service.embedBatch([])).rejects.toMatchObject({
+				code: "EMBEDDING_EMPTY_BATCH",
+				isRetryable: false,
+			});
+			expect(mockEmbed).not.toHaveBeenCalled();
 		});
 
-		it("fails the entire batch when one embedding fails", async () => {
-			vi.mocked(mockProvider.embed)
-				.mockResolvedValueOnce([0.1, 0.2])
-				.mockRejectedValueOnce(new Error("Rate limit exceeded"));
+		it("throws EMBEDDING_BATCH_ITEM_EMPTY with inputIndex for empty item", async () => {
+			mockEmbed.mockResolvedValueOnce([0.1, 0.2]);
+			const service = createService();
 
-			const service = createEmbeddingService({ env: createFakeEnv() });
-
-			await expect(service.embedBatch(["text1", "text2"])).rejects.toThrow("Rate limit exceeded");
+			const error = await service.embedBatch(["valid", "  "]).catch((e: unknown) => e);
+			expect(error).toBeInstanceOf(EmbeddingServiceError);
+			expect((error as EmbeddingServiceError).code).toBe("EMBEDDING_BATCH_ITEM_EMPTY");
+			expect((error as EmbeddingServiceError).inputIndex).toBe(1);
 		});
 
-		it("wraps each individual embed call with withRetry", async () => {
-			vi.mocked(mockProvider.embed).mockResolvedValueOnce([0.1]).mockResolvedValueOnce([0.2]);
+		it("stops processing on first failure", async () => {
+			mockEmbed.mockResolvedValueOnce([0.1]).mockRejectedValueOnce(new Error("Rate limit"));
 
-			const service = createEmbeddingService({ env: createFakeEnv() });
-			await service.embedBatch(["a", "b"]);
+			const service = createService();
 
-			// withRetry called once for each text in the batch
-			expect(withRetry).toHaveBeenCalledTimes(2);
+			await expect(service.embedBatch(["a", "b", "c"])).rejects.toMatchObject({
+				code: "EMBEDDING_PROVIDER_FAILURE",
+				inputIndex: 1,
+			});
+			expect(mockEmbed).toHaveBeenCalledTimes(2);
+		});
+
+		it("trims whitespace from each batch item", async () => {
+			mockEmbed.mockResolvedValueOnce([0.1]).mockResolvedValueOnce([0.2]);
+			const service = createService();
+
+			await service.embedBatch(["  hello  ", "  world  "]);
+
+			expect(mockEmbed).toHaveBeenNthCalledWith(1, "hello", "text-embedding-3-small");
+			expect(mockEmbed).toHaveBeenNthCalledWith(2, "world", "text-embedding-3-small");
 		});
 	});
 });
