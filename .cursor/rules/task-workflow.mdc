@@ -1,0 +1,19 @@
+---
+description: Standard multi-agent workflow with mandatory ensemble verification and GitHub lifecycle.
+alwaysApply: false
+---
+
+- Preferred execution order for non-trivial tasks:
+  1. `planner`
+  2. `verifier-model-a` and `verifier-model-b` in parallel
+  3. `implementer`
+  4. `e2e-implementer`
+  5. `docker-e2e-runner`
+  6. `reviewer-model-a` and `reviewer-model-b` in parallel
+  7. `github-agent` for issue status and PR lifecycle
+- Ensemble gates are mandatory:
+  - run verifier pair on the same inputs
+  - run reviewer pair on the same inputs
+  - use different models for A/B roles
+- `github-agent` is the only role that should run GitHub lifecycle operations.
+- Keep handoff artifacts structured: plan, AC mapping, changed files, test evidence, review verdicts.

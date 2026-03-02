@@ -6,6 +6,12 @@ export type {
 	LLMResponse,
 } from "./types";
 export { getProviderForModel } from "./provider-factory";
+export {
+	createPromptLoader,
+	loadAndRenderPromptTemplate,
+	loadPromptTemplate,
+	renderPromptTemplate,
+} from "./prompt-loader";
 export { withRetry } from "./retry";
 export type { RetryOptions } from "./retry";
 export { createTokenTracker } from "./token-tracker";

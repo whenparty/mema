@@ -13,6 +13,7 @@ Implements the LLM Abstraction Layer described in Section 4.4 of the System Arch
 - `retry.ts` -- Generic retry-with-exponential-backoff utility (3 attempts, 1s/2s/4s default)
 - `providers/openai.ts` -- OpenAI provider: chat + embed, GPT-5 reasoning_effort handling, json_schema structured output
 - `providers/anthropic.ts` -- Anthropic provider: chat (tool_use for structured output), embed throws (not supported)
+- `prompt-loader.ts` -- Loads `.ftl` prompt templates from `prompts/`, renders `${var}` placeholders, supports dev hot-reload
 - `provider.ts` -- Barrel re-exports for external consumers
 - `token-tracker.ts` -- Token counting service: records usage, checks quotas, gets current period usage
 - `tracked-provider.ts` -- LLMProvider decorator that wraps chat() calls with automatic token recording
@@ -44,6 +45,8 @@ Implements the LLM Abstraction Layer described in Section 4.4 of the System Arch
 - **Embedding tokens not tracked:** embed() passes through unchanged -- only chat tokens are recorded
 - **One record per user per month:** Upsert on unique (user_id, period_start) index; atomic increment via SQL
 - **quotaLimit === 0 means unlimited:** checkQuota returns exceeded: false regardless of tokensUsed
+- **Prompt templates live in `prompts/*.ftl`:** prompt content is decoupled from code (NFR-PORT.1)
+- **Prompt-loader cache policy:** development bypasses cache for hot-reload; production/test reuse cached templates when unchanged
 
 ## Dependencies
 

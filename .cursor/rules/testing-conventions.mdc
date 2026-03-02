@@ -1,0 +1,14 @@
+---
+description: Apply project testing conventions including required Docker-based e2e gate.
+globs:
+  - "src/**/*.ts"
+  - "tests/**/*.ts"
+alwaysApply: false
+---
+
+- Follow TDD workflow where practical: failing test, implementation, refactor.
+- Tests should verify behavior, not implementation details.
+- Unit tests live under module `tests/` directories.
+- E2E tests live in `tests/e2e/` and must be black-box.
+- For feature-complete changes, ensure local Docker e2e execution is run and reported.
+- If e2e fails, do not mark task complete; report failures with file and test names.
