@@ -13,3 +13,5 @@ export type { TokenTracker, TokenQuotaResult, TokenUsageRecord } from "./token-t
 export { createTrackedLlmProvider } from "./tracked-provider";
 export { createPromptLoader } from "./prompt-loader";
 export type { PromptLoader } from "./prompt-loader";
+export { createEmbeddingService } from "./embedding";
+export type { EmbeddingService } from "./embedding";

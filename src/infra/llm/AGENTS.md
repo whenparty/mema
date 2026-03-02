@@ -17,6 +17,7 @@ Implements the LLM Abstraction Layer described in Section 4.4 of the System Arch
 - `token-tracker.ts` -- Token counting service: records usage, checks quotas, gets current period usage
 - `tracked-provider.ts` -- LLMProvider decorator that wraps chat() calls with automatic token recording
 - `prompt-loader.ts` -- Template loader: reads .ftl files from prompts/ dir, interpolates ${variables}, caches in production
+- `embedding.ts` -- EmbeddingService factory: single/batch embedding via LLMProvider.embed(), withRetry for transient errors
 
 ## Interfaces
 
@@ -33,6 +34,8 @@ Implements the LLM Abstraction Layer described in Section 4.4 of the System Arch
 - `createTrackedLlmProvider(provider, tracker, userId)` -- decorator factory, exported from `tracked-provider.ts`
 - `PromptLoader` -- `{ render(templateName, variables) }`, exported from `prompt-loader.ts`
 - `createPromptLoader(config)` -- factory, exported from `prompt-loader.ts`
+- `EmbeddingService` -- `{ embedText(text), embedBatch(texts) }`, exported from `embedding.ts`
+- `createEmbeddingService(config)` -- factory, exported from `embedding.ts`
 
 ## Patterns & Decisions
 
@@ -50,6 +53,8 @@ Implements the LLM Abstraction Layer described in Section 4.4 of the System Arch
 - **Prompt templates:** .ftl files in prompts/ dir, FreeMarker-style ${variable} interpolation, cached in production only (hot-reload in dev/test)
 - **Path traversal guard:** Template names are resolved and checked to stay within promptsDir
 - **Missing variables throw:** All ${var} placeholders must be present in the variables map or PromptLoadError is thrown
+- **Embedding batch:** Uses `Promise.all()` of individual `withRetry(embed)` calls — one failure fails the entire batch
+- **Embedding model default:** Falls back to `getLlmModels().embedding` (LLM_EMBEDDING_MODEL env var)
 
 ## Dependencies
 
