@@ -16,6 +16,7 @@ Implements the LLM Abstraction Layer described in Section 4.4 of the System Arch
 - `provider.ts` -- Barrel re-exports for external consumers
 - `token-tracker.ts` -- Token counting service: records usage, checks quotas, gets current period usage
 - `tracked-provider.ts` -- LLMProvider decorator that wraps chat() calls with automatic token recording
+- `prompt-loader.ts` -- Template loader: reads .ftl files from prompts/ dir, interpolates ${variables}, caches in production
 
 ## Interfaces
 
@@ -30,6 +31,8 @@ Implements the LLM Abstraction Layer described in Section 4.4 of the System Arch
 - `TokenUsageRecord` -- `{ id, userId, periodStart, tokensUsed, quotaLimit, updatedAt }`, exported from `token-tracker.ts`
 - `createTokenTracker(config)` -- factory, exported from `token-tracker.ts`
 - `createTrackedLlmProvider(provider, tracker, userId)` -- decorator factory, exported from `tracked-provider.ts`
+- `PromptLoader` -- `{ render(templateName, variables) }`, exported from `prompt-loader.ts`
+- `createPromptLoader(config)` -- factory, exported from `prompt-loader.ts`
 
 ## Patterns & Decisions
 
@@ -44,10 +47,13 @@ Implements the LLM Abstraction Layer described in Section 4.4 of the System Arch
 - **Embedding tokens not tracked:** embed() passes through unchanged -- only chat tokens are recorded
 - **One record per user per month:** Upsert on unique (user_id, period_start) index; atomic increment via SQL
 - **quotaLimit === 0 means unlimited:** checkQuota returns exceeded: false regardless of tokensUsed
+- **Prompt templates:** .ftl files in prompts/ dir, FreeMarker-style ${variable} interpolation, cached in production only (hot-reload in dev/test)
+- **Path traversal guard:** Template names are resolved and checked to stay within promptsDir
+- **Missing variables throw:** All ${var} placeholders must be present in the variables map or PromptLoadError is thrown
 
 ## Dependencies
 
-- imports from: `@/shared/errors` (LlmApiError), `@/shared/logger` (child logger for retry, token-tracker, tracked-provider), `@/shared/env` (AppEnv type)
+- imports from: `@/shared/errors` (LlmApiError, PromptLoadError), `@/shared/logger` (child logger for retry, token-tracker, tracked-provider, prompt-loader), `@/shared/env` (AppEnv type)
 - imports from: `@/infra/db/client` (DbClient type), `@/infra/db/queries/token-usage` (upsertTokenUsage, getTokenUsage)
 - imports from: `openai` (third-party), `@anthropic-ai/sdk` (third-party)
 - imported by: pipeline, gateway (via dependency injection)

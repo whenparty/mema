@@ -45,7 +45,7 @@ its own file as first action. The orchestrator references them via
 | github-agent | `skills/implement/agents/github-agent.md` | general-purpose | haiku | — |
 | planner | `skills/implement/agents/planner.md` | Plan | opus | 30 |
 | plan-reviewer | `skills/implement/agents/plan-reviewer.md` | Explore | opus | 15 |
-| copilot-plan-reviewer | `skills/implement/agents/copilot-plan-reviewer.md` | general-purpose | haiku | 10 |
+| copilot-plan-reviewer | `skills/implement/agents/copilot-plan-reviewer.md` | general-purpose | opus | 15 |
 | implementer | `skills/implement/agents/implementer.md` | general-purpose | opus | 50 |
 | e2e-implementer | `skills/implement/agents/e2e-implementer.md` | general-purpose | opus | 25 |
 | ci-runner | `skills/implement/agents/ci-runner.md` | general-purpose | haiku | 10 |
@@ -232,7 +232,7 @@ prompt:
   ---
 ```
 
-**copilot-plan-reviewer** (general-purpose, haiku, max_turns: 10):
+**copilot-plan-reviewer** (general-purpose, opus, max_turns: 15):
 
 ```
 description: "Copilot review of plan"
