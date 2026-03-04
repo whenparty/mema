@@ -4,7 +4,7 @@ export interface MessageInput {
 	username: string | undefined;
 	firstName: string;
 	languageCode: string | undefined;
-	platformMessageId: number;
+	platformUpdateId: number;
 }
 
 export type Intent =

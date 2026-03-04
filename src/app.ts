@@ -36,7 +36,7 @@ if (import.meta.main) {
 			username: input.username,
 			firstName: input.firstName,
 			languageCode: input.languageCode,
-			platformMessageId: input.updateId,
+			platformUpdateId: input.updateId,
 		};
 		return pipeline(messageInput);
 	};

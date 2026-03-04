@@ -64,7 +64,7 @@ export interface PipelineContext {
 	extractedFacts?: unknown[];
 	resolvedEntities?: unknown[];
 	conflicts?: unknown[];
-	routeResult?: string;
+	routeResult?: RouteHandlerKey;
 	responseContext?: unknown;
 	response?: string;
 	earlyResponse?: string;

@@ -4,7 +4,9 @@ import { FALLBACK_RESPONSE, createPipeline } from "../orchestrator";
 import { createStubSteps } from "../steps/stubs";
 import { type PipelineContext, type PipelineStep, type PipelineSteps, STEP_ORDER } from "../types";
 
-const mockError = vi.fn();
+const { mockError } = vi.hoisted(() => ({
+	mockError: vi.fn(),
+}));
 
 vi.mock("@/shared/logger", () => ({
 	createChildLogger: () => ({
@@ -22,7 +24,7 @@ const TEST_INPUT: MessageInput = {
 	username: "testuser",
 	firstName: "Test",
 	languageCode: "en",
-	platformMessageId: 42,
+	platformUpdateId: 42,
 };
 
 function createSpySteps(): { steps: PipelineSteps; callOrder: string[] } {

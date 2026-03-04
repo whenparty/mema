@@ -10,7 +10,7 @@ const TEST_INPUT: MessageInput = {
 	username: "testuser",
 	firstName: "Test",
 	languageCode: "en",
-	platformMessageId: 42,
+	platformUpdateId: 42,
 };
 
 function createTestContext(overrides?: Partial<PipelineContext>): PipelineContext {

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-12-step sequential message processing pipeline. Receives a platform-agnostic `MessageInput`, executes steps in canonical order, and returns a response string. Steps are pluggable functions injected at construction time (dependency injection). Implements the core processing flow from spec `4_4_System_Architecture.md`.
+Sequential message processing pipeline (12 numbered steps + sub-step 2a = 13 step slots). Receives a platform-agnostic `MessageInput`, executes steps in canonical order, and returns a response string. Steps are pluggable functions injected at construction time (dependency injection). Implements the core processing flow from spec `4_4_System_Architecture.md`.
 
 ## Key Files
 

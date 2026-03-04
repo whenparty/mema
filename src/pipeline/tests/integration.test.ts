@@ -11,7 +11,7 @@ const TEST_INPUT: MessageInput = {
 	username: "integrationuser",
 	firstName: "Integration",
 	languageCode: "en",
-	platformMessageId: 99,
+	platformUpdateId: 99,
 };
 
 describe("pipeline integration", () => {
