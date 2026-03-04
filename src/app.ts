@@ -4,8 +4,12 @@ import type { MessageHandler } from "./gateway/telegram/types";
 import { createDbClient } from "./infra/db/client";
 import { runMigrations } from "./infra/db/migrate";
 import { createDuplicateChecker } from "./infra/db/queries/check-duplicate-update";
+import { createPipeline } from "./pipeline/orchestrator";
+import { createRouteStep } from "./pipeline/router";
+import { createStubRouteHandlers, createStubSteps } from "./pipeline/steps/stubs";
 import { initEnv } from "./shared/env";
 import { createRequestLoggingMiddleware, logger } from "./shared/logger";
+import type { MessageInput } from "./shared/types";
 
 export const app = new Elysia()
 	.use(createRequestLoggingMiddleware())
@@ -21,10 +25,20 @@ if (import.meta.main) {
 
 	const db = createDbClient(env.databaseUrl);
 
-	// Stub message handler — pipeline integration comes in later tasks
+	const routeHandlers = createStubRouteHandlers();
+	const steps = createStubSteps({ routeIntent: createRouteStep(routeHandlers) });
+	const pipeline = createPipeline(steps);
+
 	const onMessage: MessageHandler = async (input) => {
-		logger.debug({ telegramUserId: input.telegramUserId }, "message received");
-		return "I received your message. Pipeline not yet implemented.";
+		const messageInput: MessageInput = {
+			text: input.text,
+			externalUserId: input.telegramUserId,
+			username: input.username,
+			firstName: input.firstName,
+			languageCode: input.languageCode,
+			platformMessageId: input.updateId,
+		};
+		return pipeline(messageInput);
 	};
 
 	const telegramBot = createTelegramBot({
