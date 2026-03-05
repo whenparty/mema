@@ -103,6 +103,7 @@ can understand a module without reading every source file.
 | scripts | scripts/AGENTS.md | created |
 | gateway/telegram | src/gateway/telegram/AGENTS.md | created |
 | domain/classification | src/domain/classification/AGENTS.md | created |
+| domain/dialog | src/domain/dialog/AGENTS.md | created |
 
 **Structure of a module AGENTS.md:**
 ```

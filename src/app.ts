@@ -1,12 +1,15 @@
 import { Elysia } from "elysia";
+import { createDialogStateManager } from "./domain/dialog/state-manager";
 import { createTelegramBot } from "./gateway/telegram/bot";
 import { createDefaultCommandHandlers } from "./gateway/telegram/commands/handlers";
 import type { MessageHandler } from "./gateway/telegram/types";
 import { createDbClient } from "./infra/db/client";
 import { runMigrations } from "./infra/db/migrate";
 import { createDuplicateChecker } from "./infra/db/queries/check-duplicate-update";
+import { createDialogStateStore } from "./infra/db/queries/dialog-states";
 import { createPipeline } from "./pipeline/orchestrator";
 import { createRouteStep } from "./pipeline/router";
+import { createEvaluateDialogStateStep } from "./pipeline/steps/evaluate-dialog-state";
 import { createRouteHandlers } from "./pipeline/steps/route-handlers";
 import { createStubSteps } from "./pipeline/steps/stubs";
 import { initEnv } from "./shared/env";
@@ -27,6 +30,9 @@ if (import.meta.main) {
 
 	const db = createDbClient(env.databaseUrl);
 
+	const dialogStore = createDialogStateStore(db);
+	const dialogManager = createDialogStateManager({ store: dialogStore });
+
 	const noOpHandler = async () => {};
 	const routeHandlers = createRouteHandlers({
 		onChat: noOpHandler,
@@ -34,7 +40,10 @@ if (import.meta.main) {
 		onReminder: noOpHandler,
 		onSystem: noOpHandler,
 	});
-	const steps = createStubSteps({ routeIntent: createRouteStep(routeHandlers) });
+	const steps = createStubSteps({
+		evaluateDialogState: createEvaluateDialogStateStep({ dialogManager }),
+		routeIntent: createRouteStep(routeHandlers),
+	});
 	const pipeline = createPipeline(steps);
 
 	const onMessage: MessageHandler = async (input) => {

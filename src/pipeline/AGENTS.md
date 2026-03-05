@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Sequential message processing pipeline (12 numbered steps + sub-step 2a = 13 step slots). Receives a platform-agnostic `MessageInput`, executes steps in canonical order, and returns a response string. Steps are pluggable functions injected at construction time (dependency injection). Implements the core processing flow from spec `4_4_System_Architecture.md`.
+Sequential message processing pipeline (12 numbered steps + sub-step 2a + dialog evaluation = 14 step slots). Receives a platform-agnostic `MessageInput`, executes steps in canonical order, and returns a response string. Steps are pluggable functions injected at construction time (dependency injection). Implements the core processing flow from spec `4_4_System_Architecture.md`.
 
 ## Key Files
 
@@ -12,11 +12,13 @@ Sequential message processing pipeline (12 numbered steps + sub-step 2a = 13 ste
 - `steps/route-handlers.ts` -- `createRouteHandlers(deps)` factory producing `RouteHandlers` with unknown->chat delegation and metadata-only logging
 - `steps/stubs.ts` -- `createStubSteps()` and `createStubRouteHandlers()` for testing and initial wiring
 - `steps/classify-intent-and-complexity.ts` -- Step 8 factory for LLM-based intent/complexity classification with runtime validation and fail-open fallback
+- `steps/evaluate-dialog-state.ts` -- Dialog state evaluation step (runs after classification, before routing): loads persisted state, evaluates timeout/off-topic/continuation/bare-confirmation recovery via domain manager
 
 ## Interfaces
 
-- `PipelineSteps` -- exported from `types.ts`, defines all 13 step slots; consumed by `createPipeline()`
-- `PipelineContext` -- mutable accumulator passed through all steps; exported from `types.ts`
+- `PipelineSteps` -- exported from `types.ts`, defines all 14 step slots; consumed by `createPipeline()`
+- `PipelineContext` -- mutable accumulator passed through all steps; includes `dialogState`, `dialogContext`, `dialogDecision` fields; exported from `types.ts`
+- `EvaluateDialogStateDeps` -- exported from `steps/evaluate-dialog-state.ts`; requires `dialogManager: DialogStateManager`
 - `RouteHandlers` -- exported from `types.ts`; maps `RouteHandlerKey` to handler functions
 - `RouteHandlerDeps` -- exported from `steps/route-handlers.ts`; dependency interface for `createRouteHandlers()` (onChat, onMemory, onReminder, onSystem)
 - `MessageInput` -- imported from `@/shared/types`; platform-agnostic message representation
@@ -36,5 +38,5 @@ Sequential message processing pipeline (12 numbered steps + sub-step 2a = 13 ste
 
 ## Dependencies
 
-- imports from: `@/shared/types`, `@/shared/logger`
+- imports from: `@/shared/types`, `@/shared/logger`, `@/domain/dialog/types`, `@/domain/dialog/state-manager`
 - imported by: `src/app.ts` (gateway integration)
