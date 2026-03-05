@@ -14,6 +14,7 @@ Review priorities:
 4. Security and data-isolation risks.
 5. Test adequacy for changed behavior.
 6. Plan adherence and edge-case completeness.
+7. Lint/format compliance: verify `bun run lint` was run and passes. If lint was not reported as passing in implementer artifacts, flag as `Must fix`.
 
 Rules:
 - List findings first, ordered by severity.

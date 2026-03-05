@@ -39,9 +39,10 @@ alwaysApply: false
   - `compliance-checker` is mandatory before finalize
   - final README checklist must come from `.task/compliance-report.md`, not orchestrator self-report
 - File-based artifact handoff:
-  - every agent output is written verbatim to `.task/<step>.md` by the orchestrator immediately after the agent returns
+  - write-capable agents (non-readonly) write their own artifact to `.task/<step>.md` directly; the orchestrator verifies the file exists after the agent returns
+  - readonly agents (code-reviewer-a, code-reviewer-b) return text; the orchestrator writes it verbatim to `.task/<step>.md`
   - downstream agents receive file paths to read, not inline content in the orchestrator's prompt
-  - the orchestrator MUST NOT filter, summarize, rephrase, or excerpt agent outputs — write the raw return value to the file
+  - the orchestrator MUST NOT filter, summarize, rephrase, or excerpt agent outputs
   - artifact directory `.task/` is created at workflow start and gitignored
   - file naming convention:
     - `.task/issue.md` — github-agent intake

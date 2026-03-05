@@ -1,5 +1,10 @@
 import type { CommandContext, Context } from "grammy";
+import type { CommandHandlers } from "../types";
 
-export async function handleStart(ctx: CommandContext<Context>): Promise<void> {
-	await ctx.reply("Welcome to Mema! I'm your memory assistant.");
+export function createStartHandler(commandHandlers: CommandHandlers) {
+	return async (ctx: CommandContext<Context>): Promise<void> => {
+		await commandHandlers.start(async (text) => {
+			await ctx.reply(text);
+		});
+	};
 }

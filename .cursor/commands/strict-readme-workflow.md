@@ -70,7 +70,8 @@ Use the approved development plan as the quality reference standard for delivery
 
 ## File-based artifact handoff
 
-- Orchestrator cleans and creates `.task/` at workflow start (`rm -rf .task && mkdir .task && touch .task/run-log.md .task/workflow-state.md`) and writes each agent's raw output to `.task/<step>.md`
+- Orchestrator cleans and creates `.task/` at workflow start (`rm -rf .task && mkdir .task && touch .task/run-log.md .task/workflow-state.md`).
+- Write-capable agents write their own artifact to `.task/<step>.md` directly. Readonly agents (code-reviewer-a/b) return text; orchestrator writes it verbatim. Orchestrator verifies file existence after each agent returns.
 - Downstream agents read full artifacts from `.task/` files. The orchestrator must NEVER inline or copy-paste the contents of these artifact files into the subagent prompt. Instead, the orchestrator MUST provide exact file paths to the artifacts.
 - Orchestrator prompts MUST contain: Task ID, Input file paths, **Core Intent Summary**, **Key Decisions/Nuances from History**, and **Specific Instructions**.
 - Do not use empty or minimal prompts. A subagent starts with a blank context window; you are responsible for onboarding it to the task semantics.

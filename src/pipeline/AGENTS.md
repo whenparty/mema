@@ -8,7 +8,8 @@ Sequential message processing pipeline (12 numbered steps + sub-step 2a = 13 ste
 
 - `types.ts` -- Pipeline type definitions: `PipelineStepName`, `PipelineStep`, `PipelineSteps`, `PipelineContext`, `STEP_ORDER`, route handler types
 - `orchestrator.ts` -- `createPipeline()` factory that returns an `(input: MessageInput) => Promise<string>` function
-- `router.ts` -- `resolveRoute()` pure function mapping intents to route keys; `createRouteStep()` factory for the route_intent slot
+- `router.ts` -- `resolveRoute()` pure function mapping intents to route keys; `createRouteStep()` factory with Closure-safe switch-based dispatch
+- `steps/route-handlers.ts` -- `createRouteHandlers(deps)` factory producing `RouteHandlers` with unknown->chat delegation and metadata-only logging
 - `steps/stubs.ts` -- `createStubSteps()` and `createStubRouteHandlers()` for testing and initial wiring
 - `steps/classify-intent-and-complexity.ts` -- Step 8 factory for LLM-based intent/complexity classification with runtime validation and fail-open fallback
 
@@ -17,6 +18,7 @@ Sequential message processing pipeline (12 numbered steps + sub-step 2a = 13 ste
 - `PipelineSteps` -- exported from `types.ts`, defines all 13 step slots; consumed by `createPipeline()`
 - `PipelineContext` -- mutable accumulator passed through all steps; exported from `types.ts`
 - `RouteHandlers` -- exported from `types.ts`; maps `RouteHandlerKey` to handler functions
+- `RouteHandlerDeps` -- exported from `steps/route-handlers.ts`; dependency interface for `createRouteHandlers()` (onChat, onMemory, onReminder, onSystem)
 - `MessageInput` -- imported from `@/shared/types`; platform-agnostic message representation
 
 ## Patterns and Decisions
@@ -28,6 +30,8 @@ Sequential message processing pipeline (12 numbered steps + sub-step 2a = 13 ste
 - **Step timing**: Each step's duration (ms) is recorded in `ctx.stepTimings`.
 - **update_processing_status always runs**: It is excluded from the main loop and invoked separately after both success and failure paths.
 - **Stubs**: All steps are no-ops except `classifyIntentAndComplexity` (sets chat/trivial) and `generateResponse` (placeholder text). Stubs are replaced incrementally as real implementations are built.
+- **Route dispatch**: `createRouteStep()` uses explicit switch-based dispatch (Closure-safe — avoids `handlers[key]` dynamic property access). Unrecognized intents resolve to `unknown` route key and log a warning with metadata only.
+- **Unknown->chat delegation**: `createRouteHandlers()` wires the `unknown` handler to delegate to the `chat` handler after logging a warning. This satisfies the IA "unrecognized -> chat" requirement while preserving observability.
 - **Classification step constraints**: Step 8 keeps user input isolated from system prompt at call boundaries, validates output via domain functions, forces non-chat intents to `standard`, and logs metadata only.
 
 ## Dependencies

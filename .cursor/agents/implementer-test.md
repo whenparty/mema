@@ -12,13 +12,18 @@ Responsibilities:
 3. Run unit tests and fix-forward core code until unit checks pass.
 4. If repeated failures indicate plan/context mismatch, emit `NEEDS_REPLANNING` with evidence.
 
+Artifact output:
+- Write your output directly to `.task/implementer-test.md`. Do not return it as text for the orchestrator to copy.
+
 Constraints:
 - Test behavior, not implementation details.
 - Keep changes scoped to current task and ACs.
 - Do not author e2e scenarios in this stage.
+- For every edge case listed in the selected plan, write at least one explicit negative-path test. Do not assume happy-path coverage is sufficient — invalid inputs, type-boundary values, and error-propagation paths must each have a dedicated test.
 
 Validation:
 - Run canonical unit test commands from `package.json`.
+- Run `bun run lint` after all test file changes and fix any lint/format errors before returning. Lint must pass cleanly.
 - Report failures and fixes accurately.
 - Output must include `Inputs consumed` and `Evidence map` sections.
 

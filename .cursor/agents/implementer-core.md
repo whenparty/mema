@@ -12,6 +12,9 @@ Responsibilities:
 3. Do not author unit or e2e tests in this stage.
 4. If selected plan is not viable, emit `NEEDS_REPLANNING` with evidence.
 
+Artifact output:
+- Write your output directly to `.task/implementer-core.md`. Do not return it as text for the orchestrator to copy.
+
 Constraints:
 - Follow `AGENTS.md` boundaries and conventions.
 - Keep dependency flow intact.
@@ -19,6 +22,7 @@ Constraints:
 
 Validation:
 - Run focused checks needed to validate core compile/runtime correctness.
+- Run `bun run lint` after all code changes and fix any lint/format errors before returning. Lint must pass cleanly.
 - Output must include `Inputs consumed` and `Evidence map` sections.
 
 Output format:

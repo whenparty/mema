@@ -14,6 +14,12 @@ TASK_DIR="${TASK_DIR:-.task}"
 
 FAILURES=0
 
+if command -v rg >/dev/null 2>&1; then
+	RG="rg"
+else
+	RG="grep -E"
+fi
+
 pass() {
 	echo "PASS: $1"
 }
@@ -40,7 +46,7 @@ check_regex() {
 		fail "${label} (file missing: ${file})"
 		return
 	fi
-	if rg -n -e "${regex}" "${TASK_DIR}/${file}" >/dev/null 2>&1; then
+	if ${RG} -n -e "${regex}" "${TASK_DIR}/${file}" >/dev/null 2>&1; then
 		pass "${label}"
 	else
 		fail "${label}"
@@ -55,7 +61,7 @@ check_no_regex() {
 		fail "${label} (file missing: ${file})"
 		return
 	fi
-	if rg -n -e "${regex}" "${TASK_DIR}/${file}" >/dev/null 2>&1; then
+	if ${RG} -n -e "${regex}" "${TASK_DIR}/${file}" >/dev/null 2>&1; then
 		fail "${label}"
 	else
 		pass "${label}"
@@ -67,8 +73,8 @@ check_traceability_sections() {
 	local label="$2"
 	local min_inputs="${3:-2}"
 	local min_evidence="${4:-2}"
-	check_regex "${file}" "^Inputs consumed:" "${label} has Inputs consumed section"
-	check_regex "${file}" "^Evidence map:" "${label} has Evidence map section"
+	check_regex "${file}" "^(#{1,3} )?Inputs consumed:" "${label} has Inputs consumed section"
+	check_regex "${file}" "^(#{1,3} )?Evidence map:" "${label} has Evidence map section"
 	check_section_min_items "${file}" "Inputs consumed" "${min_inputs}" "${label} Inputs consumed has >= ${min_inputs} items"
 	check_section_min_items "${file}" "Evidence map" "${min_evidence}" "${label} Evidence map has >= ${min_evidence} items"
 }
@@ -87,8 +93,9 @@ check_section_min_items() {
 	count="$(
 		awk -v section="${section}" '
 			BEGIN { in_section = 0; count = 0 }
-			$0 == section ":" { in_section = 1; next }
+			$0 == section ":" || $0 ~ "^#{1,3} " section "$" { in_section = 1; next }
 			in_section && $0 ~ /^[A-Za-z][A-Za-z0-9 \/\(\)_\.\`\-]*:$/ { in_section = 0 }
+			in_section && $0 ~ /^#{1,3} / { in_section = 0 }
 			in_section && $0 ~ /^- / { count++ }
 			END { print count }
 		' "${TASK_DIR}/${file}"
@@ -127,7 +134,7 @@ check_step_order() {
 	local prev_line=0
 	for step in "${steps[@]}"; do
 		local line
-		line="$(rg -n -m 1 -e "^- ${step}" "${log_file}" | cut -d: -f1 || true)"
+		line="$(${RG} -n -m 1 -e "^- ${step}" "${log_file}" | cut -d: -f1 || true)"
 		if [[ -z "${line}" ]]; then
 			fail "run-log missing step: ${step}"
 			continue
@@ -155,8 +162,8 @@ check_plan_required_sections() {
 		"Inputs consumed"
 	)
 	for section in "${sections[@]}"; do
-		if rg -n -i -e "^#+\s*${section}" "${TASK_DIR}/${file}" >/dev/null 2>&1 ||
-		   rg -n -e "^${section}:" "${TASK_DIR}/${file}" >/dev/null 2>&1; then
+		if ${RG} -n -i -e "^#+[[:space:]]*${section}" "${TASK_DIR}/${file}" >/dev/null 2>&1 ||
+		   ${RG} -n -e "^${section}:" "${TASK_DIR}/${file}" >/dev/null 2>&1; then
 			pass "${label} has section: ${section}"
 		else
 			fail "${label} missing section: ${section}"
@@ -173,7 +180,7 @@ check_plan_design_axes() {
 	fi
 
 	local da_count
-	da_count="$(rg -c -e "^- DA" "${TASK_DIR}/${file}" 2>/dev/null || echo 0)"
+	da_count="$(${RG} -c -e "^- DA" "${TASK_DIR}/${file}" 2>/dev/null || echo 0)"
 	if (( da_count >= 1 )); then
 		pass "${label} has >= 1 design axis (found ${da_count})"
 	else
@@ -181,7 +188,7 @@ check_plan_design_axes() {
 	fi
 
 	local rejected_count
-	rejected_count="$(rg -c -i -e "Rejected:" "${TASK_DIR}/${file}" 2>/dev/null || echo 0)"
+	rejected_count="$(${RG} -c -i -e "Rejected:" "${TASK_DIR}/${file}" 2>/dev/null || echo 0)"
 	if (( rejected_count >= 1 )); then
 		pass "${label} has rejected alternatives (found ${rejected_count})"
 	else
@@ -191,9 +198,9 @@ check_plan_design_axes() {
 
 check_compliance_report() {
 	check_file_nonempty "compliance-report.md"
-	check_regex "compliance-report.md" "Verdict:\\s*(PASS|FAIL)" "compliance-report has verdict"
+	check_regex "compliance-report.md" "Verdict:[[:space:]]*(PASS|FAIL)" "compliance-report has verdict"
 
-	if rg -n -e "Verdict:\\s*FAIL" "${TASK_DIR}/compliance-report.md" >/dev/null 2>&1; then
+	if ${RG} -n -e "Verdict:[[:space:]]*FAIL" "${TASK_DIR}/compliance-report.md" >/dev/null 2>&1; then
 		fail "compliance-report verdict is FAIL (pipeline did not pass compliance)"
 	else
 		pass "compliance-report verdict is not FAIL"
@@ -206,7 +213,7 @@ check_compliance_report() {
 check_needs_replanning_branch() {
 	local has_replan
 	has_replan="$(
-		rg -n -e "NEEDS_REPLANNING" \
+		${RG} -n -e "NEEDS_REPLANNING" \
 			"${TASK_DIR}/implementer-core.md" \
 			"${TASK_DIR}/implementer-test.md" \
 			"${TASK_DIR}/implementer-e2e.md" \
@@ -226,7 +233,7 @@ check_needs_replanning_branch() {
 		fail "NEEDS_REPLANNING detected but replan-request artifact missing"
 	fi
 
-	if rg -n -e "replan-request\\.md" "${TASK_DIR}/context-product.md" "${TASK_DIR}/context-tech.md" >/dev/null 2>&1; then
+	if ${RG} -n -e "replan-request\\.md" "${TASK_DIR}/context-product.md" "${TASK_DIR}/context-tech.md" >/dev/null 2>&1; then
 		pass "context artifacts include replan evidence reference"
 	else
 		fail "context artifacts missing replan evidence reference"
@@ -258,12 +265,12 @@ else
 	check_file_nonempty "workflow-state.md"
 
 	echo "=== Verdict checks ==="
-	check_regex "design-review.md" "Verdict:\\s*(WINNER_A|WINNER_B|WINNER_C|HYBRID)" "design-review verdict is valid"
-	check_regex "plan-verification.md" "Verdict:\\s*PASS" "plan-verifier verdict is PASS"
-	check_regex "e2e-report.md" "Verdict:\\s*PASS|All tests pass" "docker e2e evidence is PASS"
-	check_regex "review-a.md" "Verdict:\\s*APPROVED" "review-a verdict is APPROVED"
-	check_regex "review-b.md" "Verdict:\\s*APPROVED" "review-b verdict is APPROVED"
-	check_no_regex "workflow-state.md" "status:\\s*completed\\s+verdict:\\s*(FAIL|NEEDS_REVISION|NEEDS_REWORK|NEEDS_REPLANNING)" "workflow-state does not complete failed gates"
+	check_regex "design-review.md" "Verdict:[[:space:]]*(WINNER_A|WINNER_B|WINNER_C|HYBRID)" "design-review verdict is valid"
+	check_regex "plan-verification.md" "Verdict:[[:space:]]*PASS" "plan-verifier verdict is PASS"
+	check_regex "e2e-report.md" "Verdict:[[:space:]]*PASS|All tests pass" "docker e2e evidence is PASS"
+	check_regex "review-a.md" "Verdict:[[:space:]]*APPROVED" "review-a verdict is APPROVED"
+	check_regex "review-b.md" "Verdict:[[:space:]]*APPROVED" "review-b verdict is APPROVED"
+	check_no_regex "workflow-state.md" "status:[[:space:]]*completed[[:space:]]+verdict:[[:space:]]*(FAIL|NEEDS_REVISION|NEEDS_REWORK|NEEDS_REPLANNING)" "workflow-state does not complete failed gates"
 
 	echo "=== Traceability ==="
 	check_traceability_sections "plan-a.md" "plan-a"

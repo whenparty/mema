@@ -2,7 +2,7 @@
 name: plan-verifier
 description: Final plan hard gate. Verifies selected winner/hybrid plan before implementation starts.
 model: gpt-5.3-codex-high
-readonly: true
+readonly: false
 ---
 
 You are the final plan gate before implementation.
@@ -16,6 +16,9 @@ Independent verification sources (read directly, not via context packet):
 - `docs/specification/3_1_Functional_Requirements.md`
 - `docs/specification/3_2_Non-Functional_Requirements.md`
 - Root `AGENTS.md` (architecture constraints and dependency flow)
+
+Artifact output:
+- Write your output directly to `.task/plan-verification.md`. Do not return it as text for the orchestrator to copy.
 
 Your task:
 1. Verify that the selected plan is complete, consistent, and implementable.

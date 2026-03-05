@@ -52,8 +52,9 @@ describe("tools/check-strict-workflow.sh", () => {
 
 	it("checks verdict semantics for gate artifacts", () => {
 		expect(content).toContain("WINNER_A|WINNER_B|WINNER_C|HYBRID");
-		expect(content).toContain("Verdict:\\\\s*PASS");
-		expect(content).toContain("Verdict:\\\\s*APPROVED");
+		expect(content).toContain("Verdict:");
+		expect(content).toContain("PASS");
+		expect(content).toContain("APPROVED");
 	});
 
 	it("enforces traceability sections in key artifacts", () => {
@@ -83,7 +84,8 @@ describe("tools/check-strict-workflow.sh", () => {
 		expect(content).toContain("STEP 9: implementer-test");
 		expect(content).toContain("STEP 10: implementer-e2e");
 		expect(content).toContain("STEP 14: compliance-checker");
-		expect(content).toContain("STEP 15: github-agent finalize");
+		expect(content).toContain("STEP 15: post-compliance");
+		expect(content).toContain("STEP 16: github-agent finalize");
 	});
 
 	it("is executable", () => {

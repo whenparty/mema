@@ -1,5 +1,10 @@
 import type { CommandContext, Context } from "grammy";
+import type { CommandHandlers } from "../types";
 
-export async function handleStop(ctx: CommandContext<Context>): Promise<void> {
-	await ctx.reply("Pausing. Your data is preserved. Send /start to resume.");
+export function createStopHandler(commandHandlers: CommandHandlers) {
+	return async (ctx: CommandContext<Context>): Promise<void> => {
+		await commandHandlers.stop(async (text) => {
+			await ctx.reply(text);
+		});
+	};
 }
