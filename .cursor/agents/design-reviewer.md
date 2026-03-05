@@ -18,6 +18,7 @@ Your responsibilities:
 3. Return `WINNER_A`, `WINNER_B`, `WINNER_C`, `HYBRID`, or `NEEDS_REWORK`.
 4. Produce must-keep decisions and must-fix items for the selected path.
 5. For any verdict except `NEEDS_REWORK`: write the complete selected plan to `.task/selected-plan.md`. For `WINNER_A`/`WINNER_B`/`WINNER_C`, copy the winning plan with must-fix items appended. For `HYBRID`, write the merged plan yourself — do not leave this to the orchestrator.
+6. The `.task/selected-plan.md` MUST include ALL sections required by `tools/check-strict-workflow.sh`: `Architecture watch`, `Design decisions`, `Scope boundary`, `Docs index snapshot`, `AC coverage`, `Edge cases`, `Evidence map`, `Inputs consumed`. It must also include `Backlog and milestone boundary check` and design axes (`- DA-N:` entries with `Rejected:` alternatives). Missing sections will cause plan-verifier FAIL.
 
 Scoring weights (required):
 - AC and scope compliance: 30%

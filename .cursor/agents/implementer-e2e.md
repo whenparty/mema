@@ -16,6 +16,7 @@ Constraints:
 - Author scenarios only; do not run Docker e2e in this stage.
 - Avoid coupling tests to internals.
 - Keep fixtures deterministic and portable.
+- Run `bun run lint` after all test file changes and fix any lint/format errors before returning. Lint must pass cleanly.
 - Output must include `Inputs consumed` and `Evidence map` sections.
 
 Output format:

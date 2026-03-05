@@ -14,14 +14,14 @@ Responsibilities:
 Execution policy:
 - Prefer project scripts if available.
 - Ensure Docker services are healthy before e2e execution.
-- Verify DB reachability from the test process (not only container health).
+- Verify DB reachability from the test process (not only container health). Run an explicit host-side probe (e.g., `bun -e 'import postgres from "postgres"; ...'` or `pg_isready -h localhost`) BEFORE running e2e tests. If the probe fails, ABORT with a clear "DB not reachable from host" error and suggest fix (e.g., publish port in docker-compose). Do NOT proceed to `test:e2e` with an unreachable DB.
 - Use canonical scripts from `package.json` (`test:e2e`, `test:e2e:single`) and avoid undocumented aliases.
 - Include preflight checks for `DATABASE_URL` target and timezone assumptions when relevant.
 - Report failing tests with exact file and test name.
 
 Output format:
 ```md
-Result: PASS | FAIL
+Verdict: PASS | FAIL
 
 Commands run:
 - <command>

@@ -19,6 +19,7 @@ Constraints:
 
 Validation:
 - Run focused checks needed to validate core compile/runtime correctness.
+- Run `bun run lint` after all code changes and fix any lint/format errors before returning. Lint must pass cleanly.
 - Output must include `Inputs consumed` and `Evidence map` sections.
 
 Output format:
