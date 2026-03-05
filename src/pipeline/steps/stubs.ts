@@ -26,6 +26,7 @@ export function createStubSteps(overrides?: Partial<PipelineSteps>): PipelineSte
 			ctx.intent = "chat";
 			ctx.complexity = "trivial";
 		},
+		evaluateDialogState: noOp,
 		routeIntent: noOp,
 		buildContext: noOp,
 		generateResponse: async (ctx) => {

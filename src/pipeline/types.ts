@@ -1,3 +1,4 @@
+import type { DialogContext, DialogDecision, DialogState } from "@/domain/dialog/types";
 import type { Complexity, Intent, MessageInput } from "@/shared/types";
 import type pino from "pino";
 
@@ -11,6 +12,7 @@ export type PipelineStepName =
 	| "detect_conflicts"
 	| "store_facts"
 	| "classify_intent_and_complexity"
+	| "evaluate_dialog_state"
 	| "route_intent"
 	| "build_context"
 	| "generate_response"
@@ -28,6 +30,7 @@ export interface PipelineSteps {
 	detectConflicts: PipelineStep;
 	storeFacts: PipelineStep;
 	classifyIntentAndComplexity: PipelineStep;
+	evaluateDialogState: PipelineStep;
 	routeIntent: PipelineStep;
 	buildContext: PipelineStep;
 	generateResponse: PipelineStep;
@@ -49,6 +52,7 @@ export const STEP_ORDER: readonly StepOrderEntry[] = [
 	{ name: "detect_conflicts", key: "detectConflicts" },
 	{ name: "store_facts", key: "storeFacts" },
 	{ name: "classify_intent_and_complexity", key: "classifyIntentAndComplexity" },
+	{ name: "evaluate_dialog_state", key: "evaluateDialogState" },
 	{ name: "route_intent", key: "routeIntent" },
 	{ name: "build_context", key: "buildContext" },
 	{ name: "generate_response", key: "generateResponse" },
@@ -64,6 +68,9 @@ export interface PipelineContext {
 	extractedFacts?: unknown[];
 	resolvedEntities?: unknown[];
 	conflicts?: unknown[];
+	dialogState?: DialogState;
+	dialogContext?: DialogContext | null;
+	dialogDecision?: DialogDecision;
 	routeResult?: RouteHandlerKey;
 	responseContext?: unknown;
 	response?: string;
