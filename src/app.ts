@@ -1,12 +1,14 @@
 import { Elysia } from "elysia";
 import { createTelegramBot } from "./gateway/telegram/bot";
+import { createDefaultCommandHandlers } from "./gateway/telegram/commands/handlers";
 import type { MessageHandler } from "./gateway/telegram/types";
 import { createDbClient } from "./infra/db/client";
 import { runMigrations } from "./infra/db/migrate";
 import { createDuplicateChecker } from "./infra/db/queries/check-duplicate-update";
 import { createPipeline } from "./pipeline/orchestrator";
 import { createRouteStep } from "./pipeline/router";
-import { createStubRouteHandlers, createStubSteps } from "./pipeline/steps/stubs";
+import { createRouteHandlers } from "./pipeline/steps/route-handlers";
+import { createStubSteps } from "./pipeline/steps/stubs";
 import { initEnv } from "./shared/env";
 import { createRequestLoggingMiddleware, logger } from "./shared/logger";
 import type { MessageInput } from "./shared/types";
@@ -25,7 +27,13 @@ if (import.meta.main) {
 
 	const db = createDbClient(env.databaseUrl);
 
-	const routeHandlers = createStubRouteHandlers();
+	const noOpHandler = async () => {};
+	const routeHandlers = createRouteHandlers({
+		onChat: noOpHandler,
+		onMemory: noOpHandler,
+		onReminder: noOpHandler,
+		onSystem: noOpHandler,
+	});
 	const steps = createStubSteps({ routeIntent: createRouteStep(routeHandlers) });
 	const pipeline = createPipeline(steps);
 
@@ -41,10 +49,12 @@ if (import.meta.main) {
 		return pipeline(messageInput);
 	};
 
+	const commandHandlers = createDefaultCommandHandlers();
 	const telegramBot = createTelegramBot({
 		token: env.telegramBotToken,
 		onMessage,
 		isDuplicate: createDuplicateChecker(db),
+		commandHandlers,
 	});
 
 	app.listen(env.port);

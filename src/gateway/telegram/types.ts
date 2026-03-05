@@ -15,6 +15,14 @@ export interface TelegramMessageInput {
 
 export type MessageHandler = (input: TelegramMessageInput) => Promise<string>;
 
+export type CommandReply = (text: string) => Promise<void>;
+
+export interface CommandHandlers {
+	start: (reply: CommandReply) => Promise<void>;
+	help: (reply: CommandReply) => Promise<void>;
+	stop: (reply: CommandReply) => Promise<void>;
+}
+
 export interface TelegramBotConfig {
 	token: string;
 	onMessage: MessageHandler;
@@ -22,6 +30,8 @@ export interface TelegramBotConfig {
 	botInfo?: UserFromGetMe;
 	/** Checks if a Telegram update has already been processed. Used for idempotency. */
 	isDuplicate?: DuplicateChecker;
+	/** Injectable command handlers. Uses defaults if not provided. */
+	commandHandlers?: CommandHandlers;
 }
 
 export interface TelegramBotInstance {

@@ -1,8 +1,9 @@
 import { createChildLogger } from "@/shared/logger";
 import { Bot, type BotError } from "grammy";
-import { handleHelp } from "./commands/help";
-import { handleStart } from "./commands/start";
-import { handleStop } from "./commands/stop";
+import { createDefaultCommandHandlers } from "./commands/handlers";
+import { createHelpHandler } from "./commands/help";
+import { createStartHandler } from "./commands/start";
+import { createStopHandler } from "./commands/stop";
 import { createDedupGuard } from "./middleware/dedup-guard";
 import { privateOnly } from "./middleware/private-only";
 import { createUserSerializer } from "./middleware/user-serializer";
@@ -27,10 +28,10 @@ export function createTelegramBot(config: TelegramBotConfig): TelegramBotInstanc
 	const dedupGuard = createDedupGuard(isDuplicate);
 	bot.use(dedupGuard.middleware);
 
-	// Command handlers (stubs)
-	bot.command("start", handleStart);
-	bot.command("help", handleHelp);
-	bot.command("stop", handleStop);
+	const commandHandlers = config.commandHandlers ?? createDefaultCommandHandlers();
+	bot.command("start", createStartHandler(commandHandlers));
+	bot.command("help", createHelpHandler(commandHandlers));
+	bot.command("stop", createStopHandler(commandHandlers));
 
 	// Text message handler
 	bot.on("message:text", async (ctx) => {
