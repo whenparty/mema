@@ -9,12 +9,8 @@ export interface RouteHandlerDeps {
 }
 
 export function createRouteHandlers(deps: RouteHandlerDeps): RouteHandlers {
-	const unknownHandler: RouteHandler = async (ctx: PipelineContext, log: pino.Logger) => {
-		log.warn(
-			{ intent: ctx.intent, userId: ctx.userId, route: "unknown" },
-			"unknown intent delegated to chat",
-		);
-		await deps.onChat(ctx, log);
+	const unknownHandler: RouteHandler = async (ctx: PipelineContext, _log: pino.Logger) => {
+		await deps.onChat(ctx, _log);
 	};
 
 	return {

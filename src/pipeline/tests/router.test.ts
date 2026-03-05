@@ -49,13 +49,13 @@ describe("resolveRoute", () => {
 	});
 
 	describe("memory intents", () => {
-		const memoryCases: Array<[Intent, string]> = [
-			["memory.save", "memory.save"],
-			["memory.view", "memory.view"],
-			["memory.edit", "memory.edit"],
-			["memory.delete", "memory.delete"],
-			["memory.delete_entity", "memory.delete_entity"],
-			["memory.explain", "memory.explain"],
+		const memoryCases: Intent[] = [
+			"memory.save",
+			"memory.view",
+			"memory.edit",
+			"memory.delete",
+			"memory.delete_entity",
+			"memory.explain",
 		];
 
 		it.each(memoryCases)("returns 'memory' for '%s'", (intent) => {
@@ -64,11 +64,11 @@ describe("resolveRoute", () => {
 	});
 
 	describe("reminder intents", () => {
-		const reminderCases: Array<[Intent, string]> = [
-			["reminder.create", "reminder.create"],
-			["reminder.list", "reminder.list"],
-			["reminder.cancel", "reminder.cancel"],
-			["reminder.edit", "reminder.edit"],
+		const reminderCases: Intent[] = [
+			"reminder.create",
+			"reminder.list",
+			"reminder.cancel",
+			"reminder.edit",
 		];
 
 		it.each(reminderCases)("returns 'reminder' for '%s'", (intent) => {
@@ -77,11 +77,7 @@ describe("resolveRoute", () => {
 	});
 
 	describe("system intents", () => {
-		const systemCases: Array<[Intent, string]> = [
-			["system.delete_account", "system.delete_account"],
-			["system.pause", "system.pause"],
-			["system.resume", "system.resume"],
-		];
+		const systemCases: Intent[] = ["system.delete_account", "system.pause", "system.resume"];
 
 		it.each(systemCases)("returns 'system' for '%s'", (intent) => {
 			expect(resolveRoute(intent)).toBe("system");

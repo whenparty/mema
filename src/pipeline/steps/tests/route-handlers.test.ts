@@ -106,7 +106,7 @@ describe("createRouteHandlers", () => {
 	});
 
 	describe("unknown handler (unknown -> chat delegation)", () => {
-		it("delegates to onChat after logging", async () => {
+		it("delegates to onChat", async () => {
 			const deps = createMockDeps();
 			const handlers = createRouteHandlers(deps);
 			const ctx = createTestContext();
@@ -117,35 +117,14 @@ describe("createRouteHandlers", () => {
 			expect(deps.spies.onChat).toHaveBeenCalledWith(ctx, mockLog);
 		});
 
-		it("logs a warn before delegating", async () => {
+		it("does not log warn (logging is consolidated in createRouteStep)", async () => {
 			const deps = createMockDeps();
 			const handlers = createRouteHandlers(deps);
 			const ctx = createTestContext({ userId: "u-42" });
 
 			await handlers.unknown(ctx, mockLog);
 
-			expect(mockLog.warn as ReturnType<typeof vi.fn>).toHaveBeenCalledOnce();
-			expect(mockLog.warn as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
-				expect.objectContaining({ route: "unknown", userId: "u-42" }),
-				"unknown intent delegated to chat",
-			);
-		});
-
-		it("warn log contains only metadata (no message text)", async () => {
-			const deps = createMockDeps();
-			const handlers = createRouteHandlers(deps);
-			const ctx = createTestContext({ userId: "u-99", intent: undefined });
-
-			await handlers.unknown(ctx, mockLog);
-
-			const warnCall = (mockLog.warn as ReturnType<typeof vi.fn>).mock.calls[0];
-			const logMeta = warnCall[0] as Record<string, unknown>;
-			expect(logMeta).toHaveProperty("intent");
-			expect(logMeta).toHaveProperty("userId");
-			expect(logMeta).toHaveProperty("route");
-			expect(logMeta).not.toHaveProperty("text");
-			expect(logMeta).not.toHaveProperty("message");
-			expect(JSON.stringify(logMeta)).not.toContain(TEST_INPUT.text);
+			expect(mockLog.warn as ReturnType<typeof vi.fn>).not.toHaveBeenCalled();
 		});
 
 		it("does not call onMemory, onReminder, or onSystem", async () => {
