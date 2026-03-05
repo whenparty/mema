@@ -1,5 +1,5 @@
-import type { PipelineContext, RouteHandler, RouteHandlers } from "../types";
 import type pino from "pino";
+import type { PipelineContext, RouteHandler, RouteHandlers } from "../types";
 
 export interface RouteHandlerDeps {
 	onChat: RouteHandler;

@@ -30,7 +30,9 @@ function createMockLog() {
 	} as unknown as pino.Logger;
 }
 
-function createMockHandlers(): RouteHandlers & { spies: Record<RouteHandlerKey, ReturnType<typeof vi.fn>> } {
+function createMockHandlers(): RouteHandlers & {
+	spies: Record<RouteHandlerKey, ReturnType<typeof vi.fn>>;
+} {
 	const spies = {
 		chat: vi.fn(),
 		memory: vi.fn(),
@@ -98,11 +100,20 @@ describe("resolveRoute", () => {
 
 	it("covers all 14 intents in the taxonomy", () => {
 		const allIntents: Intent[] = [
-			"memory.save", "memory.view", "memory.edit", "memory.delete",
-			"memory.delete_entity", "memory.explain",
-			"reminder.create", "reminder.list", "reminder.cancel", "reminder.edit",
+			"memory.save",
+			"memory.view",
+			"memory.edit",
+			"memory.delete",
+			"memory.delete_entity",
+			"memory.explain",
+			"reminder.create",
+			"reminder.list",
+			"reminder.cancel",
+			"reminder.edit",
 			"chat",
-			"system.delete_account", "system.pause", "system.resume",
+			"system.delete_account",
+			"system.pause",
+			"system.resume",
 		];
 
 		for (const intent of allIntents) {
@@ -161,20 +172,23 @@ describe("createRouteStep", () => {
 			["system.pause", "system"],
 		];
 
-		it.each(dispatchCases)("intent '%s' dispatches to '%s' handler", async (intent, expectedKey) => {
-			const handlers = createMockHandlers();
-			const routeStep = createRouteStep(handlers);
-			const ctx = createTestContext({ intent });
+		it.each(dispatchCases)(
+			"intent '%s' dispatches to '%s' handler",
+			async (intent, expectedKey) => {
+				const handlers = createMockHandlers();
+				const routeStep = createRouteStep(handlers);
+				const ctx = createTestContext({ intent });
 
-			await routeStep(ctx, mockLog);
+				await routeStep(ctx, mockLog);
 
-			expect(handlers.spies[expectedKey]).toHaveBeenCalledOnce();
-			for (const [key, spy] of Object.entries(handlers.spies)) {
-				if (key !== expectedKey) {
-					expect(spy).not.toHaveBeenCalled();
+				expect(handlers.spies[expectedKey]).toHaveBeenCalledOnce();
+				for (const [key, spy] of Object.entries(handlers.spies)) {
+					if (key !== expectedKey) {
+						expect(spy).not.toHaveBeenCalled();
+					}
 				}
-			}
-		});
+			},
+		);
 	});
 
 	describe("logging behavior", () => {
@@ -185,7 +199,7 @@ describe("createRouteStep", () => {
 
 			await routeStep(ctx, mockLog);
 
-			expect((mockLog.warn as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith(
+			expect(mockLog.warn as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
 				{ intent: undefined, userId: "u-42", route: "unknown" },
 				"unrecognized intent falling back to unknown route",
 			);
@@ -198,7 +212,7 @@ describe("createRouteStep", () => {
 
 			await routeStep(ctx, mockLog);
 
-			expect((mockLog.debug as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith(
+			expect(mockLog.debug as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
 				{ intent: "memory.save", route: "memory" },
 				"routing intent",
 			);
@@ -211,7 +225,7 @@ describe("createRouteStep", () => {
 
 			await routeStep(ctx, mockLog);
 
-			expect((mockLog.warn as ReturnType<typeof vi.fn>)).not.toHaveBeenCalled();
+			expect(mockLog.warn as ReturnType<typeof vi.fn>).not.toHaveBeenCalled();
 		});
 
 		it("does not include message text in warn log metadata", async () => {

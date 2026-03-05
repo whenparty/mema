@@ -2,7 +2,7 @@ import type { MessageInput } from "@/shared/types";
 import type pino from "pino";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { PipelineContext, RouteHandler } from "../../types";
-import { createRouteHandlers, type RouteHandlerDeps } from "../route-handlers";
+import { type RouteHandlerDeps, createRouteHandlers } from "../route-handlers";
 
 const TEST_INPUT: MessageInput = {
 	text: "some user text that should never appear in logs",
@@ -124,8 +124,8 @@ describe("createRouteHandlers", () => {
 
 			await handlers.unknown(ctx, mockLog);
 
-			expect((mockLog.warn as ReturnType<typeof vi.fn>)).toHaveBeenCalledOnce();
-			expect((mockLog.warn as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith(
+			expect(mockLog.warn as ReturnType<typeof vi.fn>).toHaveBeenCalledOnce();
+			expect(mockLog.warn as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
 				expect.objectContaining({ route: "unknown", userId: "u-42" }),
 				"unknown intent delegated to chat",
 			);

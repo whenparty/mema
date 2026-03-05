@@ -1,4 +1,3 @@
-import type { ApiResponse, UserFromGetMe } from "@grammyjs/types";
 import { VALID_INTENTS } from "@/domain/classification/validate";
 import { createTelegramBot } from "@/gateway/telegram/bot";
 import type {
@@ -14,6 +13,7 @@ import { createRouteHandlers } from "@/pipeline/steps/route-handlers";
 import { createStubSteps } from "@/pipeline/steps/stubs";
 import type { PipelineContext, PipelineStep, RouteHandlerKey } from "@/pipeline/types";
 import type { Intent, MessageInput } from "@/shared/types";
+import type { ApiResponse, UserFromGetMe } from "@grammyjs/types";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/shared/logger", () => {
