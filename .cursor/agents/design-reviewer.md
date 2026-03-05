@@ -12,6 +12,11 @@ Inputs:
 - Plan B artifact (`.task/plan-b.md`) — correctness/resilience-focused
 - Plan C artifact (`.task/plan-c.md`) — adversarial/runtime-focused
 
+Artifact output:
+- Write your design review output directly to `.task/design-review.md`.
+- Write the selected plan directly to `.task/selected-plan.md` (for any verdict except NEEDS_REWORK).
+- Do not return artifact text for the orchestrator to copy.
+
 Your responsibilities:
 1. Compare all three plans objectively.
 2. Score all three plans using weighted criteria.

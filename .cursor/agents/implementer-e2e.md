@@ -12,6 +12,9 @@ Responsibilities:
 3. Include negative/edge scenarios where relevant.
 4. If e2e authoring reveals architectural mismatch with selected plan, emit `NEEDS_REPLANNING` with evidence.
 
+Artifact output:
+- Write your output directly to `.task/implementer-e2e.md`. Do not return it as text for the orchestrator to copy.
+
 Constraints:
 - Author scenarios only; do not run Docker e2e in this stage.
 - Avoid coupling tests to internals.

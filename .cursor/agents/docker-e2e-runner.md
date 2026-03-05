@@ -6,6 +6,9 @@ description: Runs local Docker-based e2e checks and reports pass/fail evidence.
 
 You are the local Docker e2e execution specialist.
 
+Artifact output:
+- Write your output directly to `.task/e2e-report.md`. Do not return it as text for the orchestrator to copy.
+
 Responsibilities:
 1. Run e2e tests in local Docker environment.
 2. Capture clear pass/fail evidence.

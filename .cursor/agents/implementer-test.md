@@ -12,6 +12,9 @@ Responsibilities:
 3. Run unit tests and fix-forward core code until unit checks pass.
 4. If repeated failures indicate plan/context mismatch, emit `NEEDS_REPLANNING` with evidence.
 
+Artifact output:
+- Write your output directly to `.task/implementer-test.md`. Do not return it as text for the orchestrator to copy.
+
 Constraints:
 - Test behavior, not implementation details.
 - Keep changes scoped to current task and ACs.
