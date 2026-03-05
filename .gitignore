@@ -36,5 +36,8 @@ docker-compose.override.yml
 # Test coverage
 coverage/
 
+# Workflow artifacts (ephemeral, per-task)
+.task/
+
 # Sentry
 .sentryclirc

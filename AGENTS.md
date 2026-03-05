@@ -232,24 +232,48 @@ Project-level Cursor setup lives in `.cursor/` and complements this file.
 
 ### Required agents
 
-- `planner`
-- `implementer`
-- `e2e-implementer` (mandatory)
+- `planner-a`
+- `planner-b`
+- `planner-c`
+- `design-reviewer`
+- `plan-verifier`
+- `implementer-core`
+- `implementer-test`
+- `implementer-e2e`
 - `docker-e2e-runner` (mandatory local Docker e2e gate)
+- `compliance-checker` (mandatory independent workflow compliance gate)
 - `github-agent` (mandatory for issue/status/PR lifecycle)
-- `verifier-model-a` and `verifier-model-b` (mandatory ensemble verify)
-- `reviewer-model-a` and `reviewer-model-b` (mandatory ensemble review)
+- `code-reviewer-a` and `code-reviewer-b` (mandatory ensemble review)
+
+### Pre-planning agents
+
+- `context-builder-product` (mandatory; collects product/spec requirements and acceptance constraints)
+- `context-builder-tech` (mandatory; collects architecture/code/runtime constraints and interface context)
+- `research` (invoked by planner-a/planner-b/planner-c when needed; not a separate pipeline step)
 
 ### Required execution gates
 
-- **Ensemble verify/review is mandatory**:
+- **Parallel planning + architecture decision is mandatory**:
+ - dual context packets (`context-product.md` + `context-tech.md`) must pass orchestrator context validation before planners run
+ - `planner-a/b/c` run in parallel on identical dual inputs
+ - `design-reviewer` compares all three and returns winner/hybrid verdict
+ - `plan-verifier` enforces hard-gate checks on selected plan before implementation
+- **Ensemble review is mandatory**:
   - A/B agents get identical inputs and permissions
   - A/B must run on different models
+- **Code-review gate location is mandatory**:
+ - `code-reviewer-a/b` runs after implementation/e2e as code/release review
 - **E2E gate is mandatory**:
-  - e2e scenarios are created from acceptance criteria
+  - run `implementer-core` -> `implementer-test` -> `implementer-e2e`
+  - `implementer-e2e` creates e2e scenarios from acceptance criteria
   - local Docker-based e2e run must pass before completion
 - **GitHub lifecycle is mandatory**:
   - read issue, update status, open PR, and finalize via `github-agent`
+- **Independent compliance gate is mandatory**:
+  - `compliance-checker` runs after execution gates and before final lifecycle completion
+  - compliance checklist is sourced from independent checker output, not self-report
+- **Controlled re-planning is mandatory on plan/context mismatch**:
+  - if implementation/e2e/review shows architectural dead-end, issue `NEEDS_REPLANNING` and run a formal re-planning loop (`planner-a/b/c` -> `design-reviewer` -> `plan-verifier`) before further implementation
 
 ### Source of truth split
 

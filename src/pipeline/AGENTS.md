@@ -10,6 +10,7 @@ Sequential message processing pipeline (12 numbered steps + sub-step 2a = 13 ste
 - `orchestrator.ts` -- `createPipeline()` factory that returns an `(input: MessageInput) => Promise<string>` function
 - `router.ts` -- `resolveRoute()` pure function mapping intents to route keys; `createRouteStep()` factory for the route_intent slot
 - `steps/stubs.ts` -- `createStubSteps()` and `createStubRouteHandlers()` for testing and initial wiring
+- `steps/classify-intent-and-complexity.ts` -- Step 8 factory for LLM-based intent/complexity classification with runtime validation and fail-open fallback
 
 ## Interfaces
 
@@ -27,6 +28,7 @@ Sequential message processing pipeline (12 numbered steps + sub-step 2a = 13 ste
 - **Step timing**: Each step's duration (ms) is recorded in `ctx.stepTimings`.
 - **update_processing_status always runs**: It is excluded from the main loop and invoked separately after both success and failure paths.
 - **Stubs**: All steps are no-ops except `classifyIntentAndComplexity` (sets chat/trivial) and `generateResponse` (placeholder text). Stubs are replaced incrementally as real implementations are built.
+- **Classification step constraints**: Step 8 keeps user input isolated from system prompt at call boundaries, validates output via domain functions, forces non-chat intents to `standard`, and logs metadata only.
 
 ## Dependencies
 

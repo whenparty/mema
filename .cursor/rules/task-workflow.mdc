@@ -1,0 +1,166 @@
+---
+description: Standard multi-agent workflow with mandatory ensemble verification and GitHub lifecycle.
+alwaysApply: false
+---
+
+- This workflow applies to non-trivial tasks only. Trivial fixes do not require it.
+- Execution order:
+  0. Clean/create `.task/` and initialize logs: `rm -rf .task && mkdir .task && touch .task/run-log.md .task/workflow-state.md` (orchestrator)
+  1. `github-agent` intake → orchestrator writes `.task/issue.md`
+  2. `context-builder-product` (reads `.task/issue.md`) → orchestrator writes `.task/context-product.md`
+  3. `context-builder-tech` (reads `.task/issue.md`) → orchestrator writes `.task/context-tech.md`
+  4. `Context Validation` (orchestrator) → writes `.task/context-validation.md`; if critical gaps found, re-run owning context-builder (`2` or `3`) with targeted missing-piece request
+  5. `planner-a`, `planner-b`, and `planner-c` in parallel (all read `.task/context-product.md` + `.task/context-tech.md`) → orchestrator writes `.task/plan-a.md`, `.task/plan-b.md`, `.task/plan-c.md`
+  6. `design-reviewer` (reads `.task/plan-a.md` + `.task/plan-b.md` + `.task/plan-c.md`) → writes `.task/selected-plan.md` + orchestrator writes `.task/design-review.md`
+  7. `plan-verifier` (reads `.task/selected-plan.md` + `.task/design-review.md`) → orchestrator writes `.task/plan-verification.md`
+  8. `implementer-core` pass (reads selected plan + verification) → orchestrator writes `.task/implementer-core.md`
+  9. `implementer-test` pass (writes/executes unit tests + fix-forward) → orchestrator writes `.task/implementer-test.md`
+  10. `implementer-e2e` pass (writes e2e scenarios from AC) → orchestrator writes `.task/implementer-e2e.md`
+  11. `docker-e2e-runner` → orchestrator writes `.task/e2e-report.md`
+  12. `code-reviewer-a` (reads `.task/selected-plan.md` + changed files) → orchestrator writes `.task/review-a.md`
+  13. `code-reviewer-b` (reads `.task/selected-plan.md` + changed files) → orchestrator writes `.task/review-b.md`
+  14. `compliance-checker` (reads `.task/*`, runs `tools/check-strict-workflow.sh .task`) → orchestrator writes `.task/compliance-report.md`
+  15. Post-compliance check (orchestrator): run `tools/check-strict-workflow.sh .task --post` to verify `.task/compliance-report.md` exists, has a verdict, and is not FAIL. This is a deterministic sanity check on the compliance-checker's own output.
+  16. `github-agent` finalize (update status, create PR, continue lifecycle)
+- No step may be skipped or self-substituted:
+  - the orchestrating agent reading files itself does NOT replace running `context-builder-product` and `context-builder-tech`
+  - every numbered step must be executed as a subagent invocation (Task tool) with the correct `subagent_type`
+  - if a step is skipped, the workflow is invalid and must not proceed
+- Ensemble gates are mandatory:
+  - run all three planners on the same dual inputs (`.task/context-product.md` + `.task/context-tech.md`)
+  - run reviewer pair on the same inputs
+  - use different models for A/B/C planners and A/B reviewers
+- Model integrity:
+  - gate agents (`design-reviewer`, `plan-verifier`, `code-reviewer-a`, `code-reviewer-b`, `compliance-checker`) must NEVER be invoked with `model: "fast"` or any model override
+  - each agent's model is defined in `.cursor/agents/<name>.md` and must not be downgraded at call site
+  - the `github-agent` may use a fast model for simple lifecycle operations only
+- `github-agent` is the only role that should run GitHub lifecycle operations.
+- Independent compliance gate:
+  - `compliance-checker` is mandatory before finalize
+  - final README checklist must come from `.task/compliance-report.md`, not orchestrator self-report
+- File-based artifact handoff:
+  - every agent output is written verbatim to `.task/<step>.md` by the orchestrator immediately after the agent returns
+  - downstream agents receive file paths to read, not inline content in the orchestrator's prompt
+  - the orchestrator MUST NOT filter, summarize, rephrase, or excerpt agent outputs — write the raw return value to the file
+  - artifact directory `.task/` is created at workflow start and gitignored
+  - file naming convention:
+    - `.task/issue.md` — github-agent intake
+    - `.task/context-product.md` — context-builder-product output
+    - `.task/context-tech.md` — context-builder-tech output
+    - `.task/context-validation.md` — context sanity-check result and rerun decision
+    - `.task/plan-a.md` — planner-a output
+    - `.task/plan-b.md` — planner-b output
+    - `.task/plan-c.md` — planner-c output
+    - `.task/design-review.md` — design-reviewer verdict and scorecard
+    - `.task/selected-plan.md` — complete selected plan (written by design-reviewer, not orchestrator)
+    - `.task/plan-verification.md` — plan-verifier output
+    - `.task/implementer-core.md` — implementer-core stage 8 output
+    - `.task/implementer-test.md` — implementer-test stage 9 output
+    - `.task/implementer-e2e.md` — implementer-e2e stage 10 output
+    - `.task/e2e-report.md` — docker-e2e-runner output
+    - `.task/review-a.md` — code-reviewer-a output
+    - `.task/review-b.md` — code-reviewer-b output
+    - `.task/compliance-report.md` — compliance-checker output
+    - `.task/run-log.md` — orchestrator step invocation log (one bullet per step: `- STEP N: <agent>`)
+    - `.task/workflow-state.md` — orchestrator gate state log (`status: in_progress|completed`, `verdict: ...`)
+  - orchestrator prompt to each agent is minimal: task description + "read your inputs from <file paths>"
+  - orchestrator MAY include `Orchestrator Note` (max 3 sentences) with critical constraints, known edge cases, or user priorities; this note must not replace artifacts or prescribe section-by-section extraction
+  - this eliminates the orchestrator as a content bottleneck — agents read source artifacts directly
+  - key downstream artifacts must include traceability sections:
+    - `Inputs consumed`
+    - `Evidence map`
+    - each section has at least 2 bullet items for critical artifacts
+- Planning artifacts must include:
+  - docs index snapshot for `docs/specification/` and `docs/decisions/`
+  - architecture watch section with constraints and task impact
+  - per-axis design decisions with chosen approach, rejected alternative, and constraint-based rationale (replaces single-axis architecture alternatives)
+  - if only one viable option exists, explicit single-option justification tied to constraints
+  - scope boundary section (`In-scope now` vs `Deferred to future tasks`)
+  - backlog check against `docs/specification/5_1_Backlog.md` and `5_2_Milestones.md`
+  - explicit assumptions when non-material ambiguity exists
+  - explicit `Out of scope`/deferred items to prevent scope creep
+  - risks and rollback/mitigation notes for risky changes
+- Dual context-builders always run before planning:
+  - both context-builders run before planning (`context-builder-product` + `context-builder-tech`)
+  - all three planners receive both packets as primary inputs
+  - context-builder-product and context-builder-tech outputs together must include 3-5 key design axes as concrete questions planners must answer
+  - planners must address every axis from both packets; additional planner-identified axes are encouraged
+  - planners validate and extend the packets, do not rebuild from scratch
+  - planners must perform source spot-checks and explicitly record discovered context gaps/corrections
+  - planners may launch the `research` agent when encountering ambiguity in approach, elevated risk, or open questions unresolved from context packet alone
+  - planner outputs must state whether the `research` agent was used and what it resolved
+  - planners must include `Inputs consumed` and `Evidence map`, explicitly referencing both `.task/context-product.md` and `.task/context-tech.md`
+- Orchestrator prompts to `context-builder-product` and `context-builder-tech` must be minimal: pass the task description (issue body, dependencies, traces) and let each agent apply its own extraction rules. Do NOT list which files to read or which sections to extract. Orchestrator hints narrow scope and become a ceiling instead of a floor.
+- Exception: if Context Validation (4) finds critical omissions, orchestrator may issue one targeted missing-piece retry to the owning context-builder and must record missing items in `.task/context-validation.md`.
+- Context Validation (4) checklist:
+  - relevant FR/NFR/spec constraints for task scope are present in `.task/context-product.md`
+  - dependency/boundary/runtime constraints from `AGENTS.md` and codebase are represented in `.task/context-tech.md`
+  - critical issue dependencies from `.task/issue.md` are represented in at least one context artifact
+  - for LLM-facing tasks (intent/routing/classification/generation), relevant `prompts/*.ftl` clauses are represented in context artifacts
+- Minimal prompt rule does not prohibit signal routing: when gates fail, orchestrator should pass explicit evidence-linked risk signals (contradictions, failing checks, unresolved assumptions) to the next owning agent.
+- Gate semantics:
+  - `design-reviewer` is the architecture decision gate before implementation
+  - `plan-verifier` is the plan hard gate before implementation
+  - `code-reviewer-a/b` is the post-implementation code/release review gate
+  - `compliance-checker` is the independent final workflow compliance gate
+- Feedback loops on gate FAIL:
+  - `design-reviewer` FAIL/NEEDS_REWORK -> `planner-a/b/c` rework with must-fix -> re-run `design-reviewer`
+  - `plan-verifier` FAIL -> selected winner/hybrid plan rework -> re-run `plan-verifier`
+  - `code-reviewer-a/b` NEEDS_REVISION -> triage root cause:
+    - implementation-only -> owning implementer stage(s) fix must-fix -> re-run `code-reviewer-a/b`
+    - plan/context mismatch -> trigger controlled re-planning loop
+  - `code-reviewer-a/b` NEEDS_REPLANNING -> trigger controlled re-planning loop (do not continue local patching)
+  - `docker-e2e-runner` FAIL -> triage root cause:
+    - implementation-only -> owning implementer stage(s) fix -> re-run `docker-e2e-runner`
+    - plan/context mismatch -> trigger controlled re-planning loop
+  - `compliance-checker` FAIL -> fix failed evidence/artifacts in owning steps -> re-run `compliance-checker`
+  - max 2 retry cycles per gate; after that escalate to user
+  - each retry must reference the previous FAIL verdict and what was changed
+- Controlled re-planning loop (mandatory on plan/context mismatch):
+  1. orchestrator writes `.task/replan-request.md` with evidence + root cause (`plan|context`) + required plan changes
+  2. append evidence summary into `.task/context-tech.md` and/or `.task/context-product.md` and reference `.task/replan-request.md`
+  3. restart from planner step: re-run `planner-a/b/c` -> `design-reviewer` -> `plan-verifier`
+  4. resume `implementer-core` -> `implementer-test` -> `implementer-e2e` with refreshed `.task/selected-plan.md`
+  5. max one re-planning loop per task unless user explicitly approves additional loop
+- Gate completion semantics (binding verdicts to todo state):
+  - a gate todo may only be marked `completed` when the gate verdict is APPROVED or PASS
+  - NEEDS_REVISION, NEEDS_REPLANNING, or FAIL keeps the gate todo in `in_progress`
+  - after fixing must-fix items, the orchestrating agent MUST re-run the gate (not mark it complete)
+  - the re-run prompt MUST include: (a) the previous verdict, (b) the list of must-fix items, (c) what was changed for each item
+  - each must-fix item must be individually addressed; partial fixes are not acceptable
+  - if the fix changes code, re-run ALL tests before re-running the gate
+  - sequence after NEEDS_REVISION: fix -> test -> re-run gate -> check verdict -> repeat or complete
+- `design-reviewer` output must include:
+  - weighted scorecard with explicit criteria and final score
+  - verdict: `WINNER_A` | `WINNER_B` | `WINNER_C` | `HYBRID` | `NEEDS_REWORK`
+  - must-keep decisions and must-fix items for selected plan
+  - for any verdict except NEEDS_REWORK: the complete selected plan written to `.task/selected-plan.md` (for HYBRID, design-reviewer merges the plan itself — orchestrator does not construct hybrid plans)
+  - `Inputs consumed` and `Evidence map` sections showing plan-based rationale
+- `plan-verifier` must fail if:
+  - no design-review artifact is provided
+  - selected plan lacks required sections or unresolved must-fix items
+  - plan-verifier must verify substance, not just section presence:
+    - read the task's spec references (FR/NFR listed in the issue) and confirm the plan addresses each one
+    - cross-check the dependency flow table in `AGENTS.md` against the plan's import/type decisions
+    - verify that the docs index snapshot lists all relevant specification and decision documents for the task scope
+- Clarifying questions policy for planning:
+  - ask questions before final plan only when ambiguity is material
+  - material ambiguity means it changes scope, AC mapping, risks, or architecture choices
+  - non-material ambiguity should be handled with documented assumptions
+- Avoid format duplication across files:
+  - `planner-a.md`, `planner-b.md`, and `planner-c.md` own detailed plan structure and section schema
+  - this workflow rule only defines gate-level expectations and sequencing
+- Apply development-plan completion rigor as hard gate for all tasks:
+  - explicit AC checklist with PASS/FAIL for each AC
+  - explicit edge-case/failure-mode checklist with PASS/FAIL for each case
+  - strict artifact section order: Summary -> Acceptance Criteria -> Deviations from Plan -> Review Summary
+  - comprehensive tests for changed behavior (happy path, edge, error path)
+  - typed actionable errors for new domain failure modes
+  - for any `src/<module>/...` code change, review and update `src/<module>/AGENTS.md` when needed
+  - for global process/workflow changes, update root `AGENTS.md`
+  - include `Deviations from Plan` with reason and impact
+  - treat uncovered known boundary cases as blocking issues
+  - treat missing docs index or architecture watch as blocking issues
+  - treat premature implementation of deferred backlog items as blocking issues
+  - treat missing `Inputs consumed` or `Evidence map` in required artifacts as blocking issues
+  - treat empty traceability sections (fewer than 2 items) as blocking issues

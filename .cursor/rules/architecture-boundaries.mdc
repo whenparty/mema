@@ -1,0 +1,22 @@
+---
+description: Enforce clean architecture boundaries and hard constraints from AGENTS.md.
+globs:
+  - "src/**/*.ts"
+alwaysApply: false
+---
+
+- Follow boundary rules from `AGENTS.md`:
+  - `domain` imports only from `shared`
+  - `infra` does not import `domain/gateway/pipeline`
+  - `gateway` and `pipeline` do not import `infra` directly except via dependency injection
+  - `pipeline` does not import from `gateway` (only from `shared` and `domain`)
+  - `shared` is a leaf
+- All DB access must be user-scoped (`user_id` filtering).
+- Keep user input in `user` role and separated from system instructions.
+- Do not log full message text; metadata only.
+- Never use `spikes/` for implementation work.
+- When relevant, apply hard constraints from `docs/decisions/`.
+- Import policy:
+  - Default to public top-level package imports (e.g., `from "package"`).
+  - Avoid deep imports into internal library paths.
+  - Allow deep imports only with explicit technical justification and an inline code comment.
