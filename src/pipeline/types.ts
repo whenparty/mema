@@ -72,7 +72,7 @@ export interface PipelineContext {
 	stepTimings: Record<string, number>;
 }
 
-export type RouteHandlerKey = "chat" | "memory" | "reminder" | "system" | "unknown";
+export type RouteHandlerKey = "chat" | "memory" | "reminder" | "system";
 
 export type RouteHandler = (ctx: PipelineContext, log: pino.Logger) => Promise<void>;
 
@@ -81,5 +81,4 @@ export interface RouteHandlers {
 	memory: RouteHandler;
 	reminder: RouteHandler;
 	system: RouteHandler;
-	unknown: RouteHandler;
 }

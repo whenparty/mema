@@ -1,8 +1,9 @@
-import type { MessageInput } from "@/shared/types";
+import { VALID_INTENTS } from "@/domain/classification/validate";
+import type { Intent, MessageInput } from "@/shared/types";
 import type pino from "pino";
 import { describe, expect, it, vi } from "vitest";
 import { createRouteStep, resolveRoute } from "../router";
-import type { PipelineContext, RouteHandlers } from "../types";
+import type { PipelineContext, RouteHandlerKey, RouteHandlers } from "../types";
 
 const TEST_INPUT: MessageInput = {
 	text: "Hello there",
@@ -28,29 +29,30 @@ const mockLog = {
 	error: vi.fn(),
 } as unknown as pino.Logger;
 
+function expectedRouteForIntent(intent: Intent): RouteHandlerKey {
+	if (intent === "chat") return "chat";
+	if (intent.startsWith("memory.")) return "memory";
+	if (intent.startsWith("reminder.")) return "reminder";
+	if (intent.startsWith("system.")) return "system";
+	throw new Error(`Unhandled intent in test helper: ${intent}`);
+}
+
 describe("resolveRoute", () => {
-	it("returns 'chat' for 'chat' intent", () => {
-		expect(resolveRoute("chat")).toBe("chat");
+	describe("maps every canonical intent to its route family", () => {
+		for (const intent of VALID_INTENTS) {
+			const expected = expectedRouteForIntent(intent);
+			it(`routes "${intent}" to "${expected}"`, () => {
+				expect(resolveRoute(intent)).toBe(expected);
+			});
+		}
 	});
 
-	it("returns 'memory' for 'memory.save'", () => {
-		expect(resolveRoute("memory.save")).toBe("memory");
+	it('returns "chat" for undefined intent', () => {
+		expect(resolveRoute(undefined)).toBe("chat");
 	});
 
-	it("returns 'memory' for 'memory.delete_entity'", () => {
-		expect(resolveRoute("memory.delete_entity")).toBe("memory");
-	});
-
-	it("returns 'reminder' for 'reminder.create'", () => {
-		expect(resolveRoute("reminder.create")).toBe("reminder");
-	});
-
-	it("returns 'system' for 'system.delete_account'", () => {
-		expect(resolveRoute("system.delete_account")).toBe("system");
-	});
-
-	it("returns 'unknown' for undefined intent", () => {
-		expect(resolveRoute(undefined)).toBe("unknown");
+	it('returns "chat" for invalid runtime intent value', () => {
+		expect(resolveRoute("not.a.real.intent" as Intent)).toBe("chat");
 	});
 });
 
@@ -62,12 +64,10 @@ describe("createRouteStep", () => {
 			memory: vi.fn(),
 			reminder: vi.fn(),
 			system: vi.fn(),
-			unknown: vi.fn(),
 		};
 
 		const routeStep = createRouteStep(handlers);
 		const ctx = createTestContext({ intent: "chat" });
-
 		await routeStep(ctx, mockLog);
 
 		expect(chatHandler).toHaveBeenCalledOnce();
@@ -80,33 +80,49 @@ describe("createRouteStep", () => {
 			memory: vi.fn(),
 			reminder: vi.fn(),
 			system: vi.fn(),
-			unknown: vi.fn(),
 		};
 
 		const routeStep = createRouteStep(handlers);
 		const ctx = createTestContext({ intent: "memory.save" });
-
 		await routeStep(ctx, mockLog);
 
 		expect(ctx.routeResult).toBe("memory");
 	});
 
-	it("calls unknown handler when intent is undefined", async () => {
-		const unknownHandler = vi.fn();
+	it('routes undefined intent to chat handler with routeResult "chat"', async () => {
+		const chatHandler = vi.fn();
 		const handlers: RouteHandlers = {
-			chat: vi.fn(),
+			chat: chatHandler,
 			memory: vi.fn(),
 			reminder: vi.fn(),
 			system: vi.fn(),
-			unknown: unknownHandler,
 		};
 
 		const routeStep = createRouteStep(handlers);
 		const ctx = createTestContext();
-
 		await routeStep(ctx, mockLog);
 
-		expect(unknownHandler).toHaveBeenCalledOnce();
-		expect(ctx.routeResult).toBe("unknown");
+		expect(ctx.routeResult).toBe("chat");
+		expect(chatHandler).toHaveBeenCalledOnce();
+	});
+
+	it("handler observes ctx.routeResult already set during invocation", async () => {
+		let observedRouteResult: RouteHandlerKey | undefined;
+		const memoryHandler = vi.fn(async (ctx: PipelineContext) => {
+			observedRouteResult = ctx.routeResult;
+		});
+
+		const handlers: RouteHandlers = {
+			chat: vi.fn(),
+			memory: memoryHandler,
+			reminder: vi.fn(),
+			system: vi.fn(),
+		};
+
+		const routeStep = createRouteStep(handlers);
+		const ctx = createTestContext({ intent: "memory.save" });
+		await routeStep(ctx, mockLog);
+
+		expect(observedRouteResult).toBe("memory");
 	});
 });
