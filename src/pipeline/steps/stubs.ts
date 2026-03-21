@@ -8,7 +8,6 @@ export function createStubRouteHandlers(): RouteHandlers {
 		memory: noOp,
 		reminder: noOp,
 		system: noOp,
-		unknown: noOp,
 	};
 }
 
