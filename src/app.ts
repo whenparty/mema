@@ -15,9 +15,11 @@ import type {
 	DialogStateNotifier,
 } from "./pipeline/dialog-state-types";
 import { createPipeline } from "./pipeline/orchestrator";
+import { createRateLimiter } from "./pipeline/rate-limiter";
 import { createRouteStep } from "./pipeline/router";
 import { createDialogStateClassificationRuntime } from "./pipeline/steps/classify-intent-and-complexity";
 import { createDialogStateGateStep } from "./pipeline/steps/dialog-state-gate";
+import { createRateLimitStep } from "./pipeline/steps/rate-limit-check";
 import { createStubRouteHandlers, createStubSteps } from "./pipeline/steps/stubs";
 import { getLlmModels, initEnv } from "./shared/env";
 import { createRequestLoggingMiddleware, logger } from "./shared/logger";
@@ -108,8 +110,10 @@ if (import.meta.main) {
 		notifier,
 	});
 	const gateStep = createDialogStateGateStep({ manager });
+	const rateLimiter = createRateLimiter({ maxMessages: 100, windowMs: 3_600_000 });
 	const steps = createStubSteps({
 		dialogStateGate: gateStep,
+		rateLimitCheck: createRateLimitStep({ limiter: rateLimiter }),
 		routeIntent: createRouteStep(routeHandlers),
 	});
 	const pipeline = createPipeline(steps);
