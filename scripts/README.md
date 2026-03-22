@@ -9,6 +9,17 @@ cleanup, deleting backups older than 7 days from the bucket.
 The `restore.sh` script downloads a backup from B2 and restores it into the
 running PostgreSQL container. Run it without arguments to list available backups.
 
+## End-to-End Test Commands
+
+- `bun run test:e2e` — raw e2e suite for environments where `DATABASE_URL`
+  already points to a host-reachable PostgreSQL instance (for example CI with a
+  PostgreSQL service container)
+- `bun run test:e2e:docker` — docker-backed local e2e suite where the test
+  runner is defined in `docker-compose.e2e.yml`, built from `Dockerfile.e2e`,
+  shares the compose network with `db`, and uses `db:5432`; the `e2e` image
+  contains dev dependencies only, while source code and tests are mounted at
+  runtime from the working tree
+
 ## Prerequisites
 
 - **Docker** -- the scripts run `amazon/aws-cli` via `docker run` (no host AWS CLI install needed)
