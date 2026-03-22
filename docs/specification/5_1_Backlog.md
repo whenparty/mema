@@ -216,6 +216,30 @@ Detailed AC for each task — in the full version (GitHub Issues).
 | TASK-10.4 | Resume (/start for paused) | P0 | 2 h | TASK-10.3 | FR-PLT.5 | `feature` |
 | TASK-10.5 | /help command | P0 | 2 h | TASK-2.1 | 4.2 | `feature` |
 
+### Planning Bundle Notes
+
+- `PB-ROUTING-COMMANDS` — plan together: `TASK-4.3`, `TASK-4.4`, `TASK-10.3`, `TASK-10.4`, `TASK-10.5`
+- shared seam: command entry points, pipeline routing, intermediate dialog-state routing, and command semantics
+- execution rule: these tasks may be planned together, but selected plans MUST still keep `implement_now` explicit and defer neighboring bundle work unless it is intentionally widened and approved
+- `PB-COMBINED-ANALYSIS` — plan together: `TASK-4.2`, `TASK-5.1`, `TASK-5.2`, `TASK-5.3`, `TASK-5.4`, `TASK-6.1`
+- shared seam: one structured analysis contract spanning extraction, injection detection, entity confidence, conflict detection, intent classification, and retrieval hints
+- `PB-PIPELINE-ENVELOPE` — plan together: `TASK-4.1`, `TASK-4.5`, `TASK-4.6`, `TASK-2.4`, `TASK-11.6`
+- shared seam: message lifecycle, early exits, idempotency, retry, and processing-status semantics
+- `PB-DIALOG-STATE-CONTRACT` — plan together: `TASK-4.4`, `TASK-5.3`, `TASK-5.4`, `TASK-7.4`, `TASK-7.5`, `TASK-7.6`, `TASK-8.1`, `TASK-8.6`, `TASK-13.2`
+- shared seam: typed dialog-state payloads, resets, confirmation/await flows, and state-owned routing
+- `PB-CONTEXT-AND-REPLY-SURFACE` — plan together: `TASK-6.1`, `TASK-6.2`, `TASK-6.3`, `TASK-6.5`, `TASK-6.6`, `TASK-9.1`, `TASK-9.2`, `TASK-9.3`, `TASK-9.4`, `TASK-9.5`, `TASK-5.6`, `TASK-13.4`
+- shared seam: generation-facing context contract, applied-fact traceability, freshness, explanations, and response-time hooks
+- `PB-JOBS-PLATFORM` — plan together: `TASK-6.4`, `TASK-8.2`, `TASK-8.3`, `TASK-8.5`, `TASK-11.6`, `TASK-12.1`, `TASK-12.2`, `TASK-13.1`
+- shared seam: pg-boss platform conventions, job registry, payload envelope, and retry/observation strategy
+- `PB-REMINDER-DOMAIN` — plan together: `TASK-8.1`, `TASK-8.2`, `TASK-8.3`, `TASK-8.4`, `TASK-8.6`, `TASK-8.7`
+- shared seam: normalized reminder model, timezone ownership, schedule representation, and memory-derived trigger semantics
+- `PB-USER-STATUS-LIFECYCLE` — plan together: `TASK-10.1`, `TASK-10.2`, `TASK-10.3`, `TASK-10.4`, `TASK-11.1`
+- shared seam: `User.status` state machine across waitlist, active, paused, blocked, plus direct Telegram command entry points
+- `PB-EVAL-TELEMETRY` — plan together: `TASK-5.5`, `TASK-9.1`, `TASK-12.1`, `TASK-12.2`, `TASK-12.3`, `TASK-12.4`
+- shared seam: evaluation-ready persistence, applied-fact traceability, response artifacts, and judge inputs
+- `PB-INTEREST-LIFECYCLE` — plan together: `TASK-13.1`, `TASK-13.2`, `TASK-13.3`, `TASK-13.4`
+- shared seam: interest scan cursor, candidate lifecycle, pipeline trigger, generation-time matching, and confirmation UX
+
 ---
 
 ## EPIC-11 · Admin & Monitoring

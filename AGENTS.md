@@ -171,7 +171,7 @@ The codebase follows a simplified clean architecture with three layers:
 
 ### Hard Constraints from Spike Decisions
 
-Actionable requirements extracted from `docs/decisions/`. Must be followed by any task touching the relevant area — planners and implementers should not need to re-read decision docs for these.
+Actionable requirements extracted from `docs/decisions/`. Must be followed by any task touching the relevant area — planning agents and implementers should not need to re-read decision docs for these.
 
 | Constraint | Area | Source | Reason |
 |-----------|------|--------|--------|
@@ -231,32 +231,21 @@ Update this table as new spikes produce actionable constraints.
 
 Project-level Cursor setup lives in `.cursor/` and complements this file.
 
-### Required agents
+This file is **not** the workflow contract. It remains the source of truth for:
 
-- `planner`
-- `implementer`
-- `e2e-implementer` (mandatory)
-- `docker-e2e-runner` (mandatory local Docker e2e gate)
-- `github-agent` (mandatory for issue/status/PR lifecycle)
-- `verifier-model-a` and `verifier-model-b` (mandatory ensemble verify)
-- `reviewer-model-a` and `reviewer-model-b` (mandatory ensemble review)
+- repository architecture
+- dependency flow and module boundaries
+- hard constraints from accepted decisions
+- code and testing conventions
 
-### Required execution gates
+Workflow orchestration lives elsewhere:
 
-- **Ensemble verify/review is mandatory**:
-  - A/B agents get identical inputs and permissions
-  - A/B must run on different models
-- **E2E gate is mandatory**:
-  - e2e scenarios are created from acceptance criteria
-  - local Docker-based e2e run must pass before completion
-- **GitHub lifecycle is mandatory**:
-  - read issue, update status, open PR, and finalize via `github-agent`
+- `.cursor/commands/strict-readme-workflow.md` — step order, gates, retries, and orchestrator policy
+- `.cursor/artifact-contracts.md` — `.task/` artifact schemas and merge rules
+- `.cursor/agents/*.md` — per-agent role prompts and output contracts
+- `tools/check-strict-workflow.sh` — deterministic workflow validation
 
-### Source of truth split
-
-- `AGENTS.md` (this file): architecture, constraints, conventions
-- `.cursor/rules/*.mdc`: scoped execution rules
-- `.cursor/agents/*.md`: role prompts and structured outputs
+When workflow behavior changes, update the `.cursor/` workflow files and checker. Update this file only when the repository architecture, constraints, or conventions change.
 
 ---
 

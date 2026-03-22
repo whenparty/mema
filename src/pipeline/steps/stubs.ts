@@ -17,6 +17,7 @@ export function createStubSteps(overrides?: Partial<PipelineSteps>): PipelineSte
 		rateLimitCheck: noOp,
 		tokenQuotaCheck: noOp,
 		saveMessageReceived: noOp,
+		dialogStateGate: noOp,
 		extractFacts: noOp,
 		resolveEntities: noOp,
 		detectConflicts: noOp,
