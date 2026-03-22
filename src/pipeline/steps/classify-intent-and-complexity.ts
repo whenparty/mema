@@ -6,6 +6,7 @@ import {
 	validateClassification,
 } from "@/domain/classification/validate";
 import type pino from "pino";
+import type { DialogStateClassificationRuntime } from "../dialog-state-types";
 import type { PipelineContext, PipelineStep } from "../types";
 
 interface ChatMessage {
@@ -52,55 +53,71 @@ export const CLASSIFICATION_JSON_SCHEMA: JsonSchemaDefinition = {
 	},
 };
 
+async function classifyText(
+	inputText: string,
+	deps: ClassificationDeps,
+	log: pino.Logger,
+	userId?: string,
+): Promise<ClassificationResult> {
+	try {
+		const todayDate = new Date().toISOString().slice(0, 10);
+		const systemPrompt = await deps.renderPrompt("classification", {
+			today_date: todayDate,
+		});
+
+		const messages: ChatMessage[] = [
+			{ role: "system", content: systemPrompt },
+			{ role: "user", content: inputText },
+		];
+
+		const response = await deps.classifyMessage(messages, {
+			jsonSchema: CLASSIFICATION_JSON_SCHEMA,
+			maxTokens: 128,
+		});
+
+		const result = validateClassification(response.parsed);
+		if (result === null) {
+			log.warn(
+				{ userId, step: "classify_intent_and_complexity" },
+				"invalid classification from LLM, using fallback",
+			);
+			return CLASSIFICATION_FALLBACK;
+		}
+
+		return applyComplexityGuardrail(result);
+	} catch (error: unknown) {
+		log.warn(
+			{
+				userId,
+				step: "classify_intent_and_complexity",
+				error: error instanceof Error ? error.name : "UnknownError",
+			},
+			"classification step failed, using fallback",
+		);
+		return CLASSIFICATION_FALLBACK;
+	}
+}
+
+export function createDialogStateClassificationRuntime(
+	deps: ClassificationDeps,
+): DialogStateClassificationRuntime {
+	return {
+		classify(inputText, log, userId) {
+			return classifyText(inputText, deps, log, userId);
+		},
+	};
+}
+
 export function createClassifyIntentAndComplexityStep(deps: ClassificationDeps): PipelineStep {
 	return async (ctx: PipelineContext, log: pino.Logger): Promise<void> => {
-		try {
-			const todayDate = new Date().toISOString().slice(0, 10);
-			const systemPrompt = await deps.renderPrompt("classification", {
-				today_date: todayDate,
-			});
+		const guarded = await classifyText(ctx.input.text, deps, log, ctx.userId);
 
-			const messages: ChatMessage[] = [
-				{ role: "system", content: systemPrompt },
-				{ role: "user", content: ctx.input.text },
-			];
+		ctx.intent = guarded.intent;
+		ctx.complexity = guarded.complexity;
 
-			const response = await deps.classifyMessage(messages, {
-				jsonSchema: CLASSIFICATION_JSON_SCHEMA,
-				maxTokens: 128,
-			});
-
-			const result = validateClassification(response.parsed);
-			if (result === null) {
-				log.warn(
-					{ userId: ctx.userId, step: "classify_intent_and_complexity" },
-					"invalid classification from LLM, using fallback",
-				);
-				ctx.intent = CLASSIFICATION_FALLBACK.intent;
-				ctx.complexity = CLASSIFICATION_FALLBACK.complexity;
-				return;
-			}
-
-			const guarded = applyComplexityGuardrail(result);
-
-			ctx.intent = guarded.intent;
-			ctx.complexity = guarded.complexity;
-
-			log.debug(
-				{ userId: ctx.userId, intent: guarded.intent, complexity: guarded.complexity },
-				"classification complete",
-			);
-		} catch (error: unknown) {
-			log.warn(
-				{
-					userId: ctx.userId,
-					step: "classify_intent_and_complexity",
-					error: error instanceof Error ? error.name : "UnknownError",
-				},
-				"classification step failed, using fallback",
-			);
-			ctx.intent = CLASSIFICATION_FALLBACK.intent;
-			ctx.complexity = CLASSIFICATION_FALLBACK.complexity;
-		}
+		log.debug(
+			{ userId: ctx.userId, intent: guarded.intent, complexity: guarded.complexity },
+			"classification complete",
+		);
 	};
 }

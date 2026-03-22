@@ -4,10 +4,22 @@ import type { MessageHandler } from "./gateway/telegram/types";
 import { createDbClient } from "./infra/db/client";
 import { runMigrations } from "./infra/db/migrate";
 import { createDuplicateChecker } from "./infra/db/queries/check-duplicate-update";
+import { createDialogStateStore } from "./infra/db/queries/dialog-state-store";
+import { createPromptLoader } from "./infra/llm/prompt-loader";
+import { getProviderForModel } from "./infra/llm/provider-factory";
+import { createDialogStateHandlers } from "./pipeline/dialog-state-handlers";
+import { createDialogStateManager } from "./pipeline/dialog-state-manager";
+import { createDialogStateTimeoutScheduler } from "./pipeline/dialog-state-timeout-scheduler";
+import type {
+	DialogStateCompletionCallbacks,
+	DialogStateNotifier,
+} from "./pipeline/dialog-state-types";
 import { createPipeline } from "./pipeline/orchestrator";
 import { createRouteStep } from "./pipeline/router";
+import { createDialogStateClassificationRuntime } from "./pipeline/steps/classify-intent-and-complexity";
+import { createDialogStateGateStep } from "./pipeline/steps/dialog-state-gate";
 import { createStubRouteHandlers, createStubSteps } from "./pipeline/steps/stubs";
-import { initEnv } from "./shared/env";
+import { getLlmModels, initEnv } from "./shared/env";
 import { createRequestLoggingMiddleware, logger } from "./shared/logger";
 import type { MessageInput } from "./shared/types";
 
@@ -24,9 +36,82 @@ if (import.meta.main) {
 	logger.info("Migrations complete");
 
 	const db = createDbClient(env.databaseUrl);
+	const promptLoader = createPromptLoader({
+		promptsDir: new URL("../prompts", import.meta.url).pathname,
+		nodeEnv: env.nodeEnv,
+	});
+	const compactModel = getLlmModels().compact;
+	const compactProvider = getProviderForModel(compactModel, env);
 
 	const routeHandlers = createStubRouteHandlers();
-	const steps = createStubSteps({ routeIntent: createRouteStep(routeHandlers) });
+	const store = createDialogStateStore(db);
+	const handlers = createDialogStateHandlers();
+	const scheduler = createDialogStateTimeoutScheduler();
+
+	const completionCallbacks: DialogStateCompletionCallbacks = {
+		conflict: async (_args) => {
+			throw new Error("TASK-5.4 must implement conflict completion");
+		},
+		delete: async (_args) => {
+			throw new Error("TASK-7.4/TASK-7.5 must implement delete completion");
+		},
+		account_delete: async (_args) => {
+			throw new Error("TASK-7.6 must implement account-delete completion");
+		},
+		interest: async (_args) => {
+			throw new Error("TASK-13.2/TASK-13.4 must implement interest completion");
+		},
+		missing_data: async (_args) => {
+			throw new Error("Future reminder/chat tasks must implement missing-data completion");
+		},
+		entity_disambiguation: async (_args) => {
+			throw new Error("TASK-5.3 must implement entity-disambiguation completion");
+		},
+	};
+
+	const classifier = createDialogStateClassificationRuntime({
+		async classifyMessage(messages, options) {
+			return compactProvider.chat(messages, {
+				model: compactModel,
+				reasoningEffort: "low",
+				maxTokens: options.maxTokens,
+				jsonSchema: options.jsonSchema,
+			});
+		},
+		renderPrompt(templateName, variables) {
+			return promptLoader.render(templateName, variables);
+		},
+	});
+
+	let telegramBot: ReturnType<typeof createTelegramBot> | null = null;
+	const notifier: DialogStateNotifier = {
+		async sendTimeoutReset(externalUserId, text) {
+			if (!telegramBot) {
+				throw new Error("Telegram bot is not initialized");
+			}
+
+			const chatId = Number(externalUserId);
+			if (!Number.isFinite(chatId)) {
+				throw new Error(`Invalid Telegram user id "${externalUserId}"`);
+			}
+
+			await telegramBot.bot.api.sendMessage(chatId, text);
+		},
+	};
+
+	const manager = createDialogStateManager({
+		store,
+		handlers,
+		completions: completionCallbacks,
+		classifier,
+		scheduler,
+		notifier,
+	});
+	const gateStep = createDialogStateGateStep({ manager });
+	const steps = createStubSteps({
+		dialogStateGate: gateStep,
+		routeIntent: createRouteStep(routeHandlers),
+	});
 	const pipeline = createPipeline(steps);
 
 	const onMessage: MessageHandler = async (input) => {
@@ -41,7 +126,7 @@ if (import.meta.main) {
 		return pipeline(messageInput);
 	};
 
-	const telegramBot = createTelegramBot({
+	telegramBot = createTelegramBot({
 		token: env.telegramBotToken,
 		onMessage,
 		isDuplicate: createDuplicateChecker(db),

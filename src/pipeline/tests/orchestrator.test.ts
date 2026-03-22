@@ -41,6 +41,7 @@ function createSpySteps(): { steps: PipelineSteps; callOrder: string[] } {
 		rateLimitCheck: spyStep("rateLimitCheck"),
 		tokenQuotaCheck: spyStep("tokenQuotaCheck"),
 		saveMessageReceived: spyStep("saveMessageReceived"),
+		dialogStateGate: spyStep("dialogStateGate"),
 		extractFacts: spyStep("extractFacts"),
 		resolveEntities: spyStep("resolveEntities"),
 		detectConflicts: spyStep("detectConflicts"),
@@ -56,7 +57,7 @@ function createSpySteps(): { steps: PipelineSteps; callOrder: string[] } {
 }
 
 describe("createPipeline", () => {
-	it("executes all 13 steps in canonical order", async () => {
+	it("executes all 14 steps in canonical order", async () => {
 		const { steps, callOrder } = createSpySteps();
 		const pipeline = createPipeline(steps);
 

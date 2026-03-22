@@ -1,11 +1,13 @@
 import type { Complexity, Intent, MessageInput } from "@/shared/types";
 import type pino from "pino";
+import type { ActiveDialogState, RecentResetHint } from "./dialog-state-types";
 
 export type PipelineStepName =
 	| "status_check"
 	| "rate_limit_check"
 	| "token_quota_check"
 	| "save_message_received"
+	| "dialog_state_gate"
 	| "extract_facts"
 	| "resolve_entities"
 	| "detect_conflicts"
@@ -23,6 +25,7 @@ export interface PipelineSteps {
 	rateLimitCheck: PipelineStep;
 	tokenQuotaCheck: PipelineStep;
 	saveMessageReceived: PipelineStep;
+	dialogStateGate: PipelineStep;
 	extractFacts: PipelineStep;
 	resolveEntities: PipelineStep;
 	detectConflicts: PipelineStep;
@@ -44,6 +47,7 @@ export const STEP_ORDER: readonly StepOrderEntry[] = [
 	{ name: "rate_limit_check", key: "rateLimitCheck" },
 	{ name: "token_quota_check", key: "tokenQuotaCheck" },
 	{ name: "save_message_received", key: "saveMessageReceived" },
+	{ name: "dialog_state_gate", key: "dialogStateGate" },
 	{ name: "extract_facts", key: "extractFacts" },
 	{ name: "resolve_entities", key: "resolveEntities" },
 	{ name: "detect_conflicts", key: "detectConflicts" },
@@ -64,6 +68,8 @@ export interface PipelineContext {
 	extractedFacts?: unknown[];
 	resolvedEntities?: unknown[];
 	conflicts?: unknown[];
+	dialogState?: ActiveDialogState | null;
+	recentResetHint?: RecentResetHint | null;
 	routeResult?: RouteHandlerKey;
 	responseContext?: unknown;
 	response?: string;

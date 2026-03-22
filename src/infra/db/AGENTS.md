@@ -21,6 +21,7 @@ using Drizzle ORM with PostgreSQL and pgvector for semantic vector search.
 - `client.ts` — `createDbClient(connectionUrl)` factory, `DbClient` type
 - `migrate.ts` — `runMigrations(connectionUrl)` runs `CREATE EXTENSION vector` then Drizzle migrations
 - `queries/check-duplicate-update.ts` — `createDuplicateChecker(db)` factory: returns a `DuplicateChecker` that looks up user via `user_auths` then checks `messages` for existing `telegram_update_id`
+- `queries/dialog-state-store.ts` — `createDialogStateStore(db)` factory: resolves Telegram external IDs through `user_auths`, reads/writes `dialog_states`, and performs optimistic compare-and-reset by internal `user_id`
 - `queries/fact-search.ts` — `searchFactsByEmbedding(db, params)`: semantic similarity search over facts table using pgvector cosineDistance, filters by userId/status/factTypes/threshold
 - `tests/` — unit tests for client, migrate, schema barrel, drizzle config
 - `queries/tests/` — unit tests for query functions
@@ -33,6 +34,7 @@ using Drizzle ORM with PostgreSQL and pgvector for semantic vector search.
 - `createDbClient(connectionUrl: string)` — returns Drizzle instance with schema
 - `DbClient` — return type of `createDbClient`
 - `runMigrations(connectionUrl: string)` — enables pgvector extension and runs migrations
+- `createDialogStateStore(db)` — user-scoped store for dialog-state get/upsert/reset/compare-and-reset, exported from `queries/dialog-state-store.ts`
 - `searchFactsByEmbedding(db, params)` — semantic search, exported from `queries/fact-search.ts`
 - `FactSearchParams` — `{ userId, queryVector, limit, factTypes?, similarityThreshold? }`, exported from `queries/fact-search.ts`
 - `FactSearchResult` — `{ id, content, factType, eventDate, similarity }`, exported from `queries/fact-search.ts`
@@ -45,6 +47,9 @@ using Drizzle ORM with PostgreSQL and pgvector for semantic vector search.
 - `vector("embedding", { dimensions: 1536 })` native Drizzle type (no pgvector package)
 - Every table except `users` has `user_id` FK to `users.id` with `.notNull()`
 - `dialog_states` and `interest_scans` use `user_id` as PK (1:1 with User)
+- `createDialogStateStore(db)` resolves Telegram external IDs in infra via `user_auths`; pipeline code never keys persisted dialog state by Telegram identifiers directly
+- `compareAndResetByUserId()` uses an optimistic update predicate on `user_id + created_at + expires_at` to enforce single-winner reset semantics for timeout vs inbound races
+- `dialog-state-store.ts` treats `context` as opaque JSON; `context.type` parsing and subtype validation stay in the pipeline manager/handler layer
 - `fact_entities` has composite PK `(fact_id, entity_id)`
 - Self-referencing FK in `facts.previous_version_id` uses `AnyPgColumn` return type
 - Lazy FK references: `.references(() => otherTable.column)` for cross-file dependencies
