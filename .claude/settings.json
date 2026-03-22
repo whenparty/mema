@@ -9,7 +9,7 @@
       "Bash(bun run test:unit)",
       "Bash(bun run test:unit *)",
       "Bash(bun run test:e2e)",
-      "Bash(bun run test:e2e:single *)",
+      "Bash(bun run test:e2e:docker)",
       "Bash(docker *)",
       "Bash(sleep *)",
       "Bash(copilot *)",

@@ -27,7 +27,7 @@ Run these commands in order:
    - Max 10 attempts. If still not healthy — report FAIL.
    Do NOT use shell loops (`for`, `while`), pipes, or multi-line scripts for polling.
    If Docker is not running or `docker compose up` fails — report FAIL, do not skip.
-5. `bun run test:e2e` — e2e tests against Docker PostgreSQL
+5. `bun run test:e2e` — e2e tests against the already-started PostgreSQL service
 6. `docker compose down`
 
 ## Output Format
