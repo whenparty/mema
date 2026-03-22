@@ -33,6 +33,9 @@ logs/
 # Docker
 docker-compose.override.yml
 
+# Workflow artifacts
+.task/
+
 # Test coverage
 coverage/
 

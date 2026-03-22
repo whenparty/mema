@@ -21,6 +21,10 @@ Flat structure until a second domain appears, then split into subdirectories
 - Retention: script-side 7-day cleanup + B2 lifecycle rules as defense-in-depth
 - Cross-platform date: GNU `-d` with BSD `-v` fallback
 - Logging: `[ISO-8601-UTC] message` format for cron log capture
+- End-to-end tests have two canonical entrypoints:
+  - `bun run test:e2e` for environments with host-side DB reachability already prepared
+  - `bun run test:e2e:docker` for local docker-backed runs where the test runner should share the compose network with `db`
+- The docker-backed `e2e` service lives in `docker-compose.e2e.yml`, uses a dedicated `Dockerfile.e2e` with dev dependencies only, and mounts the working tree at runtime, so app-image rebuilds are not invalidated by changes in `tests/`
 
 ## Dependencies
 

@@ -85,7 +85,7 @@ jobs:
           echo "Changed files:"
           git diff --name-only HEAD~1 HEAD
           # Deploy only when runtime-affecting paths change
-          if git diff --name-only HEAD~1 HEAD | grep -qE '^(src/|Dockerfile|docker-compose|package\.json|bun\.lock|drizzle/|scripts/|\.github/workflows/)'; then
+          if git diff --name-only HEAD~1 HEAD | grep -qE '^(src/|Dockerfile$|docker-compose\.yml$|package\.json|bun\.lock|drizzle/|scripts/|\.github/workflows/)'; then
             echo "deploy=true" >> "$GITHUB_OUTPUT"
           else
             echo "deploy=false" >> "$GITHUB_OUTPUT"
