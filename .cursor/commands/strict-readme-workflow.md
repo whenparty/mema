@@ -208,6 +208,34 @@ Use these exact step labels in `.task/run-log.md`:
 20. Run `code-reviewer-b`
 21. Run `compliance-checker`
 
+## Pre-Workflow Cleanup
+
+Before STEP 1, the orchestrator MUST perform these cleanup actions:
+
+1. **Delete `.task/` directory** if it exists (`rm -rf .task`), then recreate
+   it (`mkdir -p .task`). This prevents stale artifacts from a previous run
+   from leaking into the current workflow.
+2. **Purge Cursor file-history cache** for `.task/` artifacts. Cursor stores
+   undo/redo snapshots per file under
+   `~/Library/Application Support/Cursor/User/History/<hash>/`.
+   Each directory has an `entries.json` with a `resource` URI and snapshot
+   files. Stale snapshots cause the IDE to diff new artifacts against
+   content from a previous task run.
+   Run:
+   ```bash
+   HIST_DIR=~/Library/Application\ Support/Cursor/User/History
+   if [ -d "$HIST_DIR" ]; then
+     for d in "$HIST_DIR"/*/; do
+       if grep -q '"\.task/' "$d/entries.json" 2>/dev/null || \
+          grep -q '/\.task/' "$d/entries.json" 2>/dev/null; then
+         rm -rf "$d"
+       fi
+     done
+   fi
+   ```
+   This is best-effort — if the path does not exist or the command fails,
+   proceed without error.
+
 ## File-Based Artifact Handoff
 
 - Orchestrator initializes `.task/` at workflow start and creates:

@@ -26,6 +26,11 @@ follow the exact `Implementer Test Report` contract for
 - Search for existing test patterns in the touched module or adjacent modules.
 - Write tests that preserve the approved semantic contract, not just the shape
   of the spec.
+- Assertions must be deterministic: do not depend on implicit environment
+  properties (locale formatting, timezone, ICU data). If the implementation
+  uses an environment-dependent API, the test must either use the same
+  deterministic alternative or assert against an explicitly computed
+  expected value.
 - Raise explicit `Source Gaps` entries when you detect:
   - `MISSED_SOURCE`
   - `DISTILLATION_GAP`
