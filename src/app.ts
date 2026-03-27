@@ -5,8 +5,10 @@ import { createDbClient } from "./infra/db/client";
 import { runMigrations } from "./infra/db/migrate";
 import { createDuplicateChecker } from "./infra/db/queries/check-duplicate-update";
 import { createDialogStateStore } from "./infra/db/queries/dialog-state-store";
+import { createResolveTelegramUserId } from "./infra/db/queries/resolve-telegram-user-id";
 import { createPromptLoader } from "./infra/llm/prompt-loader";
 import { getProviderForModel } from "./infra/llm/provider-factory";
+import { createTokenTracker } from "./infra/llm/token-tracker";
 import { createDialogStateHandlers } from "./pipeline/dialog-state-handlers";
 import { createDialogStateManager } from "./pipeline/dialog-state-manager";
 import { createDialogStateTimeoutScheduler } from "./pipeline/dialog-state-timeout-scheduler";
@@ -21,6 +23,7 @@ import { createDialogStateClassificationRuntime } from "./pipeline/steps/classif
 import { createDialogStateGateStep } from "./pipeline/steps/dialog-state-gate";
 import { createRateLimitStep } from "./pipeline/steps/rate-limit-check";
 import { createStubRouteHandlers, createStubSteps } from "./pipeline/steps/stubs";
+import { createTokenQuotaStep } from "./pipeline/steps/token-quota-check";
 import { getLlmModels, initEnv } from "./shared/env";
 import { createRequestLoggingMiddleware, logger } from "./shared/logger";
 import type { MessageInput } from "./shared/types";
@@ -111,9 +114,30 @@ if (import.meta.main) {
 	});
 	const gateStep = createDialogStateGateStep({ manager });
 	const rateLimiter = createRateLimiter({ maxMessages: 100, windowMs: 3_600_000 });
+
+	const tokenTracker = createTokenTracker({ db, defaultQuotaLimit: env.tokenQuotaMonthly });
+	const resolveUserId = createResolveTelegramUserId(db);
+	const notifyQuotaAdmin = async (message: string): Promise<void> => {
+		if (!telegramBot) {
+			logger.warn({ event: "admin_notification_skipped" }, "telegram bot not initialized");
+			return;
+		}
+		const chatId = Number(env.adminUserId);
+		if (!Number.isFinite(chatId)) {
+			logger.warn({ event: "admin_notification_skipped" }, "invalid ADMIN_USER_ID");
+			return;
+		}
+		await telegramBot.bot.api.sendMessage(chatId, message);
+	};
+
 	const steps = createStubSteps({
 		dialogStateGate: gateStep,
 		rateLimitCheck: createRateLimitStep({ limiter: rateLimiter }),
+		tokenQuotaCheck: createTokenQuotaStep({
+			resolveUserId,
+			checkQuota: tokenTracker.checkQuota,
+			notifyAdmin: notifyQuotaAdmin,
+		}),
 		routeIntent: createRouteStep(routeHandlers),
 	});
 	const pipeline = createPipeline(steps);

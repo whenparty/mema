@@ -23,6 +23,7 @@ using Drizzle ORM with PostgreSQL and pgvector for semantic vector search.
 - `queries/check-duplicate-update.ts` — `createDuplicateChecker(db)` factory: returns a `DuplicateChecker` that looks up user via `user_auths` then checks `messages` for existing `telegram_update_id`
 - `queries/dialog-state-store.ts` — `createDialogStateStore(db)` factory: resolves Telegram external IDs through `user_auths`, reads/writes `dialog_states`, and performs optimistic compare-and-reset by internal `user_id`
 - `queries/fact-search.ts` — `searchFactsByEmbedding(db, params)`: semantic similarity search over facts table using pgvector cosineDistance, filters by userId/status/factTypes/threshold
+- `queries/resolve-telegram-user-id.ts` — `createResolveTelegramUserId(db)` factory: returns `(externalId: string) => Promise<string | null>` resolving Telegram external IDs to internal user IDs via `user_auths`
 - `tests/` — unit tests for client, migrate, schema barrel, drizzle config
 - `queries/tests/` — unit tests for query functions
 - `schema/tests/` — unit tests for individual schema files
