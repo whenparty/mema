@@ -1,9 +1,9 @@
-import type { TokenQuotaResult } from "@/infra/llm/token-tracker";
 import type { MessageInput } from "@/shared/types";
 import type pino from "pino";
 import { describe, expect, it, vi } from "vitest";
 import {
 	QUOTA_EXCEEDED_WARNING,
+	type QuotaCheckResult,
 	type TokenQuotaStepDeps,
 	createTokenQuotaStep,
 	getNextPeriodStart,
@@ -43,7 +43,7 @@ function createMockDeps(overrides?: Partial<TokenQuotaStepDeps>): TokenQuotaStep
 			tokensUsed: 500,
 			quotaLimit: 100_000,
 			periodStart: new Date("2026-03-01T00:00:00Z"),
-		} satisfies TokenQuotaResult),
+		} satisfies QuotaCheckResult),
 		notifyAdmin: vi.fn().mockResolvedValue(undefined),
 		...overrides,
 	};
@@ -69,7 +69,7 @@ describe("createTokenQuotaStep", () => {
 				tokensUsed: 999_999,
 				quotaLimit: 0,
 				periodStart: new Date("2026-03-01T00:00:00Z"),
-			} satisfies TokenQuotaResult),
+			} satisfies QuotaCheckResult),
 		});
 		const step = createTokenQuotaStep(deps);
 		const ctx = createTestContext();
@@ -103,7 +103,7 @@ describe("createTokenQuotaStep", () => {
 				tokensUsed: 100_500,
 				quotaLimit: 100_000,
 				periodStart: new Date("2026-03-01T00:00:00Z"),
-			} satisfies TokenQuotaResult),
+			} satisfies QuotaCheckResult),
 		});
 		const step = createTokenQuotaStep(deps);
 		const ctx = createTestContext();
@@ -123,7 +123,7 @@ describe("createTokenQuotaStep", () => {
 				tokensUsed: 100_500,
 				quotaLimit: 100_000,
 				periodStart: new Date("2026-03-01T00:00:00Z"),
-			} satisfies TokenQuotaResult),
+			} satisfies QuotaCheckResult),
 		});
 		const step = createTokenQuotaStep(deps);
 		const ctx = createTestContext();
@@ -147,7 +147,7 @@ describe("createTokenQuotaStep", () => {
 				tokensUsed: 100_500,
 				quotaLimit: 100_000,
 				periodStart: new Date("2026-03-01T00:00:00Z"),
-			} satisfies TokenQuotaResult),
+			} satisfies QuotaCheckResult),
 			notifyAdmin: vi.fn().mockRejectedValue(new Error("Bot not ready")),
 		});
 		const step = createTokenQuotaStep(deps);
@@ -180,6 +180,44 @@ describe("createTokenQuotaStep", () => {
 		await step(ctx, log);
 
 		expect(deps.checkQuota).toHaveBeenCalledWith("internal-user-id");
+	});
+
+	it("does not block when quotaLimit is 0 even if exceeded is true (defense-in-depth)", async () => {
+		const deps = createMockDeps({
+			checkQuota: vi.fn().mockResolvedValue({
+				exceeded: true,
+				tokensUsed: 999_999,
+				quotaLimit: 0,
+				periodStart: new Date("2026-03-01T00:00:00Z"),
+			} satisfies QuotaCheckResult),
+		});
+		const step = createTokenQuotaStep(deps);
+		const ctx = createTestContext();
+		const log = createMockLog();
+
+		await step(ctx, log);
+
+		expect(ctx.earlyResponse).toBeUndefined();
+		expect(deps.notifyAdmin).not.toHaveBeenCalled();
+	});
+
+	it("sends admin notification with userId and token counts", async () => {
+		const deps = createMockDeps({
+			checkQuota: vi.fn().mockResolvedValue({
+				exceeded: true,
+				tokensUsed: 100_500,
+				quotaLimit: 100_000,
+				periodStart: new Date("2026-03-01T00:00:00Z"),
+			} satisfies QuotaCheckResult),
+		});
+		const step = createTokenQuotaStep(deps);
+		const ctx = createTestContext();
+		const log = createMockLog();
+
+		await step(ctx, log);
+
+		expect(deps.notifyAdmin).toHaveBeenCalledWith(expect.stringContaining("internal-user-id"));
+		expect(deps.notifyAdmin).toHaveBeenCalledWith(expect.stringContaining("100500"));
 	});
 });
 

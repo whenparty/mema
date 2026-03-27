@@ -1,9 +1,15 @@
-import type { TokenQuotaResult } from "@/infra/llm/token-tracker";
 import type { PipelineStep } from "../types";
+
+export interface QuotaCheckResult {
+	exceeded: boolean;
+	tokensUsed: number;
+	quotaLimit: number;
+	periodStart: Date;
+}
 
 export interface TokenQuotaStepDeps {
 	resolveUserId: (externalId: string) => Promise<string | null>;
-	checkQuota: (userId: string) => Promise<TokenQuotaResult>;
+	checkQuota: (userId: string) => Promise<QuotaCheckResult>;
 	notifyAdmin: (message: string) => Promise<void>;
 }
 
