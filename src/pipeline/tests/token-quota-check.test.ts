@@ -112,7 +112,7 @@ describe("createTokenQuotaStep", () => {
 		await step(ctx, log);
 
 		expect(ctx.earlyResponse).toBeDefined();
-		expect(ctx.earlyResponse).toContain("April");
+		expect(ctx.earlyResponse).toContain("April 1, 2026");
 		expect(deps.notifyAdmin).toHaveBeenCalledOnce();
 	});
 
@@ -180,6 +180,17 @@ describe("createTokenQuotaStep", () => {
 		await step(ctx, log);
 
 		expect(deps.checkQuota).toHaveBeenCalledWith("internal-user-id");
+	});
+
+	it("sets ctx.userId after resolving internal user id", async () => {
+		const deps = createMockDeps();
+		const step = createTokenQuotaStep(deps);
+		const ctx = createTestContext();
+		const log = createMockLog();
+
+		await step(ctx, log);
+
+		expect(ctx.userId).toBe("internal-user-id");
 	});
 
 	it("does not block when quotaLimit is 0 even if exceeded is true (defense-in-depth)", async () => {

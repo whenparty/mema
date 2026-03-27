@@ -19,14 +19,24 @@ export function getNextPeriodStart(periodStart: Date): Date {
 	return new Date(Date.UTC(year, month + 1, 1));
 }
 
+const MONTH_NAMES = [
+	"January",
+	"February",
+	"March",
+	"April",
+	"May",
+	"June",
+	"July",
+	"August",
+	"September",
+	"October",
+	"November",
+	"December",
+];
+
 function formatResetDate(periodStart: Date): string {
 	const next = getNextPeriodStart(periodStart);
-	return next.toLocaleDateString("en-US", {
-		year: "numeric",
-		month: "long",
-		day: "numeric",
-		timeZone: "UTC",
-	});
+	return `${MONTH_NAMES[next.getUTCMonth()]} ${next.getUTCDate()}, ${next.getUTCFullYear()}`;
 }
 
 export const QUOTA_EXCEEDED_WARNING =
@@ -42,6 +52,8 @@ export function createTokenQuotaStep(deps: TokenQuotaStepDeps): PipelineStep {
 		if (userId === null) {
 			return;
 		}
+
+		ctx.userId = userId;
 
 		const result = await checkQuota(userId);
 
