@@ -1,0 +1,76 @@
+import type { TokenQuotaResult } from "@/infra/llm/token-tracker";
+import type { PipelineStep } from "../types";
+
+export interface TokenQuotaStepDeps {
+	resolveUserId: (externalId: string) => Promise<string | null>;
+	checkQuota: (userId: string) => Promise<TokenQuotaResult>;
+	notifyAdmin: (message: string) => Promise<void>;
+}
+
+export function getNextPeriodStart(periodStart: Date): Date {
+	const year = periodStart.getUTCFullYear();
+	const month = periodStart.getUTCMonth();
+	return new Date(Date.UTC(year, month + 1, 1));
+}
+
+function formatResetDate(periodStart: Date): string {
+	const next = getNextPeriodStart(periodStart);
+	return next.toLocaleDateString("en-US", {
+		year: "numeric",
+		month: "long",
+		day: "numeric",
+		timeZone: "UTC",
+	});
+}
+
+export const QUOTA_EXCEEDED_WARNING =
+	"You've reached your monthly usage limit. Your quota resets on";
+
+export function createTokenQuotaStep(deps: TokenQuotaStepDeps): PipelineStep {
+	const { resolveUserId, checkQuota, notifyAdmin } = deps;
+
+	return async (ctx, log) => {
+		const { externalUserId } = ctx.input;
+
+		const userId = await resolveUserId(externalUserId);
+		if (userId === null) {
+			return;
+		}
+
+		const result = await checkQuota(userId);
+
+		if (result.quotaLimit === 0 || !result.exceeded) {
+			return;
+		}
+
+		const resetDate = formatResetDate(result.periodStart);
+		ctx.earlyResponse = `${QUOTA_EXCEEDED_WARNING} ${resetDate}. Please try again then.`;
+
+		log.warn(
+			{
+				event: "token_quota_exceeded",
+				externalUserId,
+				userId,
+				tokensUsed: result.tokensUsed,
+				quotaLimit: result.quotaLimit,
+				periodStart: result.periodStart.toISOString(),
+			},
+			"token quota exceeded",
+		);
+
+		try {
+			await notifyAdmin(
+				`Token quota exceeded for user ${userId}: ${result.tokensUsed}/${result.quotaLimit} tokens used.`,
+			);
+		} catch (error: unknown) {
+			log.warn(
+				{
+					event: "admin_notification_failed",
+					userId,
+					error: error instanceof Error ? error.message : "unknown",
+				},
+				"failed to notify admin about quota exceed",
+			);
+		}
+	};
+}
