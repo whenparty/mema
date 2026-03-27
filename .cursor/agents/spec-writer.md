@@ -21,6 +21,16 @@ exact `Implementation Spec` contract for `.task/implementation-spec.md`.
 - Preserve `source_id` values through step specs, validation rules, prompt
   specs, and AC behavior specs.
 - Base signatures and types on the real codebase when applicable.
+- For each function that interacts with shared mutable state or
+  environment-provided APIs, explicitly specify:
+  1. **Reads** — which shared state fields and environment capabilities
+     the function consumes.
+  2. **Writes** — which shared state fields the function mutates as a
+     side-effect (e.g. setting `ctx.userId` after resolving it).
+  3. **Assumes** — which environment properties the function depends on
+     (locale/ICU data, timezone, file system, network).
+  If implicit coupling is not captured in the spec, write a `Spec Gaps`
+  entry for it.
 - If the plan is underspecified, write a `Spec Gaps` entry. Do not silently
   invent missing semantics.
 

@@ -38,6 +38,10 @@ against the code as it exists now.
   - risk mitigation carry-through
   - deferred scope remains deferred
   - architecture boundaries are still respected
+  - implicit coupling: for each changed file, check whether there is
+    shared state mutation, environment assumption, or cross-step data
+    dependency that is not reflected in types, spec, or tests — if so,
+    it is a finding
 - If the implementation reveals a plan/context failure rather than a local code
   issue, use `NEEDS_REPLANNING`.
 
