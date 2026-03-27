@@ -66,7 +66,7 @@ describe("createRateLimiter", () => {
 		expect(limiter.tryAdmit("user-1")).toBe(true);
 	});
 
-	it("cleans up empty entries after all timestamps expire", () => {
+	it("restores full capacity after window elapses (no active timestamps)", () => {
 		const { limiter, advance } = setup(1000);
 
 		limiter.tryAdmit("user-1");
@@ -88,7 +88,7 @@ describe("createRateLimiter", () => {
 		expect(limiter.getRemainingCapacity("user-b")).toBe(CONFIG.maxMessages - 1);
 	});
 
-	it("getRemainingCapacity is read-only and does not affect tryAdmit", () => {
+	it("repeated getRemainingCapacity does not change reported capacity before tryAdmit", () => {
 		const { limiter } = setup();
 
 		limiter.tryAdmit("user-1");
@@ -104,5 +104,21 @@ describe("createRateLimiter", () => {
 	it("returns full capacity for unknown users", () => {
 		const { limiter } = setup();
 		expect(limiter.getRemainingCapacity("unknown")).toBe(CONFIG.maxMessages);
+	});
+
+	it("rejects invalid maxMessages", () => {
+		for (const maxMessages of [0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+			expect(() => createRateLimiter({ maxMessages, windowMs: 60_000 })).toThrow(
+				/maxMessages must be a finite positive integer/,
+			);
+		}
+	});
+
+	it("rejects invalid windowMs", () => {
+		for (const windowMs of [0, -1, 1000.5, Number.NaN]) {
+			expect(() => createRateLimiter({ maxMessages: 3, windowMs })).toThrow(
+				/windowMs must be a finite positive integer/,
+			);
+		}
 	});
 });
