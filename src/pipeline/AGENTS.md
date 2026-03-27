@@ -13,6 +13,8 @@ Sequential message processing pipeline for inbound text messages. The product ar
 - `dialog-state-handlers.ts` -- `createDialogStateHandlers()` factory: six-subtype registry with local continuation matching, parseContext validation, and recent-reset hint derivation
 - `dialog-state-manager.ts` -- `createDialogStateManager()` factory: owns active-state lookup, completion ordering, timeout reconciliation, off-topic reset, recent-reset recovery, and `openState()` for future producer tasks
 - `dialog-state-timeout-scheduler.ts` -- `createDialogStateTimeoutScheduler()` factory: process-local timeout scheduling keyed by internal `userId`
+- `rate-limiter.ts` -- `createRateLimiter()` factory: in-memory sliding-window rate limiter with lazy cleanup (TASK-4.5)
+- `steps/rate-limit-check.ts` -- `createRateLimitStep()` factory for the rate_limit_check pipeline slot (TASK-4.5)
 - `steps/dialog-state-gate.ts` -- `createDialogStateGateStep()` factory for the internal pre-IDLE gate slot
 - `steps/stubs.ts` -- `createStubSteps()` and `createStubRouteHandlers()` for testing and initial wiring
 
@@ -25,6 +27,8 @@ Sequential message processing pipeline for inbound text messages. The product ar
 - `DialogStateManager` -- exported from `dialog-state-types.ts`; owns `openState()`, inbound active-state evaluation, and timeout handling
 - `DialogStateHandlerRegistry` -- exported from `dialog-state-types.ts`; six-subtype registry used by the manager
 - `DialogStateStorePort` -- exported from `dialog-state-types.ts`; pipeline-owned structural port satisfied by the infra store
+- `RateLimiter` -- exported from `rate-limiter.ts`; `tryAdmit(externalUserId)` and `getRemainingCapacity(externalUserId)` for per-user message frequency limiting
+- `RateLimiterConfig` -- exported from `rate-limiter.ts`; `{ maxMessages, windowMs }` configuration
 
 ## Patterns and Decisions
 
@@ -37,6 +41,7 @@ Sequential message processing pipeline for inbound text messages. The product ar
 - **update_processing_status always runs**: It is excluded from the main loop and invoked separately after both success and failure paths.
 - **Dialog-state completion seam**: Handlers parse and match only; the manager owns reset ordering, callback invocation, timeout scheduling, and recent-reset hint seeding.
 - **Recent-reset recovery**: Short-lived in-memory hints are consulted only when no active non-`idle` state remains and the current reply is a narrow bare confirmation such as `yes`, `no`, or `ok`.
+- **Rate limiting**: Pipeline-local in-memory state via `createRateLimiter()` — `Map<string, number[]>` with per-message sliding-window TTL and lazy cleanup. Keyed by `externalUserId` (available at step 2 before `ctx.userId` is populated). Factory injection: instantiated in `app.ts`, injected into `createRateLimitStep({ limiter })`. Sets `ctx.earlyResponse` on rejection; emits warn-level log with `externalUserId` metadata. No shared abstraction with token quota (TASK-4.6) which uses DB-backed state.
 - **Stubs**: All steps are no-ops except `classifyIntentAndComplexity` (sets chat/trivial) and `generateResponse` (placeholder text). Stubs are replaced incrementally as real implementations are built.
 
 ## Dependencies
