@@ -158,8 +158,9 @@ EOF
 
 | Workflow moment | Operations to run |
 |---|---|
-| Step 1 (intake) | Read Issue → write `.task/issue.md` |
-| Step 8 (before implementation) | Create branch, Move Card → In Progress (`494cf029`), Comment "Implementation started" |
+| Step 1 (intake) | Read Issue → write `.task/issue.md`, Move Card → In Progress (`494cf029`) |
+| Step 8 (before implementation) | Create branch, Comment "Implementation started" |
+| After Step 14 (compliance pass) | Push branch, Create PR, Move Card → In Review (`34dc5401`) |
 
 ## Constraints
 
