@@ -59,6 +59,36 @@ export const STEP_ORDER: readonly StepOrderEntry[] = [
 	{ name: "update_processing_status", key: "updateProcessingStatus" },
 ] as const;
 
+export interface MemoryFact {
+	id: string;
+	content: string;
+	factType: string;
+	temporalSensitivity: string;
+	eventDate: Date | null;
+	sourceQuote: string | null;
+	createdAt: Date;
+}
+
+export interface ContextMessage {
+	role: "user" | "assistant";
+	content: string;
+}
+
+export interface ResponseContext {
+	userSummary: string | null;
+	relevantFacts: MemoryFact[];
+	conversationHistory: ContextMessage[];
+}
+
+/** Upper-bound metadata: promptFactIds are facts sent in the prompt, not model-verified usage. */
+export interface GenerationMetadata {
+	model: string;
+	promptFactIds: string[];
+	promptFactCount: number;
+	inputTokens?: number;
+	outputTokens?: number;
+}
+
 export interface PipelineContext {
 	readonly input: MessageInput;
 	userId?: string;
@@ -71,7 +101,8 @@ export interface PipelineContext {
 	dialogState?: ActiveDialogState | null;
 	recentResetHint?: RecentResetHint | null;
 	routeResult?: RouteHandlerKey;
-	responseContext?: unknown;
+	responseContext?: ResponseContext | null;
+	generationMetadata?: GenerationMetadata;
 	response?: string;
 	earlyResponse?: string;
 	error?: unknown;

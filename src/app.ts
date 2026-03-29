@@ -21,6 +21,7 @@ import { createRateLimiter } from "./pipeline/rate-limiter";
 import { createRouteStep } from "./pipeline/router";
 import { createDialogStateClassificationRuntime } from "./pipeline/steps/classify-intent-and-complexity";
 import { createDialogStateGateStep } from "./pipeline/steps/dialog-state-gate";
+import { createGenerateResponseStep } from "./pipeline/steps/generate-response";
 import { createRateLimitStep } from "./pipeline/steps/rate-limit-check";
 import { createStubRouteHandlers, createStubSteps } from "./pipeline/steps/stubs";
 import { createTokenQuotaStep } from "./pipeline/steps/token-quota-check";
@@ -130,6 +131,20 @@ if (import.meta.main) {
 		await telegramBot.bot.api.sendMessage(chatId, message);
 	};
 
+	const powerfulAModel = getLlmModels().powerfulA;
+	const powerfulAProvider = getProviderForModel(powerfulAModel, env);
+	const generateResponseStep = createGenerateResponseStep({
+		async generateChat(messages, options) {
+			return powerfulAProvider.chat(messages, {
+				model: powerfulAModel,
+				maxTokens: options.maxTokens,
+			});
+		},
+		renderPrompt(templateName, variables) {
+			return promptLoader.render(templateName, variables);
+		},
+	});
+
 	const steps = createStubSteps({
 		dialogStateGate: gateStep,
 		rateLimitCheck: createRateLimitStep({ limiter: rateLimiter }),
@@ -139,6 +154,7 @@ if (import.meta.main) {
 			notifyAdmin: notifyQuotaAdmin,
 		}),
 		routeIntent: createRouteStep(routeHandlers),
+		generateResponse: generateResponseStep,
 	});
 	const pipeline = createPipeline(steps);
 
