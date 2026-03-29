@@ -3,6 +3,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createTelegramBot } from "../bot";
 import type { DuplicateChecker, TelegramBotConfig, TelegramBotInstance } from "../types";
 
+const EXPECTED_HELP_MESSAGE = [
+	"I remember facts from conversations and use them in responses 🧠",
+	"",
+	"What I can do:",
+	"— Remember: just tell me something",
+	'— Remind: "remind me tomorrow at 9 about the meeting"',
+	'— Show memory: "what do you know about me?"',
+	'— Forget: "forget that I live in Berlin"',
+].join("\n");
+
 // Mock logger to avoid noisy output during tests
 vi.mock("@/shared/logger", () => {
 	const mockLogger = {
@@ -233,9 +243,7 @@ describe("telegram bot integration", () => {
 
 			expect(captured).toHaveLength(1);
 			expect(captured[0].method).toBe("sendMessage");
-			expect(captured[0].payload.text).toBe(
-				"I can remember things for you. Just tell me something!",
-			);
+			expect(captured[0].payload.text).toBe(EXPECTED_HELP_MESSAGE);
 			expect(captured[0].payload.chat_id).toBe(42);
 		});
 	});
