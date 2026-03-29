@@ -17,6 +17,7 @@ Sequential message processing pipeline for inbound text messages. The product ar
 - `steps/rate-limit-check.ts` -- `createRateLimitStep()` factory for the rate_limit_check pipeline slot (TASK-4.5)
 - `steps/token-quota-check.ts` -- `createTokenQuotaStep()` factory for the token_quota_check pipeline slot (TASK-4.6): DB-backed monthly token quota enforcement with user notification and admin alerting
 - `steps/dialog-state-gate.ts` -- `createDialogStateGateStep()` factory for the internal pre-IDLE gate slot
+- `steps/extract-facts.ts` -- `createExtractFactsStep`, `EXTRACTION_COMBINED_JSON_SCHEMA` (TASK-5.1)
 - `steps/stubs.ts` -- `createStubSteps()` and `createStubRouteHandlers()` for testing and initial wiring
 
 ## Interfaces
@@ -45,7 +46,8 @@ Sequential message processing pipeline for inbound text messages. The product ar
 - **Recent-reset recovery**: Short-lived in-memory hints are consulted only when no active non-`idle` state remains and the current reply is a narrow bare confirmation such as `yes`, `no`, or `ok`.
 - **Rate limiting**: Pipeline-local in-memory state via `createRateLimiter()` — `Map<string, number[]>` with per-message sliding-window TTL and lazy cleanup. Keyed by `externalUserId` (available at step 2 before `ctx.userId` is populated). Factory injection: instantiated in `app.ts`, injected into `createRateLimitStep({ limiter })`. Sets `ctx.earlyResponse` on rejection; emits warn-level log with `externalUserId` metadata. No shared abstraction with token quota which uses DB-backed state.
 - **Token quota check (TASK-4.6)**: DB-backed monthly per-user token quota enforcement at step 2a (after rate limit, before message save). Uses three injected ports: `resolveUserId` (externalUserId → internal userId via user_auths), `checkQuota` (TokenTracker.checkQuota), `notifyAdmin` (Telegram API to ADMIN_USER_ID). On exceed: sets `ctx.earlyResponse` with renewal date, emits warn log with metadata only, fires best-effort admin notification (failure swallowed). `quotaLimit === 0` means unlimited. Unknown users (null resolver) pass through.
-- **Stubs**: All steps are no-ops except `classifyIntentAndComplexity` (sets chat/trivial) and `generateResponse` (placeholder text). Stubs are replaced incrementally as real implementations are built.
+- **Fact extraction (TASK-5.1)**: Runtime slot `extract_facts` uses `createExtractFactsStep` when wired in `app.ts`: renders `prompts/extraction.ftl` with `message_anchor_date`, structured LLM call with `EXTRACTION_COMBINED_JSON_SCHEMA` (ADR-003 + ADR-005 `relevant_fact_types`), domain `validateCombinedExtractionOutput`, writes **only** `ctx.extractedFacts`. Parsed `intent` / `complexity` / `entities` / `conflicts` are non-consuming for TASK-5.1 (no hydration of those context slots). ADR-005 “step 8” naming: field is carried on this step’s schema until orchestration merges steps.
+- **Stubs**: Default `extractFacts` is a no-op in `createStubSteps`; production wiring overrides with real extraction. Other stubs remain until replaced.
 
 ## Dependencies
 

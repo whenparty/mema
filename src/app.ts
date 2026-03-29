@@ -21,6 +21,7 @@ import { createRateLimiter } from "./pipeline/rate-limiter";
 import { createRouteStep } from "./pipeline/router";
 import { createDialogStateClassificationRuntime } from "./pipeline/steps/classify-intent-and-complexity";
 import { createDialogStateGateStep } from "./pipeline/steps/dialog-state-gate";
+import { createExtractFactsStep } from "./pipeline/steps/extract-facts";
 import { createGenerateResponseStep } from "./pipeline/steps/generate-response";
 import { createRateLimitStep } from "./pipeline/steps/rate-limit-check";
 import { createStubRouteHandlers, createStubSteps } from "./pipeline/steps/stubs";
@@ -152,6 +153,21 @@ if (import.meta.main) {
 			resolveUserId,
 			checkQuota: tokenTracker.checkQuota,
 			notifyAdmin: notifyQuotaAdmin,
+		}),
+		extractFacts: createExtractFactsStep({
+			async classifyMessage(messages, options) {
+				return compactProvider.chat(messages, {
+					model: compactModel,
+					reasoningEffort: "low",
+					maxTokens: options.maxTokens,
+					jsonSchema: options.jsonSchema,
+				});
+			},
+			renderPrompt(templateName, variables) {
+				return promptLoader.render(templateName, variables);
+			},
+			// Logical-anchor tier: ISO calendar date at handle time; not Telegram message created_at (TASK-5.1 / US-MEM.1 waiver).
+			getMessageAnchorDate: () => new Date().toISOString().slice(0, 10),
 		}),
 		routeIntent: createRouteStep(routeHandlers),
 		generateResponse: generateResponseStep,
