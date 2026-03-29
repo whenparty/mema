@@ -231,12 +231,20 @@ describe("telegram bot integration", () => {
 			const update = makePrivateCommandUpdate(2, "help");
 			await instance.bot.handleUpdate(update);
 
+			expect(onMessage).not.toHaveBeenCalled();
 			expect(captured).toHaveLength(1);
 			expect(captured[0].method).toBe("sendMessage");
-			expect(captured[0].payload.text).toBe(
-				"I can remember things for you. Just tell me something!",
-			);
 			expect(captured[0].payload.chat_id).toBe(42);
+			expect(captured[0].payload.text).toEqual(expect.any(String));
+
+			const replyText = captured[0].payload.text as string;
+			expect(replyText).toContain(
+				"I remember facts from conversations and use them in responses 🧠",
+			);
+			expect(replyText).toContain("   What I can do:");
+			expect(replyText).toContain('   — Remind: "remind me tomorrow at 9 about the meeting"');
+			expect(replyText).toContain('   — Forget: "forget that I live in Berlin"');
+			expect(replyText.split("\n")).toHaveLength(7);
 		});
 	});
 

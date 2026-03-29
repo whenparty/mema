@@ -15,7 +15,7 @@ NFR-PORT.2 (Telegram-specific logic isolated from business logic).
 - `middleware/user-serializer.ts` — Per-user message serialization middleware (FR-PLT.6). Ensures at most one message per user is processed at a time using promise chaining.
 - `middleware/dedup-guard.ts` — Idempotent processing middleware (NFR-REL.3). Checks if a Telegram update has already been processed via injected `DuplicateChecker`. Skips duplicates with a warning log.
 - `commands/start.ts` — `/start` command handler (stub).
-- `commands/help.ts` — `/help` command handler (stub).
+- `commands/help.ts` — `/help` command handler with the static capability summary from the conversation design spec.
 - `commands/stop.ts` — `/stop` command handler (stub).
 
 ## Interfaces
@@ -37,7 +37,7 @@ NFR-PORT.2 (Telegram-specific logic isolated from business logic).
 - **Dedup guard middleware**: Registered after user-serializer via `bot.use()`. Calls `isDuplicate(telegramUserId, updateId)` — an injected `DuplicateChecker` function. If the update was already processed, logs a warning and returns without calling `next()`. Combined with user-serializer, concurrent duplicates are also caught because they are serialized first, then checked.
 - **Middleware order**: `private-only` -> `user-serializer` -> `dedup-guard`. This ensures dedup checks happen within the serialized per-user context, preventing race conditions on concurrent duplicate delivery.
 - **Error handler**: `bot.catch()` logs errors via child logger; does not crash the process.
-- **Commands are stubs**: `/start`, `/help`, `/stop` send static placeholder text. Real logic in later tasks.
+- **Commands are mostly static**: `/help` sends the spec-defined capability summary directly; `/start` and `/stop` still use placeholder text until their dedicated tasks are implemented.
 - **`telegramUserId` is a string**: Telegram user IDs are numbers, but stored as strings (matches `external_id` in UserAuth). Explicit `.toString()` conversion in the text handler.
 
 ## Dependencies
