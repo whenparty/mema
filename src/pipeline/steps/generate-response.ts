@@ -99,6 +99,8 @@ export function createGenerateResponseStep(deps: GenerationDeps): PipelineStep {
 					model: result.model,
 					promptFactIds,
 					promptFactCount: promptFactIds.length,
+					inputTokens: result.usage.inputTokens,
+					outputTokens: result.usage.outputTokens,
 				};
 				return;
 			}
