@@ -10,7 +10,11 @@ export interface GenerationDeps {
 	generateChat: (
 		messages: ChatMessage[],
 		options: { maxTokens?: number },
-	) => Promise<{ content: string; model: string; usage: { inputTokens: number; outputTokens: number } }>;
+	) => Promise<{
+		content: string;
+		model: string;
+		usage: { inputTokens: number; outputTokens: number };
+	}>;
 	renderPrompt: (templateName: string, variables: Record<string, string>) => Promise<string>;
 }
 
@@ -69,17 +73,12 @@ export function createGenerateResponseStep(deps: GenerationDeps): PipelineStep {
 			today_date: new Date().toISOString().slice(0, 10),
 			user_first_name: ctx.input.firstName,
 			user_summary: responseContext?.userSummary ?? "",
-			memory_facts:
-				facts.length > 0
-					? formatMemoryFacts(facts)
-					: "No memory context available.",
+			memory_facts: facts.length > 0 ? formatMemoryFacts(facts) : "No memory context available.",
 		};
 
 		try {
 			const systemPrompt = await deps.renderPrompt("response-generation", variables);
-			const messages: ChatMessage[] = [
-				{ role: "system", content: systemPrompt },
-			];
+			const messages: ChatMessage[] = [{ role: "system", content: systemPrompt }];
 
 			const history = responseContext?.conversationHistory ?? [];
 			for (const msg of history) {
